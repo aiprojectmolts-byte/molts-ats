@@ -70,7 +70,18 @@
     padding: 16px 32px;
     display: flex; justify-content: space-between; align-items: center;
   }
-  .header-left { display: flex; align-items: center; gap: 16px; }
+  .header-left { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .top-nav { display: flex; gap: 4px; }
+  .top-nav-btn {
+    padding: 6px 14px; font-size: 13px;
+    border: 1px solid var(--border); background: transparent;
+    color: var(--text-secondary); border-radius: 6px;
+    cursor: pointer; font-family: inherit;
+  }
+  .top-nav-btn:hover { background: var(--bg-secondary); color: var(--text-primary); }
+  .top-nav-btn.active {
+    background: var(--primary); color: white; border-color: var(--primary);
+  }
   .header-title { font-size: 18px; font-weight: 500; color: var(--primary); }
   .header-count {
     font-size: 12px; color: var(--text-tertiary);
@@ -212,21 +223,37 @@
   .empty-state .hint { font-size: 12px; color: var(--text-tertiary); margin-top: 8px; }
 
   .status-badge {
-    display: inline-block; padding: 3px 10px;
-    border-radius: 12px; font-size: 11px;
-    font-weight: 500; white-space: nowrap;
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 0; border: none; background: transparent; border-radius: 0;
+    font-size: 12px; font-weight: 500; white-space: nowrap;
+    color: var(--text);
   }
-  .status-not_sent { background: var(--gray-bg); color: var(--text-secondary); }
-  .status-sent_first { background: var(--gray-bg); color: var(--gray); }
-  .status-sent_second { background: var(--info-bg); color: var(--info-text); }
-  .status-replied { background: var(--error-bg); color: var(--error-text); }
-  .status-casual_interview { background: var(--casual); color: var(--casual-text); }
-  .status-in_selection { background: var(--selection-bg); color: var(--selection-text); }
-  .status-offer { background: var(--offer-bg); color: var(--offer-text); }
-  .status-joined { background: var(--joined-bg); color: var(--joined-text); font-weight: 500; }
-  .status-closed { background: var(--gray-light); color: var(--text-secondary); }
+  .status-badge::before {
+    content: ''; display: inline-block;
+    width: 7px; height: 7px; border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .status-not_sent::before         { background: #CECECE; }
+  .status-sent_first::before       { background: #8BAFD4; }
+  .status-sent_second::before      { background: #5A8FC0; }
+  .status-replied::before          { background: #1a2a4a; }
+  .status-casual_interview::before { background: #1a2a4a; }
+  .status-in_selection::before     { background: #1a2a4a; }
+  .status-offer::before            { background: #1A7A40; }
+  .status-joined::before           { background: #1A7A40; }
+  .status-closed::before           { background: #B71C1C; }
 
-  .due-warning { color: var(--error); font-weight: 500; }
+  .status-not_sent         { color: #999; }
+  .status-sent_first       { color: var(--text-secondary); }
+  .status-sent_second      { color: var(--text-secondary); }
+  .status-replied          { color: var(--text); font-weight: 600; }
+  .status-casual_interview { color: var(--text); font-weight: 600; }
+  .status-in_selection     { color: var(--text); font-weight: 600; }
+  .status-offer            { color: #1A7A40; font-weight: 600; }
+  .status-joined           { color: #1A7A40; font-weight: 600; }
+  .status-closed           { color: #B71C1C; }
+
+  .due-warning { color: #B71C1C; background: #FFF1F0; border: 1px solid #EF9A9A; padding: 2px 8px; border-radius: 4px; font-weight: 700; font-size: 12px; white-space: nowrap; }
   .due-soon { color: var(--warning); }
   .source-label { font-size: 12px; color: var(--text-secondary); }
 
@@ -357,9 +384,9 @@
     border-radius: 12px; padding: 20px;
   }
   .detail-section-title {
-    font-size: 13px; font-weight: 500;
-    color: var(--text-secondary); margin-bottom: 12px;
-    text-transform: uppercase; letter-spacing: 0.03em;
+    font-size: 10px; font-weight: 700;
+    color: var(--text-light, var(--text-secondary)); margin-bottom: 12px;
+    text-transform: uppercase; letter-spacing: 0.08em;
     display: flex; justify-content: space-between; align-items: center;
     flex-wrap: wrap; gap: 8px;
   }
@@ -649,6 +676,174 @@
   }
   .summary-edit-badge.manual   { background: var(--warning-bg); color: var(--warning-text); }
   .summary-edit-badge.from-log { background: var(--info-bg); color: var(--info-text); }
+
+  /* --- Dashboard (candidate list top) --- */
+  .dashboard {
+    background: var(--bg-primary); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px 20px; margin-bottom: 16px;
+  }
+  .dashboard-header {
+    display: flex; justify-content: space-between; align-items: center;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border-light);
+    margin-bottom: 14px;
+  }
+  .dashboard-title { font-size: 15px; font-weight: 500; color: var(--primary); }
+  .dashboard-body { display: flex; flex-direction: column; gap: 14px; }
+
+  /* --- Weekly summary cards --- */
+  .weekly-summary {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+  }
+  @media (max-width: 900px) {
+    .weekly-summary { grid-template-columns: repeat(2, 1fr); }
+  }
+  .dash-sum-card {
+    background: var(--bg-secondary); border-top: 3px solid var(--accent);
+    border-radius: 8px; padding: 12px 14px; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .dash-sum-card:hover {
+    background: var(--bg-primary); box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  }
+  .dash-sum-card.active {
+    border-top-color: var(--primary); background: var(--info-bg);
+  }
+  .dash-sum-card .sc-label { font-size: 11px; color: var(--text-secondary); font-weight: 500; }
+  .dash-sum-card .sc-value { font-size: 24px; font-weight: 500; margin: 4px 0 2px; color: var(--primary); line-height: 1.1; }
+  .dash-sum-card .sc-unit { font-size: 13px; color: var(--text-secondary); margin-left: 3px; font-weight: normal; }
+  .dash-sum-card .sc-footer { font-size: 11px; color: var(--text-tertiary); line-height: 1.5; min-height: 15px; word-break: break-all; }
+  .dash-sum-card .sc-active-mark {
+    display: none; font-size: 10px; font-weight: 500;
+    color: var(--primary); margin-top: 6px;
+    padding-top: 4px; border-top: 1px dashed var(--primary-light);
+  }
+  .dash-sum-card.active .sc-active-mark { display: block; }
+
+  /* --- Dashboard filter banner (shown above candidate table) --- */
+  .dash-filter-banner {
+    display: none; align-items: center; justify-content: space-between;
+    background: var(--info-bg); color: var(--info-text);
+    border-left: 3px solid var(--info);
+    padding: 9px 14px; border-radius: 6px;
+    font-size: 13px; margin-bottom: 12px; gap: 12px;
+  }
+  .dash-filter-banner.show { display: flex; }
+  .dash-filter-banner strong { font-weight: 500; }
+  .dash-filter-banner button {
+    background: transparent; border: none; color: var(--info);
+    font-size: 12px; cursor: pointer; font-family: inherit;
+    font-weight: 500; padding: 2px 8px; border-radius: 4px;
+  }
+  .dash-filter-banner button:hover { background: rgba(24,95,165,0.1); }
+
+  /* --- Analytics tab --- */
+  .analytics-period { display: flex; gap: 6px; margin-bottom: 14px; flex-wrap: wrap; }
+  .analytics-period button {
+    padding: 7px 14px; font-size: 12px;
+    border: 1px solid var(--border); background: var(--bg-primary);
+    border-radius: 6px; cursor: pointer; font-family: inherit;
+    color: var(--text-secondary);
+  }
+  .analytics-period button:hover { background: var(--bg-secondary); }
+  .analytics-period button.active {
+    background: var(--primary); color: white; border-color: var(--primary);
+  }
+  .analytics-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+  }
+  @media (max-width: 900px) { .analytics-grid { grid-template-columns: 1fr; } }
+  .analytics-section {
+    background: var(--bg-primary); border: 1px solid var(--border);
+    border-radius: 12px; padding: 16px 20px;
+  }
+  .analytics-section.full { grid-column: 1 / -1; }
+  .analytics-section h3 {
+    font-size: 14px; margin: 0 0 12px; color: var(--primary);
+    font-weight: 500;
+  }
+  .analytics-empty {
+    font-size: 12px; color: var(--text-tertiary);
+    padding: 16px 0; text-align: center;
+  }
+  .funnel-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+  .funnel-label { flex: 0 0 120px; font-size: 12px; color: var(--text-secondary); }
+  .funnel-bar-wrap { flex: 1; background: var(--bg-secondary); border-radius: 4px; height: 26px; overflow: hidden; }
+  .funnel-bar {
+    height: 100%; display: flex; align-items: center;
+    padding: 0 10px; color: white; font-size: 12px; font-weight: 500;
+    white-space: nowrap; overflow: hidden;
+  }
+  .media-table { width: 100%; border-collapse: collapse; font-size: 12px; }
+  .media-table th {
+    text-align: left; padding: 8px 6px; background: var(--bg-secondary);
+    font-weight: 500; color: var(--text-secondary); font-size: 11px;
+  }
+  .media-table td { padding: 8px 6px; border-bottom: 1px solid var(--border-light); }
+  .media-table .rate-high { color: var(--success); font-weight: 500; }
+  .media-table .rate-low { color: var(--error); font-weight: 500; }
+  .decline-reason { font-size: 12px; margin-bottom: 10px; }
+  .decline-reason-head {
+    display: flex; justify-content: space-between; margin-bottom: 3px;
+  }
+  .decline-reason-bar {
+    height: 8px; background: var(--bg-secondary); border-radius: 4px; overflow: hidden;
+  }
+  .decline-reason-bar-fill {
+    height: 100%; background: var(--error);
+  }
+  .leadtime-row { margin-bottom: 8px; font-size: 13px; }
+  .leadtime-phase { font-weight: 500; color: var(--primary); }
+  .leadtime-arrow {
+    font-size: 12px; color: var(--text-secondary);
+    margin-left: 12px; padding: 4px 0 4px 14px;
+    border-left: 2px solid var(--border);
+  }
+  .leadtime-arrow.missing { color: var(--text-tertiary); font-style: italic; }
+  .leadtime-total {
+    font-size: 13px; padding-top: 10px; border-top: 1px solid var(--border);
+    margin-top: 6px;
+  }
+
+  /* --- Status breakdown rows --- */
+  .status-bar-row {
+    display: grid; grid-template-columns: 150px 1fr 120px;
+    align-items: center; gap: 12px;
+    padding: 6px 8px; cursor: pointer; border-radius: 4px;
+  }
+  .status-bar-row:hover { background: var(--bg-secondary); }
+  .status-bar-track {
+    height: 14px; background: var(--bg-secondary);
+    border-radius: 3px; overflow: hidden;
+  }
+  .status-bar-fill { height: 100%; transition: width 0.25s; }
+  .status-bar-count { font-size: 12px; color: var(--text-primary); white-space: nowrap; text-align: right; }
+  .status-bar-pct { color: var(--text-tertiary); font-size: 11px; margin-left: 4px; }
+
+  .dashboard-section {
+    border: 1px solid var(--border-light); border-radius: 8px; padding: 12px 14px;
+    background: var(--bg-secondary);
+  }
+  .dashboard-section-header {
+    display: flex; justify-content: space-between; align-items: center;
+    font-weight: 500; font-size: 13px;
+  }
+  .dashboard-section-body { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; }
+  .dashboard-item {
+    padding: 8px 10px; font-size: 12px; background: var(--bg-primary);
+    border-radius: 6px; display: flex; justify-content: space-between;
+    align-items: center; gap: 8px; cursor: pointer; border: 1px solid transparent;
+  }
+  .dashboard-item:hover { border-color: var(--primary-light); }
+  .dashboard-item .main-col { flex: 1; min-width: 0; }
+  .dashboard-group-label {
+    font-size: 10px; color: var(--text-secondary);
+    text-transform: uppercase; letter-spacing: 0.03em;
+    margin: 8px 0 4px; font-weight: 500;
+  }
+  .dashboard-due-warn { color: var(--error); font-weight: 500; }
+  .dashboard-subtle { color: var(--text-tertiary); font-size: 11px; }
+  .dashboard-empty { font-size: 12px; color: var(--text-tertiary); padding: 4px 0; }
 
   /* --- Candidate detail more-menu (⋯) --- */
   .more-menu-wrap { position: relative; display: inline-block; }
@@ -1179,7 +1374,18 @@
     .header, .wizard-header { padding: 14px 16px; }
     .main-content, .detail-layout { padding: 16px; }
   }
+
+  /* Lucide icon base */
+  .lucide {
+    width: 14px; height: 14px;
+    stroke: currentColor; fill: none;
+    stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round;
+    vertical-align: -2px; flex-shrink: 0;
+  }
+  .lucide-sm { width: 12px; height: 12px; }
+  .lucide-lg { width: 16px; height: 16px; }
 </style>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 </head>
 <body>
 
@@ -1202,19 +1408,19 @@
 
 <!-- Overdue candidates banner (shown when nextActionDue has passed for any) -->
 <div class="overdue-banner" id="overdueBanner" onclick="jumpToOverdueList()">
-  <span>⚠️ <strong>期日超過の候補者が<span id="overdueBannerCount">0</span>件あります</strong></span>
+  <span><i data-lucide="alert-triangle" class="lucide"></i> <strong>期日超過の候補者が<span id="overdueBannerCount">0</span>件あります</strong></span>
   <span class="link-cta">確認する →</span>
 </div>
 
 <!-- Calendar re-auth banner (shown when gcal is enabled but scope missing) -->
 <div class="gcal-banner" id="gcalReauthBanner">
-  <span>📅 <strong>カレンダー連携のため再ログインが必要です。</strong>追加のカレンダー権限を付与してください。</span>
+  <span><i data-lucide="calendar" class="lucide"></i> <strong>カレンダー連携のため再ログインが必要です。</strong>追加のカレンダー権限を付与してください。</span>
   <button class="link-cta" onclick="reconnectGoogle()">再ログイン</button>
 </div>
 
 <!-- Gmail re-auth banner (shown when gmail is enabled but scope missing) -->
 <div class="gmail-banner" id="gmailReauthBanner">
-  <span>📧 <strong>Gmail連携のため再ログインが必要です。</strong>メール読み取り権限を付与してください。</span>
+  <span><i data-lucide="mail" class="lucide"></i> <strong>Gmail連携のため再ログインが必要です。</strong>メール読み取り権限を付与してください。</span>
   <button class="link-cta" onclick="reconnectGoogle()">再ログイン</button>
 </div>
 
@@ -1225,10 +1431,15 @@
   <div class="header">
     <div class="header-left">
       <div class="header-title" id="headerTitle">THE MOLTS 採用管理</div>
+      <div class="top-nav">
+        <button class="top-nav-btn active" data-view="home" onclick="setMainView('home')"><i data-lucide="home" class="lucide"></i> ホーム</button>
+        <button class="top-nav-btn" data-view="candidates" onclick="setMainView('candidates')"><i data-lucide="users" class="lucide"></i> 候補者</button>
+        <button class="top-nav-btn" data-view="analytics" onclick="setMainView('analytics')"><i data-lucide="bar-chart-2" class="lucide"></i> 分析</button>
+      </div>
       <div class="header-count" id="headerCount">候補者 0名</div>
     </div>
     <div class="header-right">
-      <button class="btn" onclick="showScreen('settings')">⚙ 設定</button>
+      <button class="btn" onclick="showScreen('settings')"><i data-lucide="settings" class="lucide"></i> 設定</button>
       <div class="user-badge" onclick="toggleUserMenu(event)">
         <div class="user-avatar" id="userAvatarInitial">?</div>
         <div class="user-name-role">
@@ -1241,17 +1452,19 @@
             <div class="user-menu-detail" id="userMenuEmail">—</div>
             <div class="user-menu-detail" id="userMenuRoleDetail">Googleでログインしてください</div>
           </div>
-          <div class="user-menu-item" onclick="showScreen('settings'); toggleUserMenu(event); showSettingsPane('users')">👤 ユーザー管理</div>
+          <div class="user-menu-item" onclick="showScreen('settings'); toggleUserMenu(event); showSettingsPane('users')"><i data-lucide="user" class="lucide"></i> ユーザー管理</div>
           <div class="user-menu-item logout" id="userMenuLogout" onclick="signOutGoogle()">↩ ログアウト</div>
         </div>
       </div>
     </div>
   </div>
   <div class="main-content">
+    <div id="dashboardArea" class="dashboard" style="display:none;"></div>
     <div class="list-tabs">
-      <button class="list-tab active" data-mode="candidates" onclick="setListView('candidates')">👥 候補者一覧</button>
-      <button class="list-tab" data-mode="talentPool" onclick="setListView('talentPool')">🤝 タレントプール</button>
+      <button class="list-tab active" data-mode="candidates" onclick="setListView('candidates')"><i data-lucide="users" class="lucide"></i> 候補者一覧</button>
+      <button class="list-tab" data-mode="talentPool" onclick="setListView('talentPool')"><i data-lucide="handshake" class="lucide"></i> タレントプール</button>
     </div>
+    <div id="analyticsArea" style="display:none;"></div>
     <div class="toolbar">
       <div class="toolbar-left">
         <button class="btn btn-primary btn-primary-large" data-perm="candidates.create" onclick="startNewCandidateWizard()">+ 新規候補者を追加</button>
@@ -1261,16 +1474,17 @@
         <select class="select" id="listStatusFilter" onchange="renderCandidateList()">
           <option value="">すべてのステータス</option>
         </select>
-        <button class="btn btn-small" onclick="openTagFilterModal()">🏷 タグで絞り込み</button>
+        <button class="btn btn-small" onclick="openTagFilterModal()"><i data-lucide="tag" class="lucide"></i> タグで絞り込み</button>
       </div>
     </div>
     <div class="filters">
       <label class="filter-checkbox"><input type="checkbox" id="filterOverdue" onchange="renderCandidateList()"> 期日超過のみ</label>
-      <label class="filter-checkbox"><input type="checkbox" id="filterRequiresAction" onchange="renderCandidateList()"> ⚡ 要対応のみ</label>
+      <label class="filter-checkbox"><input type="checkbox" id="filterRequiresAction" onchange="renderCandidateList()"> <i data-lucide="zap" class="lucide"></i> 要対応のみ</label>
       <label class="filter-checkbox"><input type="checkbox" id="filterMine" onchange="renderCandidateList()"> 自分の担当のみ</label>
       <span id="activeTagFilterChips"></span>
       <span class="candidate-count" id="candidateCount">総数: 0件</span>
     </div>
+    <div id="dashFilterBanner" class="dash-filter-banner" style="display:none;"></div>
     <div class="candidate-table-wrap">
       <table class="candidate-table">
         <thead>
@@ -1333,7 +1547,7 @@
     </div>
   </div>
   <div class="wizard-steps">
-    <span class="step-circle done">✓</span>
+    <span class="step-circle done"><i data-lucide="check" class="lucide"></i></span>
     <span id="scoutSourceLabel" style="color: var(--text-secondary);">ソース：スカウト媒体</span>
     <span class="step-sep">→</span>
     <span class="step-circle active">2</span>
@@ -1376,24 +1590,24 @@
       </div>
       <button class="btn btn-primary" style="width: 100%;" id="scoutGenerateBtn" onclick="generateScoutMessage()">メッセージを生成する</button>
       <div id="scoutApiKeyHint" style="display:none; margin-top:10px; font-size:12px; color:var(--warning-text); background:var(--warning-bg); padding:8px 12px; border-radius:6px;">
-        ⚠ 設定画面でAnthropic APIキーを登録するとAIによる生成が可能になります。
+        <i data-lucide="alert-triangle" class="lucide"></i> 設定画面でAnthropic APIキーを登録するとAIによる生成が可能になります。
       </div>
     </div>
     <div class="scout-panel">
       <div class="scope-indicator">
         <label class="scout-label" style="margin-bottom: 0;">生成されたメッセージ</label>
-        <span class="scope-badge" id="scoutScopeBadge" style="display:none;">✓ スコープ判定: 推奨</span>
+        <span class="scope-badge" id="scoutScopeBadge" style="display:none;"><i data-lucide="check" class="lucide"></i> スコープ判定: 推奨</span>
       </div>
       <div id="scoutScopeReason" style="display:none; background: var(--info-bg); color: var(--info-text); padding: 8px 12px; border-radius: 6px; font-size: 12px; margin-bottom: 10px; border-left: 3px solid var(--info); white-space: pre-wrap; line-height:1.6;"></div>
       <div class="scout-generated placeholder" id="scoutGenerated">ここに生成されたメッセージが表示されます。</div>
       <div class="button-row">
-        <button class="btn" onclick="copyScoutMessage()">📋 コピー</button>
-        <button class="btn" onclick="generateScoutMessage()">🔄 再生成</button>
+        <button class="btn" onclick="copyScoutMessage()"><i data-lucide="clipboard" class="lucide"></i> コピー</button>
+        <button class="btn" onclick="generateScoutMessage()"><i data-lucide="refresh-cw" class="lucide"></i> 再生成</button>
       </div>
-      <div class="hint-box">💡 「候補者として登録」で一覧に追加されます。送付履歴に自動記録されます。</div>
-      <button class="btn btn-success" id="scoutRegisterMain" style="width: 100%; margin-bottom: 8px;" onclick="registerCandidateFromScout(true)">✓ 候補者として登録して一覧に戻る</button>
+      <div class="hint-box"><i data-lucide="lightbulb" class="lucide"></i> 「候補者として登録」で一覧に追加されます。送付履歴に自動記録されます。</div>
+      <button class="btn btn-success" id="scoutRegisterMain" style="width: 100%; margin-bottom: 8px;" onclick="registerCandidateFromScout(true)"><i data-lucide="check" class="lucide"></i> 候補者として登録して一覧に戻る</button>
       <button class="btn" id="scoutRegisterContinue" style="width: 100%; margin-bottom: 8px;" onclick="registerCandidateFromScout(false)">続けて新規候補者を追加</button>
-      <button class="btn btn-success" id="scoutSendOnly" style="width: 100%; display: none;" onclick="registerCandidateFromScout(false)">✉️ 送付して候補者詳細に戻る</button>
+      <button class="btn btn-success" id="scoutSendOnly" style="width: 100%; display: none;" onclick="registerCandidateFromScout(false)"><i data-lucide="mail" class="lucide"></i> 送付して候補者詳細に戻る</button>
     </div>
   </div>
 </div>
@@ -1414,11 +1628,11 @@
       <div class="more-menu-wrap" id="detailMoreMenuWrap">
         <button class="btn" onclick="toggleDetailMoreMenu(event)">⋯</button>
         <div class="more-menu" id="detailMoreMenu">
-          <div class="more-menu-item" id="detailMoreItemScout" onclick="handleDetailMoreScout()">✉️ メッセージを送る</div>
+          <div class="more-menu-item" id="detailMoreItemScout" onclick="handleDetailMoreScout()"><i data-lucide="mail" class="lucide"></i> メッセージを送る</div>
         </div>
       </div>
-      <button class="btn" onclick="openCandidateEditModal()">✏️ 編集</button>
-      <button class="btn-ghost" onclick="deleteCurrentCandidate()">🗑️ 削除</button>
+      <button class="btn" onclick="openCandidateEditModal()"><i data-lucide="pencil" class="lucide"></i> 編集</button>
+      <button class="btn-ghost" onclick="deleteCurrentCandidate()"><i data-lucide="trash-2" class="lucide"></i> 削除</button>
     </div>
   </div>
   <div class="detail-layout">
@@ -1439,17 +1653,18 @@
   <div class="settings-layout">
     <div class="settings-sidebar">
       <div class="sidebar-group">運用設定</div>
-      <div class="sidebar-item active" onclick="showSettingsPane('scope')" id="sb-scope">🎯 スコープ設定</div>
-      <div class="sidebar-item" onclick="showSettingsPane('template')" id="sb-template">✉️ テンプレート設定</div>
-      <div class="sidebar-item" onclick="showSettingsPane('apikey')" id="sb-apikey">🔑 APIキー設定</div>
+      <div class="sidebar-item active" onclick="showSettingsPane('scope')" id="sb-scope"><i data-lucide="target" class="lucide"></i> スコープ設定</div>
+      <div class="sidebar-item" onclick="showSettingsPane('template')" id="sb-template"><i data-lucide="mail" class="lucide"></i> テンプレート設定</div>
+      <div class="sidebar-item" onclick="showSettingsPane('dashboard')" id="sb-dashboard"><i data-lucide="bar-chart-2" class="lucide"></i> ダッシュボード設定</div>
+      <div class="sidebar-item" onclick="showSettingsPane('apikey')" id="sb-apikey"><i data-lucide="key" class="lucide"></i> APIキー設定</div>
       <div class="sidebar-group">外部連携</div>
-      <div class="sidebar-item" onclick="showSettingsPane('gcal')" id="sb-gcal">📅 Googleカレンダー連携</div>
-      <div class="sidebar-item" onclick="showSettingsPane('gmail')" id="sb-gmail">📧 Gmail連携</div>
-      <div class="sidebar-item" onclick="showSettingsPane('slack')" id="sb-slack">🔔 Slack連携</div>
+      <div class="sidebar-item" onclick="showSettingsPane('gcal')" id="sb-gcal"><i data-lucide="calendar" class="lucide"></i> Googleカレンダー連携</div>
+      <div class="sidebar-item" onclick="showSettingsPane('gmail')" id="sb-gmail"><i data-lucide="mail" class="lucide"></i> Gmail連携</div>
+      <div class="sidebar-item" onclick="showSettingsPane('slack')" id="sb-slack"><i data-lucide="bell" class="lucide"></i> Slack連携</div>
       <div class="sidebar-group">マスター管理</div>
-      <div class="sidebar-item" onclick="showSettingsPane('company')" id="sb-company">🏢 会社管理</div>
-      <div class="sidebar-item" onclick="showSettingsPane('interviewer')" id="sb-interviewer">👥 面接官管理</div>
-      <div class="sidebar-item" onclick="showSettingsPane('users')" id="sb-users">👤 ユーザー管理</div>
+      <div class="sidebar-item" onclick="showSettingsPane('company')" id="sb-company"><i data-lucide="building-2" class="lucide"></i> 会社管理</div>
+      <div class="sidebar-item" onclick="showSettingsPane('interviewer')" id="sb-interviewer"><i data-lucide="users" class="lucide"></i> 面接官管理</div>
+      <div class="sidebar-item" onclick="showSettingsPane('users')" id="sb-users"><i data-lucide="user" class="lucide"></i> ユーザー管理</div>
     </div>
     <div class="settings-content">
 
@@ -1481,7 +1696,7 @@
         </div>
         <div class="settings-actions">
           <button class="btn" onclick="renderScopePane()">キャンセル</button>
-          <button class="btn btn-primary" onclick="saveScopeSettings()">💾 保存</button>
+          <button class="btn btn-primary" onclick="saveScopeSettings()"><i data-lucide="save" class="lucide"></i> 保存</button>
         </div>
       </div>
 
@@ -1501,7 +1716,7 @@
         <div class="settings-actions">
           <button class="btn" onclick="resetTemplateToDefault()">デフォルトに戻す</button>
           <button class="btn" onclick="renderTemplatePane()">キャンセル</button>
-          <button class="btn btn-primary" onclick="saveTemplates()">💾 保存</button>
+          <button class="btn btn-primary" onclick="saveTemplates()"><i data-lucide="save" class="lucide"></i> 保存</button>
         </div>
       </div>
 
@@ -1518,20 +1733,59 @@
         </div>
         <div class="settings-actions">
           <button class="btn" onclick="renderApiKeyPane()">キャンセル</button>
-          <button class="btn btn-primary" onclick="saveApiKey()">💾 保存</button>
+          <button class="btn btn-primary" onclick="saveApiKey()"><i data-lucide="save" class="lucide"></i> 保存</button>
+        </div>
+      </div>
+
+      <!-- Dashboard pane -->
+      <div class="settings-pane" id="pane-dashboard">
+        <div class="settings-title"><i data-lucide="bar-chart-2" class="lucide"></i> ダッシュボード設定</div>
+        <p class="settings-subtitle">候補者一覧の上部に表示するダッシュボードの表示 / 要注意判定のしきい値を設定します。</p>
+
+        <div class="settings-field">
+          <div class="gcal-toggle-wrap">
+            <div style="flex:1;">
+              <div style="font-weight:500; margin-bottom:2px;">ダッシュボードを表示</div>
+              <div style="font-size:11px; color:var(--text-tertiary);">OFFにすると候補者一覧の上のダッシュボードが非表示になります。</div>
+            </div>
+            <div class="switch-toggle" id="dashboardEnabledToggle" onclick="toggleDashboardEnabled(this)"></div>
+          </div>
+        </div>
+
+        <div class="settings-field" style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:12px;">
+          <div>
+            <label class="settings-field-label">返信待ち要注意（日）</label>
+            <input type="number" class="scout-input" id="dashThresholdReply" min="1" style="max-width:120px;">
+            <div style="font-size:11px; color:var(--text-tertiary);">面談希望・条件確認中</div>
+          </div>
+          <div>
+            <label class="settings-field-label">検討中・質問要注意（日）</label>
+            <input type="number" class="scout-input" id="dashThresholdConsider" min="1" style="max-width:120px;">
+            <div style="font-size:11px; color:var(--text-tertiary);">検討中・質問・情報共有</div>
+          </div>
+          <div>
+            <label class="settings-field-label">連絡不通要注意（日）</label>
+            <input type="number" class="scout-input" id="dashThresholdNocontact" min="1" style="max-width:120px;">
+            <div style="font-size:11px; color:var(--text-tertiary);">連絡不通のみ</div>
+          </div>
+        </div>
+
+        <div class="settings-actions">
+          <button class="btn" onclick="renderDashboardPane()">キャンセル</button>
+          <button class="btn btn-primary" onclick="saveDashboardSettings()"><i data-lucide="save" class="lucide"></i> 保存</button>
         </div>
       </div>
 
       <!-- Google Calendar pane -->
       <div class="settings-pane" id="pane-gcal">
-        <div class="settings-title">📅 Googleカレンダー連携</div>
+        <div class="settings-title"><i data-lucide="calendar" class="lucide"></i> Googleカレンダー連携</div>
         <p class="settings-subtitle">採用フローで面談日時を登録すると、Googleカレンダーに自動でイベントを作成します。</p>
 
         <div class="settings-field">
           <div class="gcal-toggle-wrap">
             <div style="flex:1;">
               <div style="font-weight:500; margin-bottom:2px;">カレンダー連携</div>
-              <div style="font-size:11px; color:var(--text-tertiary);">ONにすると、採用フロー内で「📅 カレンダーに登録」ボタンが使えるようになります。</div>
+              <div style="font-size:11px; color:var(--text-tertiary);">ONにすると、採用フロー内で「<i data-lucide="calendar" class="lucide"></i> カレンダーに登録」ボタンが使えるようになります。</div>
             </div>
             <div class="switch-toggle" id="gcalEnabledToggle" onclick="toggleGcalEnabled(this)"></div>
           </div>
@@ -1566,13 +1820,13 @@
 
         <div class="settings-actions">
           <button class="btn" onclick="renderGcalPane()">キャンセル</button>
-          <button class="btn btn-primary" onclick="saveGcalSettings()">💾 保存</button>
+          <button class="btn btn-primary" onclick="saveGcalSettings()"><i data-lucide="save" class="lucide"></i> 保存</button>
         </div>
       </div>
 
       <!-- Gmail pane -->
       <div class="settings-pane" id="pane-gmail">
-        <div class="settings-title">📧 Gmail連携</div>
+        <div class="settings-title"><i data-lucide="mail" class="lucide"></i> Gmail連携</div>
         <p class="settings-subtitle">採用媒体やTimeRexからのメールを自動検出し、候補者のやり取りログへAI要約付きで記録します。</p>
 
         <div class="settings-field">
@@ -1626,14 +1880,14 @@
               <option value="10">10分</option>
               <option value="30">30分</option>
             </select>
-            <button class="btn btn-small" onclick="runGmailPollManual()" id="gmailPollNowBtn">🔄 今すぐ確認</button>
+            <button class="btn btn-small" onclick="runGmailPollManual()" id="gmailPollNowBtn"><i data-lucide="refresh-cw" class="lucide"></i> 今すぐ確認</button>
             <span class="gmail-poll-status" id="gmailPollStatus">—</span>
           </div>
         </div>
 
         <div class="settings-field" id="gmailPendingWrap" style="background: var(--warning-bg); padding:14px 18px; border-radius:8px; border-left:3px solid var(--warning);">
           <div style="font-size:13px; color:var(--warning-text); font-weight:500; margin-bottom:4px;">
-            ⚠️ 未分類・下書きメール：<span id="gmailPendingCount">0</span>件
+            <i data-lucide="alert-triangle" class="lucide"></i> 未分類・下書きメール：<span id="gmailPendingCount">0</span>件
           </div>
           <div style="font-size:12px; color:var(--warning); margin-bottom:8px;">
             自動で候補者に紐付けられなかったメール、または自動保存OFFで下書き状態のメールを手動確認できます。
@@ -1643,13 +1897,13 @@
 
         <div class="settings-actions">
           <button class="btn" onclick="renderGmailPane()">キャンセル</button>
-          <button class="btn btn-primary" onclick="saveGmailSettings()">💾 保存</button>
+          <button class="btn btn-primary" onclick="saveGmailSettings()"><i data-lucide="save" class="lucide"></i> 保存</button>
         </div>
       </div>
 
       <!-- Slack pane -->
       <div class="settings-pane" id="pane-slack">
-        <div class="settings-title">🔔 Slack連携</div>
+        <div class="settings-title"><i data-lucide="bell" class="lucide"></i> Slack連携</div>
         <p class="settings-subtitle">採用イベントをSlackに通知します。Webhook URL を設定するとイベント発生時に自動送信されます。</p>
         <div class="settings-field">
           <label class="settings-field-label">Slack Webhook URL</label>
@@ -1680,9 +1934,9 @@
           </table>
         </div>
         <div class="settings-actions">
-          <button class="btn" onclick="sendSlackTest()">🧪 テスト送信</button>
+          <button class="btn" onclick="sendSlackTest()"><i data-lucide="flask-conical" class="lucide"></i> テスト送信</button>
           <button class="btn" onclick="renderSlackPane()">キャンセル</button>
-          <button class="btn btn-primary" onclick="saveSlackSettings()">💾 保存</button>
+          <button class="btn btn-primary" onclick="saveSlackSettings()"><i data-lucide="save" class="lucide"></i> 保存</button>
         </div>
       </div>
 
@@ -1708,7 +1962,7 @@
 
       <!-- Users pane -->
       <div class="settings-pane" id="pane-users">
-        <div class="settings-title">👤 ユーザー管理</div>
+        <div class="settings-title"><i data-lucide="user" class="lucide"></i> ユーザー管理</div>
         <p class="settings-subtitle">このツールを使えるユーザーとロール（権限）を設定します。</p>
         <div class="settings-field" style="background: var(--bg-secondary); padding: 14px 18px; border-radius: 8px; margin-bottom: 20px;">
           <div style="font-size: 13px; font-weight: 500; margin-bottom: 8px;">ロールと権限</div>
@@ -1811,7 +2065,7 @@
 
 <div class="modal-overlay" id="tagFilterModal">
   <div class="modal-card" style="width: min(640px, 95vw);">
-    <div class="modal-title">🏷 タグで絞り込み</div>
+    <div class="modal-title"><i data-lucide="tag" class="lucide"></i> タグで絞り込み</div>
     <div style="font-size:12px; color:var(--text-secondary); margin-bottom:10px;">複数選択するとAND条件で絞り込みます。</div>
     <div id="tagFilterGroups"></div>
     <div class="modal-actions">
@@ -1892,7 +2146,7 @@
   <div class="login-card">
     <div class="login-brand"><span class="accent">THE MOLTS</span> 採用管理 ATS</div>
     <div class="login-subtitle">社内のGoogleアカウントでログインしてください</div>
-    <button class="login-btn" onclick="signInGoogle()">🔐 Googleでログイン</button>
+    <button class="login-btn" onclick="signInGoogle()"><i data-lucide="lock" class="lucide"></i> Googleでログイン</button>
     <div class="login-note">
       ログインすると、ScoutData/ats/ 配下にデータが保存されます。<br>
       初回ログイン時は管理者の承認が必要です。
@@ -1926,11 +2180,12 @@ const DRIVE_SLACK_FILE        = 'slack_settings.json';
 const DRIVE_GCAL_FILE         = 'gcal_settings.json';
 const DRIVE_GMAIL_FILE        = 'gmail_settings.json';
 const DRIVE_GMAIL_PENDING_FILE = 'gmail_pending.json';
+const DRIVE_DASHBOARD_FILE    = 'dashboard_settings.json';
 
 // localStorage keys (derived in applyConfig from STORAGE_PREFIX)
 let LS_API_KEY, LS_INDEX, LS_COMPANIES, LS_INTERVIEWERS, LS_USERS,
     LS_SCOPE, LS_TEMPLATES, LS_SLACK, LS_GCAL, LS_GMAIL, LS_GMAIL_PENDING,
-    LS_GMAIL_PROCESSED, LS_CANDIDATE_PREFIX;
+    LS_GMAIL_PROCESSED, LS_DASHBOARD, LS_CANDIDATE_PREFIX;
 
 // Memory caches
 let cachedIndex        = { candidates: [], updatedAt: null };
@@ -2016,10 +2271,10 @@ let cachedGmail        = {
   enabled: false,
   accounts: [],
   sources: [
-    { id: 'youtrust', domain: '@youtrust.jp', label: '💼 YOUTRUST', enabled: true,  accountEmails: [] },
-    { id: 'wantedly', domain: '@wantedly.com', label: '💼 Wantedly', enabled: true,  accountEmails: [] },
-    { id: 'linkedin', domain: '@linkedin.com', label: '💼 LinkedIn', enabled: false, accountEmails: [] },
-    { id: 'timerex',  domain: '@timerex.net',  label: '📅 TimeRex',  enabled: true,  accountEmails: [] }
+    { id: 'youtrust', domain: '@youtrust.jp', label: '<i data-lucide="handshake" class="lucide"></i> YOUTRUST', enabled: true,  accountEmails: [] },
+    { id: 'wantedly', domain: '@wantedly.com', label: '<i data-lucide="handshake" class="lucide"></i> Wantedly', enabled: true,  accountEmails: [] },
+    { id: 'linkedin', domain: '@linkedin.com', label: '<i data-lucide="handshake" class="lucide"></i> LinkedIn', enabled: false, accountEmails: [] },
+    { id: 'timerex',  domain: '@timerex.net',  label: '<i data-lucide="calendar" class="lucide"></i> TimeRex',  enabled: true,  accountEmails: [] }
   ],
   autoLink: true,
   autoSummarize: true,
@@ -2051,29 +2306,55 @@ let scoutActiveSpId = null;  // 既存モード時に対象とする sourceProfi
 
 // タグカテゴリ定義（ランク・居住地・職種 + 旧データ用のその他）
 const TAG_CATEGORIES = [
-  { id: 'rank',     label: 'ランク',   icon: '🏆', color: '#C9A961',
+  { id: 'rank',     label: 'ランク',   icon: '<i data-lucide="trophy" class="lucide"></i>', color: '#C9A961',
     defaults: ['Aランク','Bランク','将来候補','今回は見送り'] },
-  { id: 'location', label: '居住地',   icon: '📍', color: '#2563EB',
+  { id: 'location', label: '居住地',   icon: '<i data-lucide="map-pin" class="lucide"></i>', color: '#2563EB',
     defaults: ['関東','関西','東海','リモート希望','移住可'] },
-  { id: 'job',      label: '職種',     icon: '💼', color: '#16A34A',
+  { id: 'job',      label: '職種',     icon: '<i data-lucide="briefcase" class="lucide"></i>', color: '#16A34A',
     defaults: ['マーケター','エンジニア','デザイナー','事業開発'] },
-  { id: 'other',    label: 'その他',   icon: '🏷', color: '#5F5E5A', defaults: [] }
+  { id: 'other',    label: 'その他',   icon: '<i data-lucide="tag" class="lucide"></i>', color: '#5F5E5A', defaults: [] }
 ];
 function tagCategoryMeta(id) { return TAG_CATEGORIES.find(x => x.id === id) || TAG_CATEGORIES[3]; }
 
 // タレントプールの接点種別
 const TALENT_POOL_TYPES = [
-  { id: 'event',      icon: '📅', label: 'イベント招待' },
-  { id: 'info',       icon: '📢', label: '情報発信（note・事例記事など）' },
-  { id: 'position',   icon: '💼', label: 'ポジション待ち' },
-  { id: 'reapproach', icon: '🔄', label: '再アプローチ' }
+  { id: 'event',      icon: '<i data-lucide="calendar" class="lucide"></i>', label: 'イベント招待' },
+  { id: 'info',       icon: '<i data-lucide="megaphone" class="lucide"></i>', label: '情報発信（note・事例記事など）' },
+  { id: 'position',   icon: '<i data-lucide="briefcase" class="lucide"></i>', label: 'ポジション待ち' },
+  { id: 'reapproach', icon: '<i data-lucide="refresh-cw" class="lucide"></i>', label: '再アプローチ' }
 ];
-function talentPoolTypeMeta(id) { return TALENT_POOL_TYPES.find(x => x.id === id) || { id, icon: '🏷', label: id }; }
+function talentPoolTypeMeta(id) { return TALENT_POOL_TYPES.find(x => x.id === id) || { id, icon: '<i data-lucide="tag" class="lucide"></i>', label: id }; }
 
 // 候補者一覧のタグフィルタ（[{category, label}]）
 let listTagFilters = [];
 // 候補者一覧の表示モード
 let listViewMode = 'candidates';  // 'candidates' | 'talentPool'
+
+// ダッシュボード設定（ホーム画面の4セクション）
+let cachedDashboard = {
+  enabled: true,
+  thresholds: { reply: 3, consider: 7, nocontact: 7 }
+};
+// ダッシュボードサマリーカードから設定される追加フィルタ
+let listExtraFilter = null;  // null | 'weekly_registered' | 'weekly_interview'
+
+// メインナビの状態（ヘッダー: <i data-lucide="home" class="lucide"></i> ホーム / <i data-lucide="users" class="lucide"></i> 候補者 / <i data-lucide="bar-chart-2" class="lucide"></i> 分析）
+let mainView = 'home';  // 'home' | 'candidates' | 'analytics'
+
+// 操作ログセクションのアコーディオン開閉状態（セッション内のみ保持、デフォルト折りたたみ）
+let activityLogOpen = false;
+
+// 分析タブの状態
+let analyticsPeriod = 'this_month';  // this_week / this_month / last_month / 3_months / all
+const ANALYTICS_PERIODS = [
+  { id: 'this_week',  label: '今週' },
+  { id: 'this_month', label: '今月' },
+  { id: 'last_month', label: '先月' },
+  { id: '3_months',   label: '3ヶ月' },
+  { id: 'all',        label: '全期間' }
+];
+// 候補者IDごとの辞退理由分類キャッシュ（セッション内のみ）
+const declineReasonCache = new Map();
 
 // プロフィール自動解析用
 let PLATFORM_KEYWORDS = {};          // { "LinkedIn": [...], ... }
@@ -2176,6 +2457,7 @@ function applyConfig(cfg) {
   LS_GMAIL           = STORAGE_PREFIX + 'gmail';
   LS_GMAIL_PENDING   = STORAGE_PREFIX + 'gmail_pending';
   LS_GMAIL_PROCESSED = STORAGE_PREFIX + 'gmail_processed_ids';
+  LS_DASHBOARD       = STORAGE_PREFIX + 'dashboard';
   LS_CANDIDATE_PREFIX = STORAGE_PREFIX + 'candidate_';
 
   // Default templates / scope / slack from config
@@ -2643,6 +2925,7 @@ function applyAuthState() {
   };
   gate('scope',       'settings.scope');
   gate('template',    'settings.templates');
+  gate('dashboard',   'settings.scope');
   gate('apikey',      'settings.apikey');
   gate('slack',       'settings.slack');
   gate('gcal',        'settings.slack');
@@ -2669,7 +2952,7 @@ function updateGmailReauthBanner(banner) {
   }
   const expired = (cachedGmail.accounts || []).filter(email => !getActiveGmailToken(email));
   if (expired.length === 0) { banner.classList.remove('show'); return; }
-  banner.innerHTML = `<span>📧 <strong>Gmailアカウントの再接続が必要です:</strong> ${expired.map(escapeHtml).join(', ')}</span>
+  banner.innerHTML = `<span><i data-lucide="mail" class="lucide"></i> <strong>Gmailアカウントの再接続が必要です:</strong> ${expired.map(escapeHtml).join(', ')}</span>
     <button class="link-cta" onclick="showScreen('settings'); showSettingsPane('gmail'); return false;">設定を開く</button>`;
   banner.classList.add('show');
 }
@@ -2687,7 +2970,7 @@ document.addEventListener('click', (e) => {
 async function loadAllFromDrive() {
   if (!DriveStorage.isAuthenticated()) return;
   try {
-    const [idx, companies, interviewers, users, scope, templates, slack, gcal, gmail, gmailPending] = await Promise.all([
+    const [idx, companies, interviewers, users, scope, templates, slack, gcal, gmail, gmailPending, dash] = await Promise.all([
       DriveStorage.readAts(DRIVE_INDEX_FILE),
       DriveStorage.readAts(DRIVE_COMPANIES_FILE),
       DriveStorage.readAts(DRIVE_INTERVIEWERS_FILE),
@@ -2697,7 +2980,8 @@ async function loadAllFromDrive() {
       DriveStorage.readAts(DRIVE_SLACK_FILE),
       DriveStorage.readAts(DRIVE_GCAL_FILE),
       DriveStorage.readAts(DRIVE_GMAIL_FILE),
-      DriveStorage.readAts(DRIVE_GMAIL_PENDING_FILE)
+      DriveStorage.readAts(DRIVE_GMAIL_PENDING_FILE),
+      DriveStorage.readAts(DRIVE_DASHBOARD_FILE)
     ]);
     if (idx && Array.isArray(idx.candidates)) { cachedIndex = idx; persistIndex(); }
     if (companies && Array.isArray(companies.companies)) { cachedCompanies = companies; persistCompanies(); }
@@ -2715,6 +2999,11 @@ async function loadAllFromDrive() {
       persistGmail();
     }
     if (gmailPending && Array.isArray(gmailPending.items)) { cachedGmailPending = gmailPending; persistGmailPending(); }
+    if (dash && typeof dash === 'object') {
+      cachedDashboard = { ...cachedDashboard, ...dash };
+      if (dash.thresholds) cachedDashboard.thresholds = { ...cachedDashboard.thresholds, ...dash.thresholds };
+      persistDashboard();
+    }
   } catch (e) {
     console.warn('[Drive] load failed', e);
   }
@@ -2744,6 +3033,7 @@ function persistSlack()        { try { localStorage.setItem(LS_SLACK,        JSO
 function persistGcal()         { try { localStorage.setItem(LS_GCAL,         JSON.stringify(cachedGcal)); } catch (e) {} }
 function persistGmail()        { try { localStorage.setItem(LS_GMAIL,        JSON.stringify(cachedGmail)); } catch (e) {} }
 function persistGmailPending() { try { localStorage.setItem(LS_GMAIL_PENDING,JSON.stringify(cachedGmailPending)); } catch (e) {} }
+function persistDashboard()    { try { localStorage.setItem(LS_DASHBOARD,    JSON.stringify(cachedDashboard)); } catch (e) {} }
 function loadFromLocalStorage() {
   const idx = safeParse(localStorage.getItem(LS_INDEX), null);
   if (idx && Array.isArray(idx.candidates)) cachedIndex = idx;
@@ -2771,6 +3061,11 @@ function loadFromLocalStorage() {
   }
   const gmailPending = safeParse(localStorage.getItem(LS_GMAIL_PENDING), null);
   if (gmailPending && Array.isArray(gmailPending.items)) cachedGmailPending = gmailPending;
+  const dash = safeParse(localStorage.getItem(LS_DASHBOARD), null);
+  if (dash && typeof dash === 'object') {
+    cachedDashboard = { ...cachedDashboard, ...dash };
+    if (dash.thresholds) cachedDashboard.thresholds = { ...cachedDashboard.thresholds, ...dash.thresholds };
+  }
 }
 function persistCandidate(candidate) {
   try { localStorage.setItem(LS_CANDIDATE_PREFIX + candidate.id, JSON.stringify(candidate)); } catch (e) {}
@@ -3019,7 +3314,7 @@ function inferPlatformFromUrl(url) {
   return 'その他';
 }
 function platformIcon(platform) {
-  return platform === 'YOUTRUST' || platform === 'LinkedIn' || platform === 'Wantedly' ? '💼' : '🔗';
+  return platform === 'YOUTRUST' || platform === 'LinkedIn' || platform === 'Wantedly' ? '<i data-lucide="handshake" class="lucide"></i>' : '<i data-lucide="link" class="lucide"></i>';
 }
 
 function nextSourceProfileId(c) {
@@ -3130,7 +3425,7 @@ function showScreen(name) {
   window.scrollTo(0, 0);
   // 画面遷移時はログの編集モードをリセット
   if (name !== 'detail') editingLogId = null;
-  if (name === 'list') renderCandidateList();
+  if (name === 'list') applyMainView();
   if (name === 'add') renderSourceGrid();
   if (name === 'settings') showSettingsPane(currentSettingsPane || 'scope');
 }
@@ -3151,6 +3446,8 @@ function setSort(key) {
 function renderCandidateList() {
   const tbody = document.getElementById('candidateTbody');
   if (!tbody) return;
+  // ホームビュー表示中ならダッシュボードも更新（候補者を追加/編集したら即座にホーム側の件数を反映させるため）
+  if (mainView === 'home') renderDashboard();
   const query = (document.getElementById('listSearchInput').value || '').trim().toLowerCase();
   const statusFilter = document.getElementById('listStatusFilter').value;
   const onlyOverdue = document.getElementById('filterOverdue').checked;
@@ -3182,6 +3479,28 @@ function renderCandidateList() {
     });
   }
 
+  // ダッシュボードのサマリーカードから設定される追加フィルタ
+  if (listExtraFilter === 'weekly_registered') {
+    const { start, end } = getThisWeekRange();
+    list = list.filter(c => {
+      const full = loadCandidate(c.id);
+      if (!full || !full.createdAt) return false;
+      const t = new Date(full.createdAt).getTime();
+      return t >= start.getTime() && t <= end.getTime();
+    });
+  } else if (listExtraFilter === 'weekly_interview') {
+    const { start, end } = getThisWeekRange();
+    list = list.filter(c => {
+      const full = loadCandidate(c.id);
+      if (!full || !full.flow) return false;
+      return Object.values(full.flow).some(p => {
+        if (!p || !p.scheduledAt) return false;
+        const t = new Date(p.scheduledAt).getTime();
+        return t >= start.getTime() && t <= end.getTime();
+      });
+    });
+  }
+
   // タグフィルタ（AND条件）
   if (listTagFilters.length > 0) {
     list = list.filter(c => {
@@ -3203,11 +3522,12 @@ function renderCandidateList() {
 
   document.getElementById('headerCount').textContent = '候補者 ' + (cachedIndex.candidates || []).length + '名';
   document.getElementById('candidateCount').textContent = '総数: ' + (cachedIndex.candidates || []).length + '件 / 表示中: ' + list.length + '件';
+  renderDashFilterBanner(list.length);
 
   if (list.length === 0) {
     const colspan = 8;
     tbody.innerHTML = `<tr><td colspan="${colspan}"><div class="empty-state">
-      <div class="big">🗂</div>
+      <div class="big"><i data-lucide="folder-open" class="lucide"></i></div>
       <div>候補者が登録されていません。</div>
       <div class="hint">右上の「+ 新規候補者を追加」からスタートしましょう。</div>
     </div></td></tr>`;
@@ -3221,7 +3541,7 @@ function renderCandidateList() {
   tbody.innerHTML = list.map(c => {
     const meta = getStatusMeta(c.status);
     const src = sources.find(s => s.id === c.sourceType);
-    const srcIcon = src ? src.icon : (c.sourcePlatform ? '💼' : '');
+    const srcIcon = src ? src.icon : (c.sourcePlatform ? '<i data-lucide="handshake" class="lucide"></i>' : '');
     const srcLabel = c.sourcePlatform || (src ? src.title : '—');
     const company = c.targetCompanyId ? getCompanyName(c.targetCompanyId) : '';
     // 担当者: candidate.assignee + 全フェーズの面接官 を集約（dedupe）。1名目を表示し、残りは +N 人
@@ -3241,11 +3561,11 @@ function renderCandidateList() {
     const dDiff = daysUntil(due);
     let dueCls = ''; let dueSuffix = '';
     if (dDiff !== null) {
-      if (dDiff < 0) { dueCls = 'due-warning'; dueSuffix = ' ⚠️'; }
+      if (dDiff < 0) { dueCls = 'due-warning'; dueSuffix = ' <i data-lucide="alert-triangle" class="lucide"></i>'; }
       else if (dDiff <= 3) dueCls = 'due-soon';
     }
     const canEdit = can('candidates.edit', { candidate: c });
-    const actionBadge = candFull && hasOpenTasks(candFull) ? '<span class="requires-action-badge">⚡ 要対応</span>' : '';
+    const actionBadge = candFull && hasOpenTasks(candFull) ? '<span class="requires-action-badge"><i data-lucide="zap" class="lucide"></i> 要対応</span>' : '';
     return `<tr onclick="openCandidateDetail('${escapeHtml(c.id)}')">
       <td><span class="status-badge ${escapeHtml(meta.cls)}">${escapeHtml(meta.label)}</span></td>
       <td><strong>${escapeHtml(c.name || '—')}</strong>${actionBadge}</td>
@@ -3317,7 +3637,7 @@ function renderSourceGrid() {
   const grid = document.getElementById('sourceGrid');
   if (!grid) return;
   grid.innerHTML = sources.map((s, i) => `<div class="source-card${i === 0 && !wizardSelectedSource ? ' selected' : ''}" data-source="${escapeHtml(s.id)}" onclick="selectSource(this)">
-    <div class="source-icon">${s.icon || '📄'}</div>
+    <div class="source-icon">${s.icon || '<i data-lucide="file" class="lucide"></i>'}</div>
     <div class="source-title">${escapeHtml(s.title)}</div>
     <div class="source-subtitle">${escapeHtml(s.subtitle || '')}</div>
     <div class="source-hint">${escapeHtml(s.hint || '')}</div>
@@ -3437,9 +3757,9 @@ function prepareScoutScreen() {
     const c = currentCandidateId ? loadCandidate(currentCandidateId) : null;
     const sp = (c && scoutActiveSpId) ? (c.sourceProfiles || []).find(x => x.id === scoutActiveSpId) : getMainSourceProfile(c);
     const platform = (sp && sp.platform) || (c && c.sourcePlatform) || '';
-    if (headerTitle) headerTitle.textContent = `✉️ ${c ? c.name : '候補者'} へのメッセージを生成`;
+    if (headerTitle) headerTitle.innerHTML = `<i data-lucide="mail" class="lucide"></i> ${escapeHtml(c ? c.name : '候補者')} へのメッセージを生成`;
     if (mediaBadge) {
-      if (platform) { mediaBadge.textContent = `${platformIcon(platform)} ${platform}`; mediaBadge.style.display = ''; }
+      if (platform) { mediaBadge.innerHTML = `${platformIcon(platform)} ${escapeHtml(platform)}`; mediaBadge.style.display = ''; }
       else { mediaBadge.style.display = 'none'; }
     }
   } else if (mediaBadge) {
@@ -3449,9 +3769,9 @@ function prepareScoutScreen() {
   // ヒントボックスの文面を既存モード向けに差し替え
   const hintBox = document.querySelector('.scout-panel .hint-box');
   if (hintBox) {
-    hintBox.textContent = isExisting
-      ? '💡 「📋 コピー」を押すと自動でクリップボードにコピー＆送付履歴に記録されます。'
-      : '💡 コピー後、「候補者として登録」で一覧に追加されます。送付履歴に自動記録。';
+    hintBox.innerHTML = isExisting
+      ? '<i data-lucide="lightbulb" class="lucide"></i> 「<i data-lucide="clipboard" class="lucide"></i> コピー」を押すと自動でクリップボードにコピー＆送付履歴に記録されます。'
+      : '<i data-lucide="lightbulb" class="lucide"></i> コピー後、「候補者として登録」で一覧に追加されます。送付履歴に自動記録。';
   }
 
   // 既存モードで sourceProfiles が2件以上なら「送信媒体」プルダウンを表示
@@ -3500,7 +3820,7 @@ function onScoutExistingSpChange() {
   // ヘッダの媒体バッジも更新
   const mediaBadge = document.getElementById('scoutHeaderMediaBadge');
   if (mediaBadge && sp.platform) {
-    mediaBadge.textContent = `${platformIcon(sp.platform)} ${sp.platform}`;
+    mediaBadge.innerHTML = `${platformIcon(sp.platform)} ${escapeHtml(sp.platform)}`;
   }
 }
 
@@ -4117,7 +4437,7 @@ function renderFlowSectionHtml(c) {
 function renderFlowPhaseHtml(c, def, canEdit) {
   const d = getFlowPhase(c, def.id);
   const stat = flowPhaseStatus(c, def);
-  const bullet = stat === 'completed' ? '✓' : stat === 'scheduled' ? '⏳' : '○';
+  const bullet = stat === 'completed' ? '<i data-lucide="check" class="lucide"></i>' : stat === 'scheduled' ? '⏳' : '○';
   const interviewers = getPhaseInterviewers(d);
   const sched = d.scheduledAt ? new Date(d.scheduledAt) : null;
   const schedText = sched ? sched.toLocaleString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
@@ -4126,7 +4446,7 @@ function renderFlowPhaseHtml(c, def, canEdit) {
   const assigneeChips = interviewers.map(i => `<span class="assignee"><span class="assignee-avatar">${escapeHtml((i.name||'?').substring(0,1))}</span>${escapeHtml(i.name)}</span>`).join(' ');
 
   const chips = [];
-  if (d.calendarEventId) chips.push('<span class="integration-chip gcal">📅 カレンダー登録済み</span>');
+  if (d.calendarEventId) chips.push('<span class="integration-chip gcal"><i data-lucide="calendar" class="lucide"></i> カレンダー登録済み</span>');
 
   return `<div class="flow-node" data-phase="${escapeHtml(def.id)}">
     <div class="flow-bullet ${stat}">${bullet}</div>
@@ -4138,10 +4458,10 @@ function renderFlowPhaseHtml(c, def, canEdit) {
         ${assigneeChips}
       </div>
       ${schedText ? `<div class="flow-detail">${escapeHtml(schedText)}${interviewers.length ? ' / ' + escapeHtml(interviewers.map(i => i.name).join(', ')) : ''}${company && interviewers.length ? '（' + escapeHtml(company) + '）' : ''}</div>` : ''}
-      ${d.meetingUrl ? `<a href="${escapeHtml(d.meetingUrl)}" target="_blank" class="flow-meeting-url">📎 面談記録URL: ${escapeHtml(d.meetingUrl)}</a>` : ''}
+      ${d.meetingUrl ? `<a href="${escapeHtml(d.meetingUrl)}" target="_blank" class="flow-meeting-url"><i data-lucide="paperclip" class="lucide"></i> 面談記録URL: ${escapeHtml(d.meetingUrl)}</a>` : ''}
       ${chips.length ? `<div class="flow-integrations">${chips.join('')}</div>` : ''}
       ${d.memo ? `<div class="flow-memo">${escapeHtml(d.memo)}</div>` : ''}
-      ${canEdit && !def.autoComplete ? `<button class="flow-edit-btn" onclick="openFlowEdit('${escapeHtml(def.id)}')">✏️ 編集</button>` : ''}
+      ${canEdit && !def.autoComplete ? `<button class="flow-edit-btn" onclick="openFlowEdit('${escapeHtml(def.id)}')"><i data-lucide="pencil" class="lucide"></i> 編集</button>` : ''}
       <div class="flow-edit-form" id="flowEdit_${escapeHtml(def.id)}" style="display:none;"></div>
     </div>
   </div>`;
@@ -4183,7 +4503,7 @@ function openFlowEdit(phaseId) {
     <div class="flow-edit-actions">
       <button class="btn btn-small" onclick="openFlowEdit('${escapeHtml(phaseId)}')">キャンセル</button>
       <div style="display:flex; gap:6px;">
-        ${canCal ? `<button class="btn btn-small btn-accent" onclick="saveFlowPhase('${escapeHtml(phaseId)}', true)">📅 カレンダーに登録</button>` : ''}
+        ${canCal ? `<button class="btn btn-small btn-accent" onclick="saveFlowPhase('${escapeHtml(phaseId)}', true)"><i data-lucide="calendar" class="lucide"></i> カレンダーに登録</button>` : ''}
         ${calHint ? `<span style="font-size:10px; color:var(--text-tertiary); align-self:center;">${calHint}</span>` : ''}
         <button class="btn btn-small btn-primary" onclick="saveFlowPhase('${escapeHtml(phaseId)}', false)">保存</button>
       </div>
@@ -4252,7 +4572,7 @@ async function saveFlowPhase(phaseId, withCalendar) {
   await runDriveSave([
     () => DriveStorage.writeCandidate(c.id, c)
   ], {
-    success: withCalendar ? '面談予定を登録しました（カレンダー & Driveに保存 ✓）' : '採用フローを更新しました（Driveに保存 ✓）',
+    success: withCalendar ? '面談予定を登録しました（カレンダー & Driveに保存 <i data-lucide="check" class="lucide"></i>）' : '採用フローを更新しました（Driveに保存 <i data-lucide="check" class="lucide"></i>）',
     fail:    'Drive保存失敗、ローカルに保存しました',
     local:   '採用フローを更新しました（ローカル保存のみ）'
   });
@@ -4403,15 +4723,15 @@ function buildSlackText(eventId, data) {
   data = data || {};
   switch (eventId) {
     case 'status_changed':
-      return `🔄 ${data.name || '(無名)'} のステータスが ${data.before || '?'} → ${data.after || '?'} になりました`;
+      return `<i data-lucide="refresh-cw" class="lucide"></i> ${data.name || '(無名)'} のステータスが ${data.before || '?'} → ${data.after || '?'} になりました`;
     case 'offer_accepted':
-      return `🎉 ${data.name || '(無名)'} がオファーを承諾しました！`;
+      return `<i data-lucide="party-popper" class="lucide"></i> ${data.name || '(無名)'} がオファーを承諾しました！`;
     case 'interview_scheduled':
-      return `📅 面談が確定しました\n候補者：${data.name || '(無名)'}\n日時：${data.when || ''}\n担当：${data.mentions || data.interviewerName || '未設定'}`;
+      return `<i data-lucide="calendar" class="lucide"></i> 面談が確定しました\n候補者：${data.name || '(無名)'}\n日時：${data.when || ''}\n担当：${data.mentions || data.interviewerName || '未設定'}`;
     case 'reply_received':
-      return `📧 ${data.name || '(無名)'} から返信がありました${data.sourcePlatform ? '（' + data.sourcePlatform + '経由）' : ''}`;
+      return `<i data-lucide="mail" class="lucide"></i> ${data.name || '(無名)'} から返信がありました${data.sourcePlatform ? '（' + data.sourcePlatform + '経由）' : ''}`;
     case 'interview_confirmed':
-      return `📅 面談が確定しました（TimeRex）\n候補者：${data.name || '(無名)'}\n日時：${data.when || ''}\n担当：${data.mentions || '未設定'}`;
+      return `<i data-lucide="calendar" class="lucide"></i> 面談が確定しました（TimeRex）\n候補者：${data.name || '(無名)'}\n日時：${data.when || ''}\n担当：${data.mentions || '未設定'}`;
     case 'interview_reminder_day_before':
       return `⏰ 明日の面談リマインド\n候補者：${data.name || '(無名)'}\n日時：${data.when || ''}\n担当：${data.mentions || '未設定'}`;
     case 'interview_reminder_one_hour':
@@ -4424,12 +4744,12 @@ function buildSlackText(eventId, data) {
     case 'summary_report': {
       const lines = (data.sections || []).map(sec =>
         `・${sec.label}：${sec.count}件${sec.samples && sec.samples.length ? `（${sec.samples.slice(0,3).join('、')}${sec.count > 3 ? ' 他' + (sec.count - 3) + '名' : ''}）` : ''}`);
-      return `📊 採用サマリー（${data.rangeLabel || ''}）\n${lines.join('\n') || '特に変化なし'}`;
+      return `<i data-lucide="bar-chart-2" class="lucide"></i> 採用サマリー（${data.rangeLabel || ''}）\n${lines.join('\n') || '特に変化なし'}`;
     }
     case 'thread_parent':
       return data.text || '';
     case 'test':
-      return `🧪 THE MOLTS ATS からのテスト送信です（${new Date().toLocaleString('ja-JP')}）`;
+      return `<i data-lucide="flask-conical" class="lucide"></i> THE MOLTS ATS からのテスト送信です（${new Date().toLocaleString('ja-JP')}）`;
     default:
       return `[ATS] ${eventId}: ${JSON.stringify(data)}`;
   }
@@ -4730,12 +5050,12 @@ function renderSourceProfilesHtml(c) {
         <div style="font-size:11px; color:var(--text-tertiary); margin: 2px 0 6px;">LinkedInなどのプロフィールページのテキストをそのままコピーして貼り付けてください</div>
         <textarea id="addSourceProfile" placeholder="（プロフィール本文を貼り付け）" onpaste="onAddSourceProfilePaste()" oninput="onAddSourceProfileInput()"></textarea>
         <div id="addSourceAnalyzeNote" style="font-size:11px; color:var(--text-secondary); margin-top:4px; line-height:1.6;">
-          💡 貼り付けると自動で以下が行われます：<br>
+          <i data-lucide="lightbulb" class="lucide"></i> 貼り付けると自動で以下が行われます：<br>
           ・AIがプロフィールを要約・構造化して保存<br>
           ・スカウト生成時にこの情報を活用<br>
           ・スコープ判定（推奨 / 要注意 / 見送り）を自動実行
         </div>
-        <div id="addSourceAnalyzeIndicator" style="display:none; font-size:11px; color:var(--info); margin-top:4px;">🤖 AI解析中...</div>
+        <div id="addSourceAnalyzeIndicator" style="display:none; font-size:11px; color:var(--info); margin-top:4px;"><i data-lucide="bot" class="lucide"></i> AI解析中...</div>
         <div id="addSourceApiKeyHint" style="display:none; font-size:11px; color:var(--warning-text); background:var(--warning-bg); padding:6px 10px; border-radius:4px; margin-top:6px;">APIキーを設定するとAI解析が利用できます（設定 → APIキー設定）</div>
       </div>
       <div class="actions">
@@ -4752,14 +5072,14 @@ function renderSourceProfilesHtml(c) {
 function renderSourceProfileItemHtml(sp, canEdit) {
   const icon = platformIcon(sp.platform);
   const mainCls = sp.isMain ? ' main' : '';
-  const mainBadge = sp.isMain ? '<span class="source-main-badge">★ メイン</span>' : '';
+  const mainBadge = sp.isMain ? '<span class="source-main-badge"><i data-lucide="star" class="lucide"></i> メイン</span>' : '';
   const urlHtml = sp.url ? `<a href="${escapeHtml(sp.url)}" target="_blank">${escapeHtml(sp.url)}</a>` : '<span class="source-label">URL未登録</span>';
   const canScout = can('candidates.scout');
   const actions = canEdit ? `<div class="source-profile-actions">
-    <button class="btn btn-small" onclick="openUpdateProfileModal('${escapeHtml(sp.id)}')">📝 プロフィールを更新</button>
-    ${sp.isMain ? '' : `<button class="btn btn-small" onclick="setMainSourceProfile('${escapeHtml(sp.id)}')">★ メインにする</button>`}
-    ${!sp.isMain && canScout ? `<button class="btn btn-small" onclick="openScoutForSpSns('${escapeHtml(sp.id)}')">📲 SNS補助メッセージを送る</button>` : ''}
-    <button class="btn-ghost" onclick="deleteSourceProfile('${escapeHtml(sp.id)}')">🗑️ 削除</button>
+    <button class="btn btn-small" onclick="openUpdateProfileModal('${escapeHtml(sp.id)}')"><i data-lucide="file-text" class="lucide"></i> プロフィールを更新</button>
+    ${sp.isMain ? '' : `<button class="btn btn-small" onclick="setMainSourceProfile('${escapeHtml(sp.id)}')"><i data-lucide="star" class="lucide"></i> メインにする</button>`}
+    ${!sp.isMain && canScout ? `<button class="btn btn-small" onclick="openScoutForSpSns('${escapeHtml(sp.id)}')"><i data-lucide="smartphone" class="lucide"></i> SNS補助メッセージを送る</button>` : ''}
+    <button class="btn-ghost" onclick="deleteSourceProfile('${escapeHtml(sp.id)}')"><i data-lucide="trash-2" class="lucide"></i> 削除</button>
   </div>` : '';
   return `<div class="source-profile-item${mainCls}">
     <div class="source-profile-header">
@@ -4802,7 +5122,7 @@ function onAddSourceUrlInput() {
     return;
   }
   const p = inferPlatformFromUrl(url);
-  hint.innerHTML = `→ ${platformIcon(p)} <strong>${escapeHtml(p)}</strong> と判別されました ✓`;
+  hint.innerHTML = `→ ${platformIcon(p)} <strong>${escapeHtml(p)}</strong> と判別されました <i data-lucide="check" class="lucide"></i>`;
   hint.style.color = 'var(--success)';
 }
 
@@ -4824,11 +5144,11 @@ async function runAddSourceAnalyze() {
   const apiKey = localStorage.getItem(LS_API_KEY);
   if (!apiKey) { indicator.style.display = 'none'; return; }
   indicator.style.display = '';
-  indicator.textContent = '🤖 AI解析中...';
+  indicator.innerHTML = '<i data-lucide="bot" class="lucide"></i> AI解析中...';
   indicator.style.color = 'var(--info)';
   try {
     await summarizeProfile(profile, apiKey);  // 結果は profileSummaryCache に入る
-    indicator.textContent = '✓ 解析完了';
+    indicator.innerHTML = '<i data-lucide="check" class="lucide"></i> 解析完了';
     indicator.style.color = 'var(--success)';
   } catch (e) {
     indicator.textContent = '解析に失敗しました';
@@ -4878,14 +5198,14 @@ async function submitAddSourceProfile() {
   await runDriveSave([
     () => DriveStorage.writeCandidate(c.id, c)
   ], {
-    success: 'URLを追加しました（Driveに保存 ✓）',
+    success: 'URLを追加しました（Driveに保存 <i data-lucide="check" class="lucide"></i>）',
     fail:    'Drive保存失敗、ローカルに保存しました',
     local:   'URLを追加しました（ローカル保存のみ）'
   });
 
   // 追加したのが 2件目以降（= メインでない）なら SNS補助メッセージへの導線を出す
   if (!sp.isMain && c.sourceProfiles.length >= 2 && can('candidates.scout')) {
-    const msg = `📲 ${sp.platform || 'その他'} へのSNS補助メッセージを作成しますか？`;
+    const msg = `<i data-lucide="smartphone" class="lucide"></i> ${sp.platform || 'その他'} へのSNS補助メッセージを作成しますか？`;
     if (confirm(msg)) {
       openScoutForExistingCandidate({ spId: sp.id, msgType: 'second' });
     }
@@ -4905,7 +5225,7 @@ async function setMainSourceProfile(spId) {
   await runDriveSave([
     () => DriveStorage.writeCandidate(c.id, c)
   ], {
-    success: 'メインプロフィールを変更しました（Driveに保存 ✓）',
+    success: 'メインプロフィールを変更しました（Driveに保存 <i data-lucide="check" class="lucide"></i>）',
     fail:    'Drive保存失敗、ローカルに保存しました',
     local:   'メインプロフィールを変更しました（ローカル保存のみ）'
   });
@@ -4929,7 +5249,7 @@ async function deleteSourceProfile(spId) {
   await runDriveSave([
     () => DriveStorage.writeCandidate(c.id, c)
   ], {
-    success: 'URLを削除しました（Driveに保存 ✓）',
+    success: 'URLを削除しました（Driveに保存 <i data-lucide="check" class="lucide"></i>）',
     fail:    'Drive保存失敗、ローカルに保存しました',
     local:   'URLを削除しました（ローカル保存のみ）'
   });
@@ -4975,7 +5295,7 @@ function onUpdateProfileUrlInput() {
   const hint = document.getElementById('updateProfileUrlHint');
   if (!url) { hint.textContent = 'URLを変更すると媒体が自動で再判別されます'; return; }
   const p = inferPlatformFromUrl(url);
-  hint.textContent = '自動判定: ' + platformIcon(p) + ' ' + p;
+  hint.innerHTML = '自動判定: ' + platformIcon(p) + ' ' + escapeHtml(p);
   // ボタンのdisable条件にURL変更も反映させる（URL・text どちらかが変わっていれば有効化）
   reevaluateUpdateProfileApplyBtn();
 }
@@ -5055,7 +5375,7 @@ async function runUpdateProfileAnalyze() {
     btn.disabled = false;
     return;
   }
-  statusEl.textContent = '🤖 AI要約中...';
+  statusEl.innerHTML = '<i data-lucide="bot" class="lucide"></i> AI要約中...';
   btn.disabled = true;
   const summary = await summarizeProfile(text, apiKey, { force: true });
   if (!summary) {
@@ -5076,7 +5396,7 @@ async function runUpdateProfileAnalyze() {
     statusEl.innerHTML = '<div class="profile-update-same">現在の要約と同じ内容です</div>';
     btn.disabled = true;
   } else {
-    statusEl.textContent = '✓ AI要約を生成しました。内容を確認して「入れ替える」を押してください。';
+    statusEl.innerHTML = '<i data-lucide="check" class="lucide"></i> AI要約を生成しました。内容を確認して「入れ替える」を押してください。';
     btn.disabled = false;
   }
 }
@@ -5125,7 +5445,7 @@ async function applyProfileUpdate() {
   await runDriveSave([
     () => DriveStorage.writeCandidate(c.id, c)
   ], {
-    success: 'プロフィールを更新しました（Driveに保存 ✓）',
+    success: 'プロフィールを更新しました（Driveに保存 <i data-lucide="check" class="lucide"></i>）',
     fail:    'Drive保存失敗、ローカルに保存しました',
     local:   'プロフィールを更新しました（ローカル保存のみ）'
   });
@@ -5145,8 +5465,8 @@ const TASK_TYPES = {
   reschedule_them:   { label: '日程再調整',                defaultDays: 1, category: 'internal' }
 };
 const TASK_CATEGORIES = [
-  { id: 'candidate', icon: '📧', label: '候補者アクション' },
-  { id: 'internal',  icon: '🏢', label: '社内アクション' }
+  { id: 'candidate', icon: '<i data-lucide="mail" class="lucide"></i>', label: '候補者アクション' },
+  { id: 'internal',  icon: '<i data-lucide="building-2" class="lucide"></i>', label: '社内アクション' }
 ];
 
 // ログラベルからタスク種別への対応
@@ -5283,8 +5603,8 @@ function getBallState(c) {
   return BALL_FROM_LABEL[logs[0].label] || null;
 }
 function ballChipHtml(state) {
-  if (state === 'candidate') return '<span class="ball-chip ball-candidate">🎾 候補者ボール</span>';
-  if (state === 'us')        return '<span class="ball-chip ball-us">🎾 こちらボール</span>';
+  if (state === 'candidate') return '<span class="ball-chip ball-candidate"><i data-lucide="circle-dot" class="lucide"></i> 先方待ち</span>';
+  if (state === 'us')        return '<span class="ball-chip ball-us"><i data-lucide="circle-dot" class="lucide"></i> こちら対応中</span>';
   if (state === 'closed')    return '<span class="ball-chip ball-closed">⭕ クローズ</span>';
   return '';
 }
@@ -5300,7 +5620,7 @@ function renderTasksSectionHtml(c) {
   const done = (c.tasks || []).filter(t => t.completedAt).slice(-3); // 直近3件
   if (open.length === 0 && done.length === 0) {
     return `<div class="detail-section" style="margin-bottom: 16px;">
-      <div class="detail-section-title"><span>⚡ タスク</span></div>
+      <div class="detail-section-title"><span><i data-lucide="zap" class="lucide"></i> タスク</span></div>
       <div class="source-label">発生中のタスクはありません</div>
     </div>`;
   }
@@ -5321,7 +5641,7 @@ function renderTasksSectionHtml(c) {
       </div>`
     : '';
   return `<div class="detail-section" style="margin-bottom: 16px;">
-    <div class="detail-section-title"><span>⚡ タスク（${open.length}件未対応）</span></div>
+    <div class="detail-section-title"><span><i data-lucide="zap" class="lucide"></i> タスク（${open.length}件未対応）</span></div>
     ${groupsHtml || (open.length === 0 ? '<div class="source-label">未対応タスクはありません</div>' : '')}
     ${doneHtml}
   </div>`;
@@ -5340,16 +5660,16 @@ function renderTaskItemHtml(t, canEdit, isDone) {
     // タスク種別に応じたメッセージ生成への導線
     if (canScout) {
       if (t.type === 'schedule') {
-        actionBtns.push(`<button class="btn btn-small" onclick="openScoutFromTaskType('schedule')">✉️ 面談設定メッセージを生成</button>`);
+        actionBtns.push(`<button class="btn btn-small" onclick="openScoutFromTaskType('schedule')"><i data-lucide="mail" class="lucide"></i> 面談設定メッセージを生成</button>`);
       } else if (t.type === 'reschedule_us') {
-        actionBtns.push(`<button class="btn btn-small" onclick="openScoutFromTaskType('reschedule_us')">✉️ リスケ謝罪メッセージを生成</button>`);
+        actionBtns.push(`<button class="btn btn-small" onclick="openScoutFromTaskType('reschedule_us')"><i data-lucide="mail" class="lucide"></i> リスケ謝罪メッセージを生成</button>`);
       } else if (t.type === 'reschedule_them') {
-        actionBtns.push(`<button class="btn btn-small" onclick="openScoutFromTaskType('reschedule_them')">✉️ 日程再調整メッセージを生成</button>`);
+        actionBtns.push(`<button class="btn btn-small" onclick="openScoutFromTaskType('reschedule_them')"><i data-lucide="mail" class="lucide"></i> 日程再調整メッセージを生成</button>`);
       } else if (t.type === 'reply') {
         // 辞退ログが存在する場合は「辞退返信」生成ボタンを出す
         const c = currentCandidateId ? loadCandidate(currentCandidateId) : null;
         if (c && (c.logs || []).some(l => l.label === 'jitai')) {
-          actionBtns.push(`<button class="btn btn-small" onclick="openScoutFromTaskType('reply_decline')">✉️ 辞退返信メッセージを生成</button>`);
+          actionBtns.push(`<button class="btn btn-small" onclick="openScoutFromTaskType('reply_decline')"><i data-lucide="mail" class="lucide"></i> 辞退返信メッセージを生成</button>`);
         }
       }
     }
@@ -5357,7 +5677,7 @@ function renderTaskItemHtml(t, canEdit, isDone) {
   }
   return `<div class="task-item ${overdue ? 'overdue' : ''} ${isDone ? 'done' : ''}">
     <div style="min-width:0;">
-      <div class="task-title">⚡ ${escapeHtml(t.title)}${completedText}</div>
+      <div class="task-title"><i data-lucide="zap" class="lucide"></i> ${escapeHtml(t.title)}${completedText}</div>
       <div class="task-meta">
         <span class="${overdue ? 'task-due-warn' : ''}">期限: ${escapeHtml(dueText)}</span>
         ${' / '}担当: ${escapeHtml(assigneeText)}
@@ -5383,7 +5703,7 @@ async function markTaskDone(taskId) {
   await runDriveSave([
     () => DriveStorage.writeCandidate(c.id, c)
   ], {
-    success: 'タスクを完了しました（Driveに保存 ✓）',
+    success: 'タスクを完了しました（Driveに保存 <i data-lucide="check" class="lucide"></i>）',
     fail:    'Drive保存失敗、ローカルに保存しました',
     local:   'タスクを完了しました（ローカル保存のみ）'
   });
@@ -5451,7 +5771,7 @@ async function ensureSlackThreadForCandidate(c) {
   if (!c) return null;
   if (c.slackThreadTs) return c.slackThreadTs;
   if (!cachedSlack.webhookUrl) return null;
-  const parentText = `📋 ${c.name || '(無名)'} さんの採用進捗\n`
+  const parentText = `<i data-lucide="clipboard" class="lucide"></i> ${c.name || '(無名)'} さんの採用進捗\n`
     + `ソース：${c.sourcePlatform || c.sourceType || '—'} / 担当：${c.assignee ? displayName(c.assignee) : '未設定'}\n`
     + `ステータス：${getStatusMeta(c.status).label || c.status}\n`
     + `→ ATS で確認: ${location.origin}${location.pathname}`;
@@ -5522,7 +5842,7 @@ function renderInteractionLogsHtml(c) {
       <textarea class="log-form-textarea" id="logFormSummary" rows="2" placeholder="要約（短く、1〜3行）*必須"></textarea>
       <textarea class="log-form-textarea" id="logFormReply"   rows="4" placeholder="返信全文（任意、貼り付けOK）"></textarea>
       <div class="log-form-actions">
-        <button class="ai-btn" ${aiBtnDisabled} onclick="aiSummarizeReply()">🤖 AIで要約を下書き</button>
+        <button class="ai-btn" ${aiBtnDisabled} onclick="aiSummarizeReply()"><i data-lucide="bot" class="lucide"></i> AIで要約を下書き</button>
         <div style="display: flex; gap: 6px;">
           <button class="btn btn-small" onclick="toggleLogForm(false)">キャンセル</button>
           <button class="btn btn-small btn-primary" onclick="saveLogEntry()">保存</button>
@@ -5541,17 +5861,17 @@ function renderInteractionLogEntryHtml(l, canEdit) {
   const who = l.byName || displayName(l.by || '');
   const hasReply = !!(l.reply && l.reply.trim());
   const safeReply = hasReply ? escapeHtml(l.reply) : '';
-  // 編集済みなら「✏️ 編集済み」一本化。それ以外はソースに応じたバッジを表示
+  // 編集済みなら「<i data-lucide="pencil" class="lucide"></i> 編集済み」一本化。それ以外はソースに応じたバッジを表示
   const badge = l.edited
-    ? '<span class="log-edited-badge">✏️ 編集済み</span>'
+    ? '<span class="log-edited-badge"><i data-lucide="pencil" class="lucide"></i> 編集済み</span>'
     : (l.source === 'gmail'
-        ? '<span class="gmail-auto-badge">📧 Gmail自動取得</span>'
-        : '<span class="log-manual-badge">✏️ 手動入力</span>');
+        ? '<span class="gmail-auto-badge"><i data-lucide="mail" class="lucide"></i> Gmail自動取得</span>'
+        : '<span class="log-manual-badge"><i data-lucide="pencil" class="lucide"></i> 手動入力</span>');
   const editBtn = canEdit && l.id
-    ? `<button class="log-edit-btn" onclick="startEditLog('${escapeHtml(l.id)}')">✏️ 編集</button>`
+    ? `<button class="log-edit-btn" onclick="startEditLog('${escapeHtml(l.id)}')"><i data-lucide="pencil" class="lucide"></i> 編集</button>`
     : '';
   const delBtn = canEdit && l.id
-    ? `<button class="log-edit-btn" style="margin-left:4px;" onclick="deleteLogEntry('${escapeHtml(l.id)}')">🗑️ 削除</button>`
+    ? `<button class="log-edit-btn" style="margin-left:4px;" onclick="deleteLogEntry('${escapeHtml(l.id)}')"><i data-lucide="trash-2" class="lucide"></i> 削除</button>`
     : '';
   return `<div class="log-entry">
     <div class="log-header">
@@ -5590,7 +5910,7 @@ function renderLogEditFormHtml(l) {
         <div></div>
         <div style="display:flex; gap:6px;">
           <button class="btn btn-small" onclick="cancelEditLog()">キャンセル</button>
-          <button class="btn btn-small btn-primary" onclick="saveLogEdit('${escapeHtml(l.id)}')">💾 保存</button>
+          <button class="btn btn-small btn-primary" onclick="saveLogEdit('${escapeHtml(l.id)}')"><i data-lucide="save" class="lucide"></i> 保存</button>
         </div>
       </div>
     </div>
@@ -5626,7 +5946,7 @@ async function deleteLogEntry(logId) {
   await runDriveSave([
     () => DriveStorage.writeCandidate(c.id, c)
   ], {
-    success: 'やり取りログを削除しました（Driveに保存 ✓）',
+    success: 'やり取りログを削除しました（Driveに保存 <i data-lucide="check" class="lucide"></i>）',
     fail:    'Drive保存失敗、ローカルに保存しました',
     local:   'やり取りログを削除しました（ローカル保存のみ）'
   });
@@ -5659,7 +5979,7 @@ async function saveLogEdit(logId) {
   await runDriveSave([
     () => DriveStorage.writeCandidate(c.id, c)
   ], {
-    success: 'やり取りログを更新しました（Driveに保存 ✓）',
+    success: 'やり取りログを更新しました（Driveに保存 <i data-lucide="check" class="lucide"></i>）',
     fail:    'Drive保存失敗、ローカルに保存しました',
     local:   'やり取りログを更新しました（ローカル保存のみ）'
   });
@@ -5698,7 +6018,7 @@ async function aiSummarizeReply() {
   const truncated = replyFull.length > MAX_CHARS;
   const replyBody = truncated ? replyFull.substring(0, MAX_CHARS) : replyFull;
   const btn = document.querySelector('.log-add-form .ai-btn');
-  if (btn) { btn.disabled = true; btn.textContent = '🤖 要約中...'; }
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i data-lucide="bot" class="lucide"></i> 要約中...'; }
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -5717,7 +6037,7 @@ async function aiSummarizeReply() {
 
 【要約のルール】
 ・1〜3行の自然な日本語で書く
-・マークダウン・絵文字・記号（** / ✅ / 【】など）は一切使わない
+・マークダウン・絵文字・記号（** / <i data-lucide="check-circle" class="lucide"></i> / 【】など）は一切使わない
 ・意欲・温度感・具体的なアクション・次にすべきことを自然な文章の中に含める
 ・箇条書きにしない、普通の文章で書く
 ・敬語・挨拶文は省略する
@@ -5727,7 +6047,7 @@ async function aiSummarizeReply() {
 「転職は検討していないが将来の可能性はあるとのこと。タイミングを見て再アプローチ予定。」
 
 悪い例：
-「**意欲：高い** ✅ 次のアクション：日程調整」
+「**意欲：高い** <i data-lucide="check-circle" class="lucide"></i> 次のアクション：日程調整」
 
 【返信本文】
 ${replyBody}`
@@ -5745,7 +6065,7 @@ ${replyBody}`
     console.warn('[AI] summarize reply failed', e);
     showToast('要約に失敗しました: ' + e.message, 'error');
   } finally {
-    if (btn) { btn.disabled = false; btn.textContent = '🤖 AIで要約を下書き'; }
+    if (btn) { btn.disabled = false; btn.innerHTML = '<i data-lucide="bot" class="lucide"></i> AIで要約を下書き'; }
   }
 }
 
@@ -5780,7 +6100,7 @@ async function saveLogEntry() {
   await runDriveSave([
     () => DriveStorage.writeCandidate(c.id, c)
   ], {
-    success: 'やり取りログを追加しました（Driveに保存 ✓）',
+    success: 'やり取りログを追加しました（Driveに保存 <i data-lucide="check" class="lucide"></i>）',
     fail:    'Drive保存失敗、ローカルに保存しました',
     local:   'やり取りログを追加しました（ローカル保存のみ）'
   });
@@ -5893,7 +6213,7 @@ async function applyProfileDiff(diffId) {
   await runDriveSave([
     () => DriveStorage.writeCandidate(c.id, c)
   ], {
-    success: 'プロフィールに反映しました（Driveに保存 ✓）',
+    success: 'プロフィールに反映しました（Driveに保存 <i data-lucide="check" class="lucide"></i>）',
     fail:    'Drive保存失敗、ローカルに保存しました',
     local:   'プロフィールに反映しました（ローカル保存のみ）'
   });
@@ -5928,7 +6248,7 @@ function renderProfileDiffBannerHtml(c) {
       <span class="after">${escapeHtml(d.updated || '')}</span>
     </div>`).join('');
     return `<div class="profile-diff-banner">
-      <div>📝 <strong>プロフィールの更新候補があります</strong>（${escapeHtml(new Date(sug.detectedAt).toLocaleString('ja-JP'))}）</div>
+      <div><i data-lucide="file-text" class="lucide"></i> <strong>プロフィールの更新候補があります</strong>（${escapeHtml(new Date(sug.detectedAt).toLocaleString('ja-JP'))}）</div>
       ${rows}
       <div class="actions">
         <button class="btn btn-small btn-primary" onclick="applyProfileDiff('${escapeHtml(sug.id)}')">プロフィールに反映する</button>
@@ -5966,12 +6286,12 @@ function applyScopeResultToScoutUI(result) {
     return;
   }
   let cls = 'scope-badge', label = '';
-  if (result.verdict === 'recommend')          { label = '✓ スコープ判定: 推奨'; }
+  if (result.verdict === 'recommend')          { label = '<i data-lucide="check" class="lucide"></i> スコープ判定: 推奨'; }
   else if (result.verdict === 'caution')        { label = '△ スコープ判定: 要注意'; cls += ' caution'; }
-  else if (result.verdict === 'not_recommend')  { label = '✕ スコープ判定: 見送り'; cls += ' not-recommend'; }
+  else if (result.verdict === 'not_recommend')  { label = '<i data-lucide="x" class="lucide"></i> スコープ判定: 見送り'; cls += ' not-recommend'; }
   else { badge.style.display = 'none'; if (reason) reason.style.display = 'none'; return; }
   badge.className = cls;
-  badge.textContent = label;
+  badge.innerHTML = label;
   badge.style.display = '';
   if (reason) {
     if (result.detail) { reason.textContent = result.detail; reason.style.display = ''; }
@@ -6100,9 +6420,9 @@ async function recordSendForCurrentCandidate() {
     () => DriveStorage.writeCandidate(c.id, c),
     () => DriveStorage.writeAts(DRIVE_INDEX_FILE, cachedIndex)
   ], {
-    success: '📋 コピー＆送付を記録しました ✓',
+    success: '<i data-lucide="clipboard" class="lucide"></i> コピー＆送付を記録しました <i data-lucide="check" class="lucide"></i>',
     fail:    'コピー済み。Drive保存失敗（ローカルには保存）',
-    local:   '📋 コピー＆送付を記録しました ✓（ローカル保存のみ）'
+    local:   '<i data-lucide="clipboard" class="lucide"></i> コピー＆送付を記録しました <i data-lucide="check" class="lucide"></i>（ローカル保存のみ）'
   });
 }
 
@@ -6240,7 +6560,7 @@ async function registerCandidateFromScout(goBackToList) {
     () => DriveStorage.writeCandidate(candidate.id, candidate),
     () => DriveStorage.writeAts(DRIVE_INDEX_FILE, cachedIndex)
   ], {
-    success: '候補者を登録しました（Driveに保存 ✓）',
+    success: '候補者を登録しました（Driveに保存 <i data-lucide="check" class="lucide"></i>）',
     fail:    'Drive保存に失敗しました。ローカルには保存済みです',
     local:   '候補者を登録しました（ローカル保存のみ / Drive未接続）'
   });
@@ -6499,7 +6819,7 @@ async function submitAddTag() {
   renderCandidateDetail(c);
   await runDriveSave([
     () => DriveStorage.writeCandidate(c.id, c)
-  ], { success: 'タグを追加しました（Driveに保存 ✓）', fail: 'Drive保存失敗、ローカルに保存しました', local: 'タグを追加しました（ローカル保存のみ）' });
+  ], { success: 'タグを追加しました（Driveに保存 <i data-lucide="check" class="lucide"></i>）', fail: 'Drive保存失敗、ローカルに保存しました', local: 'タグを追加しました（ローカル保存のみ）' });
   // フォームを閉じずに開いたまま、次のタグを続けて入れやすくする
   toggleAddTagForm(true);
 }
@@ -6518,7 +6838,7 @@ async function deleteTagFromCandidate(tagId) {
   renderCandidateDetail(c);
   await runDriveSave([
     () => DriveStorage.writeCandidate(c.id, c)
-  ], { success: 'タグを削除しました（Driveに保存 ✓）', fail: 'Drive保存失敗、ローカルに保存しました', local: 'タグを削除しました（ローカル保存のみ）' });
+  ], { success: 'タグを削除しました（Driveに保存 <i data-lucide="check" class="lucide"></i>）', fail: 'Drive保存失敗、ローカルに保存しました', local: 'タグを削除しました（ローカル保存のみ）' });
 }
 
 // ========== タレントプール ================================================
@@ -6530,7 +6850,7 @@ function renderTalentPoolSectionHtml(c) {
     if (!canEdit) return '<div class="source-label">タレントプール未登録</div>';
     return `<div class="talent-pool-banner">
       <div style="font-size:12px; color:var(--text-secondary); margin-bottom:8px;">将来再度コンタクトを取る可能性のある候補者をプールに登録できます。</div>
-      <button class="btn btn-small btn-primary" onclick="openTalentPoolForm()">🤝 タレントプールに追加</button>
+      <button class="btn btn-small btn-primary" onclick="openTalentPoolForm()"><i data-lucide="handshake" class="lucide"></i> タレントプールに追加</button>
     </div>
     ${renderTalentPoolFormHtml(null)}`;
   }
@@ -6542,13 +6862,13 @@ function renderTalentPoolSectionHtml(c) {
   const by = tp.registeredBy ? displayName(tp.registeredBy) : '—';
   return `<div class="talent-pool-banner registered">
     <div style="margin-bottom:6px;">${typesHtml || '<span class="source-label">接点種別なし</span>'}</div>
-    ${tp.positionNote ? `<div style="font-size:12px;">💼 ポジション待ち: <strong>${escapeHtml(tp.positionNote)}</strong></div>` : ''}
-    ${tp.reapproachTiming ? `<div style="font-size:12px;">🔄 再アプローチ: <strong>${escapeHtml(tp.reapproachTiming)}</strong></div>` : ''}
+    ${tp.positionNote ? `<div style="font-size:12px;"><i data-lucide="briefcase" class="lucide"></i> ポジション待ち: <strong>${escapeHtml(tp.positionNote)}</strong></div>` : ''}
+    ${tp.reapproachTiming ? `<div style="font-size:12px;"><i data-lucide="refresh-cw" class="lucide"></i> 再アプローチ: <strong>${escapeHtml(tp.reapproachTiming)}</strong></div>` : ''}
     ${tp.memo ? `<div style="font-size:12px; white-space:pre-wrap; margin-top:6px; padding:6px 8px; background:var(--bg-primary); border-radius:4px;">${escapeHtml(tp.memo)}</div>` : ''}
     <div style="font-size:11px; color:var(--text-tertiary); margin-top:8px;">登録: ${escapeHtml(at)} / ${escapeHtml(by)}</div>
     ${canEdit ? `<div style="display:flex; gap:6px; margin-top:8px;">
-      <button class="btn btn-small" onclick="openTalentPoolForm()">✏️ 編集</button>
-      <button class="btn-ghost" onclick="removeFromTalentPool()">🗑️ 削除</button>
+      <button class="btn btn-small" onclick="openTalentPoolForm()"><i data-lucide="pencil" class="lucide"></i> 編集</button>
+      <button class="btn-ghost" onclick="removeFromTalentPool()"><i data-lucide="trash-2" class="lucide"></i> 削除</button>
     </div>` : ''}
   </div>
   ${renderTalentPoolFormHtml(tp)}`;
@@ -6615,7 +6935,7 @@ async function saveTalentPool() {
   renderCandidateDetail(c);
   await runDriveSave([
     () => DriveStorage.writeCandidate(c.id, c)
-  ], { success: 'タレントプールを保存しました（Driveに保存 ✓）', fail: 'Drive保存失敗、ローカルに保存しました', local: 'タレントプールを保存しました（ローカル保存のみ）' });
+  ], { success: 'タレントプールを保存しました（Driveに保存 <i data-lucide="check" class="lucide"></i>）', fail: 'Drive保存失敗、ローカルに保存しました', local: 'タレントプールを保存しました（ローカル保存のみ）' });
 }
 
 async function removeFromTalentPool() {
@@ -6630,7 +6950,812 @@ async function removeFromTalentPool() {
   renderCandidateDetail(c);
   await runDriveSave([
     () => DriveStorage.writeCandidate(c.id, c)
-  ], { success: 'タレントプールから削除しました（Driveに保存 ✓）', fail: 'Drive保存失敗、ローカルに保存しました', local: 'タレントプールから削除しました（ローカル保存のみ）' });
+  ], { success: 'タレントプールから削除しました（Driveに保存 <i data-lucide="check" class="lucide"></i>）', fail: 'Drive保存失敗、ローカルに保存しました', local: 'タレントプールから削除しました（ローカル保存のみ）' });
+}
+
+// ========== ダッシュボード（候補者一覧上部） ==============================
+
+// --- 週のレンジ ---
+function getThisWeekRange() {
+  const now = new Date();
+  const day = now.getDay();  // 0=Sun, 1=Mon, ... 6=Sat
+  const diff = day === 0 ? -6 : 1 - day;
+  const start = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diff, 0, 0, 0, 0);
+  const end = new Date(start.getTime() + 7 * 86400000 - 1);
+  return { start, end };
+}
+function getLastWeekRange() {
+  const { start } = getThisWeekRange();
+  const lastEnd = new Date(start.getTime() - 1);
+  const lastStart = new Date(start.getTime() - 7 * 86400000);
+  return { start: lastStart, end: lastEnd };
+}
+
+// --- 「今週のサマリー」集計 ---
+function computeWeeklySummary() {
+  const { start: weekStart, end: weekEnd } = getThisWeekRange();
+  const { start: lastStart, end: lastEnd } = getLastWeekRange();
+  const now = Date.now();
+  const REPLIED_SET = new Set(['replied','casual_interview','in_selection','offer','joined']);
+
+  let thisWeekSent = 0;
+  let thisWeekSentReplied = 0;
+  let lastWeekSent = 0;
+  let lastWeekReplied = 0;
+  const platformBreakdown = {};
+
+  const interviews = [];  // { at, done }
+  let openTasks = 0, overdueTasks = 0;
+
+  (cachedIndex.candidates || []).forEach(entry => {
+    const c = loadCandidate(entry.id);
+    if (!c) return;
+
+    // 今週登録 / 先週登録
+    if (c.createdAt) {
+      const created = new Date(c.createdAt);
+      const t = created.getTime();
+      if (t >= weekStart.getTime() && t <= weekEnd.getTime()) {
+        thisWeekSent++;
+        if (REPLIED_SET.has(c.status)) thisWeekSentReplied++;
+        const plat = c.sourcePlatform || (getMainSourceProfile(c) || {}).platform || 'その他';
+        platformBreakdown[plat] = (platformBreakdown[plat] || 0) + 1;
+      }
+      if (t >= lastStart.getTime() && t <= lastEnd.getTime()) {
+        lastWeekSent++;
+        if (REPLIED_SET.has(c.status)) lastWeekReplied++;
+      }
+    }
+
+    // 今週の面談
+    if (c.flow) {
+      Object.values(c.flow).forEach(p => {
+        if (!p || !p.scheduledAt) return;
+        const tms = new Date(p.scheduledAt).getTime();
+        if (isNaN(tms)) return;
+        if (tms >= weekStart.getTime() && tms <= weekEnd.getTime()) {
+          interviews.push({ at: tms, done: tms < now || !!p.conductedAt });
+        }
+      });
+    }
+
+    // 未完了タスク
+    (c.tasks || []).forEach(t => {
+      if (t.completedAt) return;
+      openTasks++;
+      const d = daysUntil(t.dueAt);
+      if (d !== null && d < 0) overdueTasks++;
+    });
+  });
+
+  const replyRate = thisWeekSent > 0 ? Math.round(thisWeekSentReplied / thisWeekSent * 100) : 0;
+  const lastReplyRate = lastWeekSent > 0 ? Math.round(lastWeekReplied / lastWeekSent * 100) : 0;
+  const replyRateDiff = (thisWeekSent > 0 && lastWeekSent > 0) ? (replyRate - lastReplyRate) : null;
+
+  const interviewsDone = interviews.filter(x => x.done).length;
+
+  return {
+    thisWeekSent,
+    thisWeekSentReplied,
+    platformBreakdown,
+    replyRate,
+    replyRateDiff,
+    interviewsTotal: interviews.length,
+    interviewsDone,
+    interviewsRemaining: interviews.length - interviewsDone,
+    openTasks, overdueTasks
+  };
+}
+
+function renderWeeklySummaryHtml() {
+  const s = computeWeeklySummary();
+  const platformText = Object.entries(s.platformBreakdown)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 3)
+    .map(([k, v]) => `${k}: ${v}`)
+    .join(' / ') || '内訳なし';
+
+  let replyDiffText = '';
+  let replyDiffColor = 'var(--text-tertiary)';
+  if (s.replyRateDiff === null) {
+    replyDiffText = s.thisWeekSent === 0 ? '今週の送付なし' : '先週比較なし';
+  } else if (s.replyRateDiff > 0) {
+    replyDiffText = `先週比 +${s.replyRateDiff}%`;
+    replyDiffColor = 'var(--success)';
+  } else if (s.replyRateDiff < 0) {
+    replyDiffText = `先週比 ${s.replyRateDiff}%`;
+    replyDiffColor = 'var(--error)';
+  } else {
+    replyDiffText = '先週と同じ';
+  }
+
+  const overdueText = s.overdueTasks > 0
+    ? `うち期限超過: ${s.overdueTasks}件`
+    : '期限超過なし';
+  const overdueColor = s.overdueTasks > 0 ? 'var(--error)' : 'var(--text-tertiary)';
+
+  const interviewsText = s.interviewsTotal > 0
+    ? `済み: ${s.interviewsDone}件 / 残り: ${s.interviewsRemaining}件`
+    : '—';
+
+  const replyFooter = s.thisWeekSent > 0 ? `（${s.thisWeekSentReplied}/${s.thisWeekSent}）${replyDiffText}` : replyDiffText;
+
+  return `<div class="weekly-summary">
+    ${summaryCardHtml('<i data-lucide="upload" class="lucide"></i>', '今週の送付', s.thisWeekSent, '件', platformText, 'weekly_registered')}
+    ${summaryCardHtml('<i data-lucide="mail-open" class="lucide"></i>', '返信率', s.replyRate, '%', replyFooter, 'weekly_replied', replyDiffColor)}
+    ${summaryCardHtml('<i data-lucide="calendar" class="lucide"></i>', '今週の面談', s.interviewsTotal, '件', interviewsText, 'weekly_interview')}
+    ${summaryCardHtml('<i data-lucide="zap" class="lucide"></i>', '要対応', s.openTasks, '件', overdueText, 'requires_action', overdueColor)}
+  </div>`;
+}
+
+function summaryCardHtml(icon, label, value, unit, footer, action, footerColor) {
+  const active = isSummaryCardActive(action);
+  const cls = active ? ' active' : '';
+  return `<div class="dash-sum-card${cls}" onclick="onDashboardCardClick('${action}')">
+    <div class="sc-label">${icon} ${escapeHtml(label)}</div>
+    <div class="sc-value">${value}<span class="sc-unit">${escapeHtml(unit)}</span></div>
+    <div class="sc-footer"${footerColor ? ` style="color:${footerColor};"` : ''}>${escapeHtml(footer || '')}</div>
+    <div class="sc-active-mark"><i data-lucide="search" class="lucide"></i> 絞り込み中</div>
+  </div>`;
+}
+
+function isSummaryCardActive(kind) {
+  if (kind === 'weekly_registered') return listExtraFilter === 'weekly_registered';
+  if (kind === 'weekly_interview')  return listExtraFilter === 'weekly_interview';
+  if (kind === 'weekly_replied') {
+    const sel = document.getElementById('listStatusFilter');
+    return !!(sel && sel.value === 'replied');
+  }
+  if (kind === 'requires_action') {
+    const cb = document.getElementById('filterRequiresAction');
+    return !!(cb && cb.checked);
+  }
+  return false;
+}
+
+// 現在アクティブになっているカード種別（どれか1つ）。複数有効なら優先順位で先頭を返す
+function getActiveDashCardKind() {
+  if (listExtraFilter === 'weekly_registered') return 'weekly_registered';
+  if (listExtraFilter === 'weekly_interview')  return 'weekly_interview';
+  const sel = document.getElementById('listStatusFilter');
+  if (sel && sel.value === 'replied') return 'weekly_replied';
+  const cb = document.getElementById('filterRequiresAction');
+  if (cb && cb.checked) return 'requires_action';
+  return null;
+}
+const DASH_CARD_LABELS = {
+  weekly_registered: '今週の送付',
+  weekly_replied:    '返信あり',
+  weekly_interview:  '今週の面談',
+  requires_action:   '要対応'
+};
+
+function renderDashFilterBanner(filteredCount) {
+  const banner = document.getElementById('dashFilterBanner');
+  if (!banner) return;
+  const active = getActiveDashCardKind();
+  if (!active) { banner.classList.remove('show'); banner.innerHTML = ''; return; }
+  const label = DASH_CARD_LABELS[active] || active;
+  banner.classList.add('show');
+  banner.innerHTML = `
+    <span><i data-lucide="search" class="lucide"></i> <strong>「${escapeHtml(label)}」で絞り込み中</strong>（${filteredCount || 0}件）</span>
+    <button onclick="clearDashFilter()">× 解除</button>
+  `;
+}
+
+function clearDashFilter() {
+  // ダッシュボードカード起点のフィルタをすべて解除
+  listExtraFilter = null;
+  const sel = document.getElementById('listStatusFilter');
+  if (sel && sel.value === 'replied') sel.value = '';
+  const cb = document.getElementById('filterRequiresAction');
+  if (cb && cb.checked) cb.checked = false;
+  renderCandidateList();
+}
+
+function onDashboardCardClick(kind) {
+  if (listViewMode !== 'candidates') setListView('candidates');
+  if (kind === 'weekly_registered') {
+    listExtraFilter = (listExtraFilter === 'weekly_registered') ? null : 'weekly_registered';
+  } else if (kind === 'weekly_interview') {
+    listExtraFilter = (listExtraFilter === 'weekly_interview') ? null : 'weekly_interview';
+  } else if (kind === 'weekly_replied') {
+    const sel = document.getElementById('listStatusFilter');
+    if (sel) sel.value = (sel.value === 'replied') ? '' : 'replied';
+  } else if (kind === 'requires_action') {
+    const cb = document.getElementById('filterRequiresAction');
+    if (cb) cb.checked = !cb.checked;
+  }
+  renderCandidateList();
+  // テーブルエリアへスクロール
+  setTimeout(() => {
+    const wrap = document.querySelector('.candidate-table-wrap');
+    if (wrap) wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 50);
+}
+
+function renderDashboard() {
+  const el = document.getElementById('dashboardArea');
+  if (!el) return;
+  if (mainView !== 'home') { el.style.display = 'none'; return; }
+  if (!cachedDashboard.enabled) { el.style.display = 'none'; el.innerHTML = ''; return; }
+
+  // 面接官ロールは自分担当の候補者のみを対象にする
+  const roleId = currentRoleId();
+  const restrictToMine = roleId === 'interviewer';
+
+  const todayInts   = getTodayInterviews(restrictToMine);
+  const myTasks     = getMyTasks();
+  const teamTasks   = (roleId === 'admin' || roleId === 'member') ? getTeamTasks() : [];
+  const ballCurated = getBallCandidatesAtRisk(restrictToMine);
+
+  const sections = [];
+  if (todayInts.length) {
+    sections.push(dashSection('todayInterviews', `<i data-lucide="calendar" class="lucide"></i> 今日の面談（${todayInts.length}件）`,
+      todayInts.map(renderTodayInterviewItem).join('')));
+  }
+  if (myTasks.length) {
+    sections.push(dashSection('myTasks', `<i data-lucide="zap" class="lucide"></i> 自分のタスク（${myTasks.length}件）`,
+      renderTasksGroupedDashboard(myTasks, true)));
+  }
+  if (teamTasks.length) {
+    sections.push(dashSection('teamTasks', `<i data-lucide="users" class="lucide"></i> チームのタスク（${teamTasks.length}件）`,
+      renderTasksGroupedDashboard(teamTasks, false)));
+  }
+  const { warnings: ballWarn, normals: ballNorm } = ballCurated;
+  if (ballWarn.length || ballNorm.length) {
+    sections.push(renderBallSectionHtml(ballWarn, ballNorm));
+  }
+
+  el.style.display = '';
+  el.className = 'dashboard';
+  const summaryHtml = renderWeeklySummaryHtml();
+  const sectionsHtml = sections.length
+    ? sections.join('')
+    : '<div class="dashboard-empty">本日の対応項目はありません <i data-lucide="party-popper" class="lucide"></i></div>';
+  el.innerHTML = `
+    <div class="dashboard-header">
+      <span class="dashboard-title"><i data-lucide="bar-chart-2" class="lucide"></i> ダッシュボード</span>
+    </div>
+    <div class="dashboard-body">
+      ${summaryHtml}
+      ${sectionsHtml}
+    </div>`;
+}
+
+function dashSection(id, title, bodyHtml) {
+  return `<div class="dashboard-section" id="dashSection_${id}">
+    <div class="dashboard-section-header"><span>${title}</span></div>
+    <div class="dashboard-section-body">${bodyHtml}</div>
+  </div>`;
+}
+
+// --- データ取得 ---
+
+function getTodayInterviews(restrictToMine) {
+  const now = new Date();
+  const y = now.getFullYear(), m = now.getMonth(), d = now.getDate();
+  const results = [];
+  (cachedIndex.candidates || []).forEach(entry => {
+    if (restrictToMine && entry.assignee && entry.assignee !== currentUserEmail) return;
+    const c = loadCandidate(entry.id);
+    if (!c || !c.flow) return;
+    Object.keys(c.flow).forEach(phaseId => {
+      const d2 = c.flow[phaseId];
+      if (!d2 || !d2.scheduledAt) return;
+      const dt = new Date(d2.scheduledAt);
+      if (dt.getFullYear() === y && dt.getMonth() === m && dt.getDate() === d) {
+        if (restrictToMine) {
+          const ids = getPhaseInterviewerIds(d2);
+          const interviewers = ids.map(id => getInterviewerById(id)).filter(Boolean);
+          const mine = interviewers.some(i => i.email && i.email.toLowerCase() === (currentUserEmail || '').toLowerCase());
+          if (!mine && entry.assignee !== currentUserEmail) return;
+        }
+        results.push({ candidate: c, phaseId, scheduledAt: d2.scheduledAt, interviewers: getPhaseInterviewers(d2) });
+      }
+    });
+  });
+  results.sort((a, b) => (a.scheduledAt || '').localeCompare(b.scheduledAt || ''));
+  return results;
+}
+
+function getMyTasks() {
+  if (!currentUserEmail) return [];
+  const list = [];
+  const myEmail = currentUserEmail.toLowerCase();
+  (cachedIndex.candidates || []).forEach(entry => {
+    const c = loadCandidate(entry.id);
+    if (!c) return;
+    (c.tasks || []).forEach(t => {
+      if (t.completedAt) return;
+      const asg = (t.assignee || '').toLowerCase();
+      if (asg === myEmail) list.push({ candidate: c, task: t });
+    });
+  });
+  return list;
+}
+function getTeamTasks() {
+  if (!currentUserEmail) return [];
+  const list = [];
+  const myEmail = currentUserEmail.toLowerCase();
+  (cachedIndex.candidates || []).forEach(entry => {
+    const c = loadCandidate(entry.id);
+    if (!c) return;
+    (c.tasks || []).forEach(t => {
+      if (t.completedAt) return;
+      const asg = (t.assignee || '').toLowerCase();
+      if (asg && asg !== myEmail) list.push({ candidate: c, task: t });
+    });
+  });
+  return list;
+}
+
+function getBallCandidatesAtRisk(restrictToMine) {
+  const th = cachedDashboard.thresholds || { reply: 3, consider: 7, nocontact: 7 };
+  // ラベル → 要注意日数
+  const thresholdOf = {
+    mendan: th.reply, jouken: th.reply,
+    kentou: th.consider, shitsumon: th.consider,
+    furutsu: th.nocontact
+  };
+  const now = Date.now();
+  const warnings = [], normals = [];
+  (cachedIndex.candidates || []).forEach(entry => {
+    if (restrictToMine && entry.assignee && entry.assignee !== currentUserEmail) return;
+    const c = loadCandidate(entry.id);
+    if (!c) return;
+    const ball = getBallState(c);
+    if (ball !== 'candidate') return;  // 先方待ちのみ
+    const latest = (c.logs || []).slice().sort((a,b) => (b.at || '').localeCompare(a.at || ''))[0];
+    if (!latest) return;
+    const threshold = thresholdOf[latest.label];
+    if (threshold === undefined) return;
+    const days = Math.floor((now - new Date(latest.at).getTime()) / 86400000);
+    const item = { candidate: c, label: latest.label, days, threshold };
+    if (days >= threshold) warnings.push(item);
+    else normals.push(item);
+  });
+  warnings.sort((a, b) => b.days - a.days);
+  normals.sort((a, b) => b.days - a.days);
+  return { warnings, normals };
+}
+
+// --- 各アイテム・セクションのHTMLレンダー ---
+
+function renderTodayInterviewItem(item) {
+  const t = new Date(item.scheduledAt);
+  const hh = String(t.getHours()).padStart(2, '0');
+  const mm = String(t.getMinutes()).padStart(2, '0');
+  const phaseDef = FLOW_PHASES.find(p => p.id === item.phaseId);
+  const phaseLabel = phaseDef ? phaseDef.label : item.phaseId;
+  const names = item.interviewers.map(i => i.name).join('・') || '未設定';
+  return `<div class="dashboard-item" onclick="openCandidateDetail('${escapeHtml(item.candidate.id)}')">
+    <div class="main-col">
+      <strong>${hh}:${mm}</strong>　${escapeHtml(item.candidate.name)}
+      <span class="dashboard-subtle">${escapeHtml(phaseLabel)}</span>
+      担当：${escapeHtml(names)}
+    </div>
+  </div>`;
+}
+
+function renderTasksGroupedDashboard(taskList, isMine) {
+  const byCat = { candidate: [], internal: [] };
+  taskList.forEach(x => {
+    const cat = taskCategoryOf(x.task);
+    (byCat[cat] = byCat[cat] || []).push(x);
+  });
+  const html = [];
+  TASK_CATEGORIES.forEach(cat => {
+    const arr = byCat[cat.id] || [];
+    if (arr.length === 0) return;
+    html.push(`<div class="dashboard-group-label">${cat.icon} ${escapeHtml(cat.label)}</div>`);
+    arr.forEach(x => html.push(renderTaskItemDashboard(x.candidate, x.task, isMine)));
+  });
+  return html.join('');
+}
+
+function renderTaskItemDashboard(c, t, isMine) {
+  const diff = daysUntil(t.dueAt);
+  const overdue = diff !== null && diff < 0;
+  const dueText = t.dueAt
+    ? (diff === 0 ? '今日' + (overdue ? '<i data-lucide="alert-triangle" class="lucide"></i>' : '') : diff > 0 ? (diff === 1 ? '明日' : `あと${diff}日`) : `${Math.abs(diff)}日超過`)
+    : '期限なし';
+  const meta = TASK_TYPES[t.type] || { label: t.type };
+  const assigneeText = isMine ? '' : `　担当：${escapeHtml(displayName(t.assignee || c.assignee))}`;
+  const canScout = can('candidates.scout');
+  const isCandidateCat = taskCategoryOf(t) === 'candidate';
+  let msgBtn = '';
+  if (isCandidateCat && canScout) {
+    msgBtn = `<button class="btn btn-small" onclick="event.stopPropagation(); dashOpenScout('${escapeHtml(c.id)}', '${escapeHtml(t.type)}')"><i data-lucide="mail" class="lucide"></i> メッセージを生成</button>`;
+  }
+  return `<div class="dashboard-item" onclick="openCandidateDetail('${escapeHtml(c.id)}')">
+    <div class="main-col">
+      <strong>【${escapeHtml(meta.label)}】</strong>${escapeHtml(c.name)}${assigneeText}
+      <span style="margin-left:8px;" class="${overdue ? 'dashboard-due-warn' : 'dashboard-subtle'}">期限：${escapeHtml(dueText)}</span>
+    </div>
+    ${msgBtn}
+  </div>`;
+}
+
+// ダッシュボードからスカウト画面へ（currentCandidateId を切替えて既存モードで開く）
+function dashOpenScout(candidateId, taskType) {
+  currentCandidateId = candidateId;
+  multichannelPromptShown = false;
+  if (taskType === 'reply') {
+    const c = loadCandidate(candidateId);
+    if (c && (c.logs || []).some(l => l.label === 'jitai')) {
+      openScoutForExistingCandidate({ msgType: 'decline_reply' });
+    } else {
+      openScoutForExistingCandidate();
+    }
+  } else {
+    openScoutFromTaskType(taskType);
+  }
+}
+
+function renderBallSectionHtml(warnings, normals) {
+  const warnHtml = warnings.length
+    ? warnings.map(item => renderBallItem(item, true)).join('')
+    : '<div class="dashboard-empty">要注意の候補者はいません <i data-lucide="sparkles" class="lucide"></i></div>';
+
+  const normalsHtml = normals.length
+    ? `<div class="dashboard-group-label" style="margin-top:12px;">
+        <i data-lucide="circle-dot" class="lucide"></i> 先方待ち（通常）（${normals.length}件）
+      </div>
+      <div>${normals.map(item => renderBallItem(item, false)).join('')}</div>`
+    : '';
+
+  const title = `<i data-lucide="circle-dot" class="lucide"></i> 先方待ち（フォロー推奨）（${warnings.length}件）`;
+  return dashSection('ballState', title, warnHtml + normalsHtml);
+}
+
+function renderBallItem(item, isWarning) {
+  const meta = logLabelMeta(item.label);
+  const severe = item.days >= item.threshold * 2;
+  const icon = isWarning ? (severe ? '<i data-lucide="alert-circle" class="lucide"></i>' : '<i data-lucide="alert-triangle" class="lucide"></i>') : '';
+  const canScout = can('candidates.scout');
+  const btn = isWarning && canScout
+    ? `<button class="btn btn-small" onclick="event.stopPropagation(); dashOpenScout('${escapeHtml(item.candidate.id)}', 'reply')"><i data-lucide="mail" class="lucide"></i> 追い連絡</button>`
+    : '';
+  return `<div class="dashboard-item" onclick="openCandidateDetail('${escapeHtml(item.candidate.id)}')">
+    <div class="main-col">
+      ${escapeHtml(item.candidate.name)}
+      <span class="dashboard-subtle">${escapeHtml(meta.label)}</span>
+      <span style="margin-left:8px;" class="${isWarning ? 'dashboard-due-warn' : 'dashboard-subtle'}">${item.days}日経過${icon}</span>
+    </div>
+    ${btn}
+  </div>`;
+}
+
+// ========== 分析タブ（採用ファネル・媒体別・辞退・リードタイム） ===========
+
+function getAnalyticsPeriodRange(period) {
+  const now = new Date();
+  let start, end;
+  if (period === 'this_week') {
+    const day = now.getDay();
+    const diff = day === 0 ? -6 : 1 - day;
+    start = new Date(now.getFullYear(), now.getMonth(), now.getDate() + diff, 0, 0, 0, 0);
+    end = new Date(start.getTime() + 7 * 86400000 - 1);
+  } else if (period === 'this_month') {
+    start = new Date(now.getFullYear(), now.getMonth(), 1);
+    end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+  } else if (period === 'last_month') {
+    start = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    end = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+  } else if (period === '3_months') {
+    start = new Date(now.getFullYear(), now.getMonth() - 2, 1);
+    end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+  } else {
+    start = new Date(0);
+    end = new Date(2100, 0, 1);
+  }
+  return { start, end };
+}
+
+function getCandidatesInPeriod(period) {
+  const { start, end } = getAnalyticsPeriodRange(period);
+  return (cachedIndex.candidates || [])
+    .map(entry => loadCandidate(entry.id))
+    .filter(c => {
+      if (!c || !c.createdAt) return false;
+      const t = new Date(c.createdAt).getTime();
+      return t >= start.getTime() && t <= end.getTime();
+    });
+}
+
+// 6ステージのファネル定義
+const FUNNEL_STAGES = [
+  { id: 'sent',      label: 'スカウト送付',   color: '#1F3A5F',
+    test: c => (c.sendHistory || []).length > 0 || ['sent_first','sent_second','replied','casual_interview','in_selection','offer','joined'].includes(c.status) },
+  { id: 'replied',   label: '返信あり',       color: '#2E5384',
+    test: c => ['replied','casual_interview','in_selection','offer','joined'].includes(c.status) || (c.logs || []).some(l => ['mendan','jouken','kentou','shitsumon','reschedule_them','kakutei','jitai'].includes(l.label)) },
+  { id: 'interview', label: '面談実施',       color: '#3D6FB8',
+    test: c => ['casual_interview','in_selection','offer','joined'].includes(c.status) || !!((c.flow || {}).casual && (c.flow || {}).casual.conductedAt) },
+  { id: 'selection', label: '選考中',         color: '#4D88DD',
+    test: c => ['in_selection','offer','joined'].includes(c.status) },
+  { id: 'offer',     label: 'オファー',       color: '#C9A961',
+    test: c => ['offer','joined'].includes(c.status) },
+  { id: 'joined',    label: '内定承諾',       color: '#0F6E56',
+    test: c => c.status === 'joined' }
+];
+
+function renderAnalytics() {
+  const el = document.getElementById('analyticsArea');
+  if (!el) return;
+  const candidates = getCandidatesInPeriod(analyticsPeriod);
+  const periodBtns = ANALYTICS_PERIODS.map(p =>
+    `<button class="${analyticsPeriod === p.id ? 'active' : ''}" onclick="setAnalyticsPeriod('${p.id}')">${escapeHtml(p.label)}</button>`
+  ).join('');
+  const periodLabel = (ANALYTICS_PERIODS.find(p => p.id === analyticsPeriod) || {}).label || '';
+  const header = `
+    <div class="analytics-period">${periodBtns}</div>
+    <div style="font-size:12px; color:var(--text-tertiary); margin-bottom:14px;">
+      ${escapeHtml(periodLabel)}の対象候補者：${candidates.length}件
+    </div>`;
+  if (candidates.length === 0) {
+    el.innerHTML = header + '<div class="analytics-empty">この期間にはデータがありません</div>';
+    return;
+  }
+  el.innerHTML = header + `
+    <div class="analytics-grid">
+      ${renderFunnelSection(candidates)}
+      ${renderMediaSection(candidates)}
+      ${renderStatusBreakdownSection(candidates)}
+      ${renderWeeklyTrendSection()}
+    </div>`;
+}
+
+function setAnalyticsPeriod(p) {
+  if (analyticsPeriod === p) return;
+  analyticsPeriod = p;
+  // 期間変更で対象候補者が変わるため分類キャッシュはクリアしない（候補者IDキャッシュなので共通）
+  renderAnalytics();
+}
+
+// --- 採用ファネル ---
+function renderFunnelSection(candidates) {
+  const counts = {};
+  FUNNEL_STAGES.forEach(s => { counts[s.id] = candidates.filter(s.test).length; });
+  const max = Math.max(counts.sent, 1);
+  const rows = FUNNEL_STAGES.map((s, i) => {
+    const count = counts[s.id];
+    const pct = max > 0 ? (count / max * 100) : 0;
+    const prev = i > 0 ? counts[FUNNEL_STAGES[i-1].id] : null;
+    let rateText = '';
+    if (i === 1 && counts.sent > 0) rateText = `（返信率 ${Math.round(count / counts.sent * 100)}%）`;
+    else if (i === 2 && counts.replied > 0) rateText = `（面談率 ${Math.round(count / counts.replied * 100)}%）`;
+    else if (prev && prev > 0) rateText = `（通過率 ${Math.round(count / prev * 100)}%）`;
+    return `<div class="funnel-row">
+      <div class="funnel-label">${escapeHtml(s.label)}</div>
+      <div class="funnel-bar-wrap"><div class="funnel-bar" style="width:${Math.max(pct, 8)}%; background:${s.color};">${count}件${escapeHtml(rateText)}</div></div>
+    </div>`;
+  }).join('');
+  return `<div class="analytics-section">
+    <h3><i data-lucide="rocket" class="lucide"></i> 採用ファネル</h3>
+    ${rows}
+  </div>`;
+}
+
+// --- 媒体別効果比較 ---
+function renderMediaSection(candidates) {
+  const byPlat = {};
+  const replyTest = FUNNEL_STAGES[1].test;
+  const intTest   = FUNNEL_STAGES[2].test;
+  candidates.forEach(c => {
+    const plat = c.sourcePlatform || (getMainSourceProfile(c) || {}).platform || (c.sourceType || 'その他');
+    if (!byPlat[plat]) byPlat[plat] = { sent: 0, replied: 0, interview: 0 };
+    byPlat[plat].sent++;
+    if (replyTest(c)) byPlat[plat].replied++;
+    if (intTest(c))   byPlat[plat].interview++;
+  });
+  const rows = Object.entries(byPlat).sort((a, b) => b[1].sent - a[1].sent);
+  if (rows.length === 0) {
+    return `<div class="analytics-section"><h3><i data-lucide="bar-chart-2" class="lucide"></i> 媒体別効果比較</h3><div class="analytics-empty">データが不足しています</div></div>`;
+  }
+  let best = null;
+  rows.forEach(([plat, d]) => {
+    if (d.sent < 3) return;
+    const rate = d.replied / d.sent;
+    if (!best || rate > best.rate) best = { plat, rate, sent: d.sent };
+  });
+  const tableRows = rows.map(([plat, d]) => {
+    const replyRate = d.sent ? Math.round(d.replied / d.sent * 100) : 0;
+    const intRate   = d.sent ? Math.round(d.interview / d.sent * 100) : 0;
+    const cls = replyRate >= 40 ? 'rate-high' : replyRate < 20 ? 'rate-low' : '';
+    return `<tr>
+      <td>${escapeHtml(plat)}</td>
+      <td>${d.sent}</td>
+      <td>${d.replied}</td>
+      <td class="${cls}">${replyRate}%</td>
+      <td>${d.interview}</td>
+      <td>${intRate}%</td>
+    </tr>`;
+  }).join('');
+  const summary = best
+    ? `<div style="margin-top:10px; font-size:12px; color:var(--text-secondary);">最も効果的な媒体：<strong style="color:var(--primary);">${escapeHtml(best.plat)}</strong>（返信率 ${Math.round(best.rate * 100)}% / 送付 ${best.sent}件）</div>`
+    : '<div style="margin-top:10px; font-size:11px; color:var(--text-tertiary);">※ ランキング表示には送付3件以上が必要です</div>';
+  return `<div class="analytics-section">
+    <h3><i data-lucide="bar-chart-2" class="lucide"></i> 媒体別効果比較</h3>
+    <table class="media-table">
+      <thead><tr><th>媒体</th><th>送付</th><th>返信</th><th>返信率</th><th>面談</th><th>面談率</th></tr></thead>
+      <tbody>${tableRows}</tbody>
+    </table>
+    ${summary}
+  </div>`;
+}
+
+// --- ステータス別候補者数 ---
+// ステータスごとにバー色を定義（ステータスバッジ色に合わせた濃色版）
+const STATUS_BAR_COLORS = {
+  not_sent:         '#9e9c94',
+  sent_first:       '#5F5E5A',
+  sent_second:      '#185FA5',
+  replied:          '#A32D2D',
+  casual_interview: '#b78900',
+  in_selection:     '#2E5384',
+  offer:            '#3B6D11',
+  joined:           '#0F6E56',
+  closed:           '#888780'
+};
+
+function renderStatusBreakdownSection(candidates) {
+  const statuses = (CONFIG && CONFIG.statuses) || [];
+  const counts = {};
+  statuses.forEach(s => { counts[s.id] = 0; });
+  candidates.forEach(c => {
+    counts[c.status] = (counts[c.status] || 0) + 1;
+  });
+  const total = candidates.length;
+  const max = Math.max(...Object.values(counts), 1);
+  if (total === 0) {
+    return `<div class="analytics-section"><h3><i data-lucide="trending-up" class="lucide"></i> ステータス別候補者数</h3><div class="analytics-empty">データがありません</div></div>`;
+  }
+  const rows = statuses.map(s => {
+    const count = counts[s.id] || 0;
+    const pct = total ? Math.round(count / total * 100) : 0;
+    const barW = count ? Math.max(count / max * 100, 4) : 0;
+    const color = STATUS_BAR_COLORS[s.id] || 'var(--primary)';
+    return `<div class="status-bar-row" onclick="goToStatusFilter('${escapeHtml(s.id)}')" title="クリックで候補者一覧の${escapeHtml(s.label)}に絞り込み">
+      <div class="status-bar-label"><span class="status-badge ${escapeHtml(s.cls)}">${escapeHtml(s.label)}</span></div>
+      <div class="status-bar-track"><div class="status-bar-fill" style="width:${barW}%; background:${color};"></div></div>
+      <div class="status-bar-count">${count}件<span class="status-bar-pct">（${pct}%）</span></div>
+    </div>`;
+  }).join('');
+  return `<div class="analytics-section">
+    <h3><i data-lucide="trending-up" class="lucide"></i> ステータス別候補者数（合計 ${total}件）</h3>
+    <div style="font-size:11px; color:var(--text-tertiary); margin-bottom:6px;">各行をクリックすると候補者一覧の該当ステータスに絞り込めます。</div>
+    ${rows}
+  </div>`;
+}
+
+// ステータスバーをクリック → 候補者ビューへ切替 + ステータスフィルタ適用
+function goToStatusFilter(statusId) {
+  const sel = document.getElementById('listStatusFilter');
+  if (sel) sel.value = statusId;
+  setMainView('candidates');
+}
+
+// --- 週次送付数の推移（過去8週間、media別スタック棒グラフ） ---
+const WEEKLY_TREND_PLATFORMS = [
+  { id: 'YOUTRUST', label: 'YOUTRUST', color: '#5B33A1' },
+  { id: 'Wantedly', label: 'Wantedly', color: '#21BDDB' },
+  { id: 'LinkedIn', label: 'LinkedIn', color: '#0A66C2' },
+  { id: 'other',    label: 'その他',   color: '#888780' }
+];
+
+function niceCeilForChart(n) {
+  if (n <= 0) return 5;
+  if (n <= 5) return 5;
+  if (n <= 10) return 10;
+  if (n <= 20) return 20;
+  if (n <= 50) return 50;
+  if (n <= 100) return 100;
+  const digits = String(Math.floor(n)).length;
+  const pow = Math.pow(10, digits - 1);
+  return Math.ceil(n / pow) * pow;
+}
+
+function renderWeeklyTrendSection() {
+  // 当週の月曜0:00を基準に、過去8週間（当週含む）の範囲を算出
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const dow = today.getDay(); // 0=Sun, 1=Mon...
+  const diffToMon = dow === 0 ? 6 : dow - 1;
+  const currentMon = new Date(today);
+  currentMon.setDate(currentMon.getDate() - diffToMon);
+  const weeks = [];
+  for (let i = 7; i >= 0; i--) {
+    const start = new Date(currentMon);
+    start.setDate(start.getDate() - i * 7);
+    const end = new Date(start);
+    end.setDate(end.getDate() + 7);
+    weeks.push({ start, end });
+  }
+
+  // バケット初期化
+  const data = weeks.map(() => ({ YOUTRUST: 0, Wantedly: 0, LinkedIn: 0, other: 0, _total: 0 }));
+
+  // 全候補者を対象（期間フィルタは適用せず、固定の過去8週間）
+  const all = (cachedIndex.candidates || [])
+    .map(e => loadCandidate(e.id))
+    .filter(c => c && c.createdAt);
+  all.forEach(c => {
+    const t = new Date(c.createdAt).getTime();
+    if (isNaN(t)) return;
+    const wi = weeks.findIndex(w => t >= w.start.getTime() && t < w.end.getTime());
+    if (wi < 0) return;
+    const plat = c.sourcePlatform || (getMainSourceProfile(c) || {}).platform || '';
+    let key = 'other';
+    if (plat === 'YOUTRUST') key = 'YOUTRUST';
+    else if (plat === 'Wantedly') key = 'Wantedly';
+    else if (plat === 'LinkedIn') key = 'LinkedIn';
+    data[wi][key]++;
+    data[wi]._total++;
+  });
+
+  const maxTotal = Math.max(...data.map(d => d._total));
+  if (maxTotal === 0) {
+    return `<div class="analytics-section"><h3><i data-lucide="calendar" class="lucide"></i> 週次送付数の推移（過去8週）</h3><div class="analytics-empty">過去8週間にデータがありません</div></div>`;
+  }
+
+  // SVG寸法
+  const W = 800, H = 280;
+  const PL = 40, PR = 14, PT = 28, PB = 44;
+  const chartW = W - PL - PR;
+  const chartH = H - PT - PB;
+  const nBars = 8;
+  const gap = 10;
+  const barW = (chartW - gap * (nBars - 1)) / nBars;
+  const yMax = niceCeilForChart(maxTotal);
+  const yTicks = 4;
+
+  const gridLines = [];
+  for (let i = 0; i <= yTicks; i++) {
+    const v = Math.round(yMax * (yTicks - i) / yTicks);
+    const y = PT + (chartH * i / yTicks);
+    const dash = i === yTicks ? '0' : '3,3';
+    gridLines.push(`<line x1="${PL}" y1="${y}" x2="${W - PR}" y2="${y}" stroke="#e5e5e5" stroke-dasharray="${dash}" />`);
+    gridLines.push(`<text x="${PL - 6}" y="${y + 4}" text-anchor="end" font-size="10" fill="#888">${v}</text>`);
+  }
+
+  const bars = data.map((d, wi) => {
+    const x = PL + wi * (barW + gap);
+    let y = PT + chartH;
+    const segs = [];
+    WEEKLY_TREND_PLATFORMS.forEach(p => {
+      const v = d[p.id] || 0;
+      if (v <= 0) return;
+      const h = chartH * v / yMax;
+      y -= h;
+      segs.push(`<rect x="${x}" y="${y}" width="${barW}" height="${h}" fill="${p.color}"><title>${escapeHtml(p.label)}: ${v}件</title></rect>`);
+    });
+    const totalLabel = d._total > 0
+      ? `<text x="${x + barW/2}" y="${y - 5}" text-anchor="middle" font-size="11" font-weight="600" fill="#333">${d._total}</text>`
+      : '';
+    const m = weeks[wi].start.getMonth() + 1;
+    const day = weeks[wi].start.getDate();
+    const xLabel = `<text x="${x + barW/2}" y="${PT + chartH + 16}" text-anchor="middle" font-size="10" fill="#666">${m}/${day}週</text>`;
+    return segs.join('') + totalLabel + xLabel;
+  }).join('');
+
+  const legendItems = WEEKLY_TREND_PLATFORMS.map(p =>
+    `<span style="display:inline-flex; align-items:center; gap:4px; font-size:11px; color:var(--text-secondary); margin-right:12px;"><span style="display:inline-block; width:10px; height:10px; background:${p.color}; border-radius:2px;"></span>${escapeHtml(p.label)}</span>`
+  ).join('');
+
+  const totalSum = data.reduce((s, d) => s + d._total, 0);
+
+  const svg = `<svg viewBox="0 0 ${W} ${H}" style="width:100%; height:auto; max-height:340px;" xmlns="http://www.w3.org/2000/svg">
+    ${gridLines.join('')}
+    ${bars}
+  </svg>`;
+
+  return `<div class="analytics-section">
+    <h3><i data-lucide="calendar" class="lucide"></i> 週次送付数の推移（過去8週・合計 ${totalSum}件）</h3>
+    <div style="margin-bottom:8px;">${legendItems}</div>
+    ${svg}
+    <div style="font-size:11px; color:var(--text-tertiary); margin-top:6px;">※ 候補者登録日を基準に週（月曜始まり）ごとに集計しています。期間フィルタは適用されません。</div>
+  </div>`;
 }
 
 // ========== 候補者一覧のタグフィルタ・タレントプールタブ =====================
@@ -6691,16 +7816,65 @@ function renderActiveTagFilterChips() {
 }
 
 function setListView(mode) {
+  // 候補者ビュー内のサブタブ: 'candidates' | 'talentPool'
   listViewMode = mode;
-  renderCandidateList();
   document.querySelectorAll('.list-tab').forEach(el => el.classList.toggle('active', el.dataset.mode === mode));
+  renderCandidateList();
+}
+
+// メインナビ（ホーム / 候補者 / 分析）の切替
+function setMainView(view) {
+  mainView = view;
+  // screen-list以外にいる場合はまずscreen-listへ戻す
+  const sl = document.getElementById('screen-list');
+  if (sl && !sl.classList.contains('active')) showScreen('list');
+  else applyMainView();
+}
+
+function applyMainView() {
+  const v = mainView || 'home';
+  const isHome       = v === 'home';
+  const isCandidates = v === 'candidates';
+  const isAnalytics  = v === 'analytics';
+
+  // 上部ナビのアクティブ状態
+  document.querySelectorAll('.top-nav-btn').forEach(btn =>
+    btn.classList.toggle('active', btn.dataset.view === v));
+
+  // 候補者ビュー系UIの表示切替
+  const toolbar   = document.querySelector('#screen-list .toolbar');
+  const filters   = document.querySelector('#screen-list .filters');
+  const tableWrap = document.querySelector('#screen-list .candidate-table-wrap');
+  const listTabs  = document.querySelector('#screen-list .list-tabs');
+  const banner    = document.getElementById('dashFilterBanner');
+  const dashArea  = document.getElementById('dashboardArea');
+  const anArea    = document.getElementById('analyticsArea');
+
+  if (toolbar)   toolbar.style.display   = isCandidates ? '' : 'none';
+  if (filters)   filters.style.display   = isCandidates ? '' : 'none';
+  if (tableWrap) tableWrap.style.display = isCandidates ? '' : 'none';
+  if (listTabs)  listTabs.style.display  = isCandidates ? '' : 'none';
+  if (banner)    banner.style.display    = isCandidates ? '' : 'none';
+
+  if (dashArea) dashArea.style.display = isHome && cachedDashboard.enabled ? '' : 'none';
+  if (anArea)   anArea.style.display   = isAnalytics ? '' : 'none';
+
+  // ヘッダの件数はホームと候補者ビューで表示、分析では空
+  const headerCount = document.getElementById('headerCount');
+  if (headerCount) {
+    headerCount.style.display = isAnalytics ? 'none' : '';
+  }
+
+  if (isHome)       renderDashboard();
+  if (isCandidates) renderCandidateList();
+  if (isAnalytics)  renderAnalytics();
 }
 
 // マルチチャネル用URLが足りない時の誘導バナー
 function renderMultichannelPromptHtml(c) {
   const count = (c.sourceProfiles || []).length;
   return `<div class="profile-diff-banner" style="background: var(--warning-bg); color: var(--warning-text); border-left-color: var(--warning);">
-    <div>📲 <strong>マルチチャネルメッセージにはURLが2件以上必要です</strong></div>
+    <div><i data-lucide="smartphone" class="lucide"></i> <strong>マルチチャネルメッセージにはURLが2件以上必要です</strong></div>
     <div style="margin-top:4px; font-size:12px;">現在のURL数：<strong>${count}件</strong>。追加の媒体URL（LinkedIn / Wantedly 等）を登録すると、その媒体向けのSNS補助メッセージを生成できます。</div>
     <div class="actions">
       <button class="btn btn-small btn-primary" onclick="handleMultichannelAddUrl()">+ URLを追加</button>
@@ -6709,7 +7883,7 @@ function renderMultichannelPromptHtml(c) {
   </div>`;
 }
 
-// 送付履歴: 媒体別グループで表示（メイン=💼、非メイン=📲（SNS補助））
+// 送付履歴: 媒体別グループで表示（メイン=<i data-lucide="briefcase" class="lucide"></i>、非メイン=<i data-lucide="smartphone" class="lucide"></i>（SNS補助））
 function renderSendHistoryGroupedHtml(c) {
   const arr = (c.sendHistory || []).slice();
   if (arr.length === 0) return '<div class="source-label">送付履歴はありません</div>';
@@ -6724,7 +7898,7 @@ function renderSendHistoryGroupedHtml(c) {
   const TYPE_LABELS = { first: '1回目', second: '2回目', interview_url: '面談設定（URL）', interview_ask: '面談設定（日時確認）', interview_date: '面談設定（日時確認）' };
   return platforms.map(platform => {
     const isMain = platform === mainPlatform;
-    const icon   = isMain ? '💼' : '📲';
+    const icon   = isMain ? '<i data-lucide="briefcase" class="lucide"></i>' : '<i data-lucide="smartphone" class="lucide"></i>';
     const suffix = isMain ? '' : '<span style="font-size:11px; color:var(--text-tertiary); margin-left:4px;">（SNS補助）</span>';
     const entries = groups[platform].slice().sort((a, b) => (b.date || '').localeCompare(a.date || ''));
     const rows = entries.map(h => {
@@ -6750,6 +7924,7 @@ function renderSendHistoryGroupedHtml(c) {
 function openCandidateDetail(id) {
   currentCandidateId = id;
   multichannelPromptShown = false;
+  activityLogOpen = false;  // 候補者切替時は常に折りたたみに戻す
   const c = loadCandidate(id);
   if (!c) {
     showToast('候補者が見つかりません', 'error');
@@ -6774,13 +7949,13 @@ function renderCandidateDetail(c) {
     const canEdit  = can('candidates.edit', { candidate: c });
     const canScout = can('candidates.scout');
     const canDel   = can('candidates.delete');
-    // ⋯メニュー内の「✉️ メッセージを送る」
+    // ⋯メニュー内の「<i data-lucide="mail" class="lucide"></i> メッセージを送る」
     const scoutItem = document.getElementById('detailMoreItemScout');
     if (scoutItem) scoutItem.style.display = canScout ? '' : 'none';
     actionsWrap.querySelectorAll('button').forEach(btn => {
       const t = btn.textContent.trim();
-      if (t.startsWith('✏️')) btn.style.display = canEdit ? '' : 'none';
-      else if (t.startsWith('🗑️')) btn.style.display = canDel ? '' : 'none';
+      if (t.startsWith('<i data-lucide="pencil" class="lucide"></i>')) btn.style.display = canEdit ? '' : 'none';
+      else if (t.startsWith('<i data-lucide="trash-2" class="lucide"></i>')) btn.style.display = canDel ? '' : 'none';
     });
   }
 
@@ -6793,7 +7968,7 @@ function renderCandidateDetail(c) {
   const dDiff = daysUntil(due);
   let dueCls = ''; let dueSuffix = '';
   if (dDiff !== null) {
-    if (dDiff < 0) { dueCls = 'due-warning'; dueSuffix = ' ⚠️'; }
+    if (dDiff < 0) { dueCls = 'due-warning'; dueSuffix = ' <i data-lucide="alert-triangle" class="lucide"></i>'; }
     else if (dDiff <= 3) dueCls = 'due-soon';
   }
 
@@ -6805,21 +7980,21 @@ function renderCandidateDetail(c) {
   const ballState = getBallState(c);
   const slackHint = '※ Slack Incoming Webhookの制約により、同一チャンネルに ↳ [候補者名] のプレフィックスで投稿されます';
   const slackBtn = cachedSlack.webhookUrl && !c.slackThreadTs
-    ? `<button class="btn btn-small" onclick="createSlackThreadManual()" title="${escapeHtml(slackHint)}">📢 Slackスレッドを作成</button>
+    ? `<button class="btn btn-small" onclick="createSlackThreadManual()" title="${escapeHtml(slackHint)}"><i data-lucide="megaphone" class="lucide"></i> Slackスレッドを作成</button>
        <span style="font-size:10px; color:var(--text-tertiary); margin-left:4px;">${escapeHtml(slackHint)}</span>`
     : (c.slackThreadTs
-        ? `<span class="source-label" title="${escapeHtml(slackHint)}">📢 Slackスレッド作成済み</span>
-           <button class="btn btn-small" style="margin-left:6px;" onclick="recreateSlackThread()">🔄 Slackスレッドを再作成する</button>`
+        ? `<span class="source-label" title="${escapeHtml(slackHint)}"><i data-lucide="megaphone" class="lucide"></i> Slackスレッド作成済み</span>
+           <button class="btn btn-small" style="margin-left:6px;" onclick="recreateSlackThread()"><i data-lucide="refresh-cw" class="lucide"></i> Slackスレッドを再作成する</button>`
         : '');
   body.innerHTML = `
     <div>
-      ${renderTasksSectionHtml(c)}
+      <!-- 1. 基本情報 -->
       <div class="detail-section" style="margin-bottom: 16px;">
         <div class="detail-section-title">
           <span>基本情報</span>
           ${slackBtn}
         </div>
-        ${ballState ? `<div class="detail-row"><span class="detail-row-label">現在のボール</span><span class="detail-row-value">${ballChipHtml(ballState)}</span></div>` : ''}
+        ${ballState ? `<div class="detail-row"><span class="detail-row-label">次のアクション</span><span class="detail-row-value">${ballChipHtml(ballState)}</span></div>` : ''}
         <div class="detail-row"><span class="detail-row-label">ステータス</span>
           <span class="detail-row-value"><span class="status-badge ${escapeHtml(meta.cls)}">${escapeHtml(meta.label)}</span></span></div>
         <div class="detail-row"><span class="detail-row-label">応募先</span>
@@ -6832,6 +8007,19 @@ function renderCandidateDetail(c) {
           <span class="detail-row-value">${c.memo ? escapeHtml(c.memo) : '<span class="source-label">—</span>'}</span></div>
       </div>
 
+      <!-- 2. タスク -->
+      ${renderTasksSectionHtml(c)}
+
+      <!-- 3. やり取りログ -->
+      <div class="detail-section" style="margin-bottom: 16px;">
+        <div class="detail-section-title">
+          <span>やり取りログ（${(c.logs || []).length}件）</span>
+          ${can('candidates.edit', { candidate: c }) ? `<button class="btn btn-small" onclick="toggleLogForm()">+ 追加</button>` : ''}
+        </div>
+        ${renderInteractionLogsHtml(c)}
+      </div>
+
+      <!-- 4. ソース情報 -->
       <div class="detail-section" style="margin-bottom: 16px;">
         <div class="detail-section-title">
           <span>ソース情報</span>
@@ -6844,14 +8032,7 @@ function renderCandidateDetail(c) {
         ${renderSourceProfilesHtml(c)}
       </div>
 
-      <div class="detail-section" style="margin-bottom: 16px;">
-        <div class="detail-section-title">
-          <span>やり取りログ（${(c.logs || []).length}件）</span>
-          ${can('candidates.edit', { candidate: c }) ? `<button class="btn btn-small" onclick="toggleLogForm()">+ 追加</button>` : ''}
-        </div>
-        ${renderInteractionLogsHtml(c)}
-      </div>
-
+      <!-- 5. タグ -->
       <div class="detail-section" style="margin-bottom: 16px;">
         <div class="detail-section-title">
           <span>タグ</span>
@@ -6860,47 +8041,64 @@ function renderCandidateDetail(c) {
         ${tagsHtml}
       </div>
 
+      <!-- 6. タレントプール -->
       <div class="detail-section">
         <div class="detail-section-title">
-          <span>🤝 タレントプール</span>
+          <span><i data-lucide="handshake" class="lucide"></i> タレントプール</span>
         </div>
         ${renderTalentPoolSectionHtml(c)}
       </div>
     </div>
 
     <div>
+      <!-- 1. 採用フロー -->
+      ${renderFlowSectionHtml(c)}
+
+      <!-- プロフィール関連の通知バナー（プロフィール セクション直上に配置） -->
       ${renderProfileDiffBannerHtml(c)}
       ${multichannelPromptShown ? renderMultichannelPromptHtml(c) : ''}
+
+      <!-- 2. 候補者プロフィール -->
       <div class="detail-section" style="margin-bottom: 16px;">
         <div class="detail-section-title">
           <span>候補者プロフィール</span>
-          ${c.profile && localStorage.getItem(LS_API_KEY) ? `<button class="btn btn-small" onclick="resummarizeCurrentCandidate()">🔄 要約を再生成</button>` : ''}
+          ${c.profile && localStorage.getItem(LS_API_KEY) ? `<button class="btn btn-small" onclick="resummarizeCurrentCandidate()"><i data-lucide="refresh-cw" class="lucide"></i> 要約を再生成</button>` : ''}
         </div>
         ${renderProfileSummaryAndRaw(c)}
       </div>
 
-      ${renderFlowSectionHtml(c)}
-
+      <!-- 3. スコープ判定 -->
       <div class="detail-section" style="margin-bottom: 16px;">
         <div class="detail-section-title">スコープ判定</div>
         ${c.scopeResult
           ? `<div class="detail-row"><span class="detail-row-label">判定</span>
-              <span class="detail-row-value">${escapeHtml({recommend:'✓ 推奨', caution:'△ 要注意', not_recommend:'✕ 見送り'}[c.scopeResult.verdict] || c.scopeResult.verdict || '—')}</span></div>
+              <span class="detail-row-value">${{recommend:'<i data-lucide="check" class="lucide"></i> 推奨', caution:'△ 要注意', not_recommend:'<i data-lucide="x" class="lucide"></i> 見送り'}[c.scopeResult.verdict] || escapeHtml(c.scopeResult.verdict || '—')}</span></div>
              ${c.scopeResult.detail ? `<div style="margin-top:8px; font-size:12px; color: var(--text-secondary); white-space:pre-wrap;">${escapeHtml(c.scopeResult.detail)}</div>` : ''}`
           : '<div class="source-label">判定結果なし</div>'}
       </div>
 
+      <!-- 4. 送付履歴 -->
       <div class="detail-section" style="margin-bottom: 16px;">
         <div class="detail-section-title">送付履歴（${(c.sendHistory || []).length}件）</div>
         ${sendHistoryHtml}
       </div>
 
+      <!-- 5. 操作ログ（アコーディオン、デフォルト折りたたみ） -->
       <div class="detail-section">
-        <div class="detail-section-title">操作ログ（${(c.activityLog || []).length}件）</div>
-        ${renderActivityLogHtml(c.activityLog)}
+        <div class="detail-section-title" style="cursor:pointer; user-select:none;" onclick="toggleActivityLog()">
+          <span>操作ログ（${(c.activityLog || []).length}件）</span>
+          <span style="font-size:11px; color:var(--text-secondary);">${activityLogOpen ? '▲' : '▼'}</span>
+        </div>
+        ${activityLogOpen ? renderActivityLogHtml(c.activityLog) : ''}
       </div>
     </div>
   `;
+}
+
+function toggleActivityLog() {
+  activityLogOpen = !activityLogOpen;
+  const c = loadCandidate(currentCandidateId);
+  if (c) renderCandidateDetail(c);
 }
 
 function renderActivityLogHtml(log) {
@@ -6923,20 +8121,20 @@ function renderProfileSummaryAndRaw(c) {
     return '<div class="source-label">（プロフィール未登録）</div>';
   }
   const rawHtml = `
-    <div class="profile-raw-toggle" onclick="toggleProfileRaw(this)">📄 元のプロフィールを見る ▼</div>
+    <div class="profile-raw-toggle" onclick="toggleProfileRaw(this)"><i data-lucide="file" class="lucide"></i> 元のプロフィールを見る ▼</div>
     <div class="profile-raw-body">${escapeHtml(c.profile || '')}</div>`;
   const s = c.profileSummary;
   const main = getMainSourceProfile(c);
   const sourceLine = main
-    ? `<div class="summary-source-line">📌 ${escapeHtml(main.platform || 'その他')} のプロフィールより${main.url ? ` <a href="${escapeHtml(main.url)}" target="_blank" style="color:var(--info);">${escapeHtml(main.url)}</a>` : ''}</div>`
+    ? `<div class="summary-source-line"><i data-lucide="pin" class="lucide"></i> ${escapeHtml(main.platform || 'その他')} のプロフィールより${main.url ? ` <a href="${escapeHtml(main.url)}" target="_blank" style="color:var(--info);">${escapeHtml(main.url)}</a>` : ''}</div>`
     : '';
   if (!s) {
     return `${sourceLine}<div class="summary-empty">AI要約は未生成です（APIキー未設定または要約未実行）。</div>${rawHtml}`;
   }
   const canEdit = can('candidates.edit', { candidate: c });
   const badges = [];
-  if (s.manuallyEdited) badges.push('<span class="summary-edit-badge manual">✏️ 手動編集済み</span>');
-  if (s.updatedFromLog) badges.push('<span class="summary-edit-badge from-log">✏️ やり取りより更新</span>');
+  if (s.manuallyEdited) badges.push('<span class="summary-edit-badge manual"><i data-lucide="pencil" class="lucide"></i> 手動編集済み</span>');
+  if (s.updatedFromLog) badges.push('<span class="summary-edit-badge from-log"><i data-lucide="pencil" class="lucide"></i> やり取りより更新</span>');
   const badgeLine = badges.length ? `<div class="summary-badges">${badges.join(' ')}</div>` : '';
   return `
     ${sourceLine}
@@ -6957,7 +8155,7 @@ function renderProfileSummaryAndRaw(c) {
         <div class="summary-point">${escapeHtml(s.recruitingPoint)}</div>
       </div>` : ''}
       ${canEdit ? `<div style="margin-top:12px; text-align:right;">
-        <button class="btn btn-small" onclick="openSummaryEditor()">✏️ 要約を編集</button>
+        <button class="btn btn-small" onclick="openSummaryEditor()"><i data-lucide="pencil" class="lucide"></i> 要約を編集</button>
       </div>` : ''}
     </div>
     ${rawHtml}`;
@@ -7009,7 +8207,7 @@ function openSummaryEditor() {
     </div>
     <div style="display:flex; justify-content:flex-end; gap:6px; margin-top:12px;">
       <button class="btn btn-small" onclick="renderCandidateDetail(loadCandidate(currentCandidateId))">キャンセル</button>
-      <button class="btn btn-small btn-primary" onclick="saveSummaryEdit()">💾 保存</button>
+      <button class="btn btn-small btn-primary" onclick="saveSummaryEdit()"><i data-lucide="save" class="lucide"></i> 保存</button>
     </div>`;
 }
 
@@ -7047,7 +8245,7 @@ async function saveSummaryEdit() {
   await runDriveSave([
     () => DriveStorage.writeCandidate(c.id, c)
   ], {
-    success: '要約を更新しました（Driveに保存 ✓）',
+    success: '要約を更新しました（Driveに保存 <i data-lucide="check" class="lucide"></i>）',
     fail:    'Drive保存失敗、ローカルに保存しました',
     local:   '要約を更新しました（ローカル保存のみ）'
   });
@@ -7058,7 +8256,7 @@ function toggleProfileRaw(el) {
   if (!body) return;
   const opening = !body.classList.contains('open');
   body.classList.toggle('open');
-  el.textContent = opening ? '📄 元のプロフィールを隠す ▲' : '📄 元のプロフィールを見る ▼';
+  el.innerHTML = opening ? '<i data-lucide="file" class="lucide"></i> 元のプロフィールを隠す ▲' : '<i data-lucide="file" class="lucide"></i> 元のプロフィールを見る ▼';
 }
 
 async function resummarizeCurrentCandidate() {
@@ -7081,7 +8279,7 @@ async function resummarizeCurrentCandidate() {
     await runDriveSave([
       () => DriveStorage.writeCandidate(c.id, c)
     ], {
-      success: '要約を再生成しました（Driveに保存 ✓）',
+      success: '要約を再生成しました（Driveに保存 <i data-lucide="check" class="lucide"></i>）',
       fail:    'Drive保存失敗、ローカルに保存しました',
       local:   '要約を再生成しました（ローカル保存のみ）'
     });
@@ -7144,7 +8342,7 @@ async function saveCandidateFromEditModal() {
     () => DriveStorage.writeCandidate(c.id, c),
     () => DriveStorage.writeAts(DRIVE_INDEX_FILE, cachedIndex)
   ], {
-    success: '更新しました（Driveに保存 ✓）',
+    success: '更新しました（Driveに保存 <i data-lucide="check" class="lucide"></i>）',
     fail:    'Drive保存失敗、ローカルに保存しました',
     local:   '更新しました（ローカル保存のみ）'
   });
@@ -7175,7 +8373,7 @@ async function deleteCurrentCandidate() {
     () => DriveStorage.deleteCandidate(c.id),
     () => DriveStorage.writeAts(DRIVE_INDEX_FILE, cachedIndex)
   ], {
-    success: '削除しました（Driveからも削除 ✓）',
+    success: '削除しました（Driveからも削除 <i data-lucide="check" class="lucide"></i>）',
     fail:    'Drive削除失敗、ローカルからは削除しました',
     local:   '削除しました（ローカル保存のみ）'
   });
@@ -7193,6 +8391,7 @@ function showSettingsPane(name) {
   if (sb) sb.classList.add('active');
   if (name === 'scope')       renderScopePane();
   if (name === 'template')    renderTemplatePane();
+  if (name === 'dashboard')   renderDashboardPane();
   if (name === 'apikey')      renderApiKeyPane();
   if (name === 'slack')       renderSlackPane();
   if (name === 'gcal')        renderGcalPane();
@@ -7350,6 +8549,25 @@ function saveApiKey() {
   showToast('APIキーを保存しました', 'success');
 }
 
+// -- Dashboard pane --
+function renderDashboardPane() {
+  const toggle = document.getElementById('dashboardEnabledToggle');
+  if (toggle) toggle.classList.toggle('off', !cachedDashboard.enabled);
+  document.getElementById('dashThresholdReply').value     = cachedDashboard.thresholds.reply;
+  document.getElementById('dashThresholdConsider').value  = cachedDashboard.thresholds.consider;
+  document.getElementById('dashThresholdNocontact').value = cachedDashboard.thresholds.nocontact;
+}
+function toggleDashboardEnabled(el) { el.classList.toggle('off'); }
+function saveDashboardSettings() {
+  cachedDashboard.enabled = !document.getElementById('dashboardEnabledToggle').classList.contains('off');
+  cachedDashboard.thresholds.reply     = Math.max(1, parseInt(document.getElementById('dashThresholdReply').value, 10) || 3);
+  cachedDashboard.thresholds.consider  = Math.max(1, parseInt(document.getElementById('dashThresholdConsider').value, 10) || 7);
+  cachedDashboard.thresholds.nocontact = Math.max(1, parseInt(document.getElementById('dashThresholdNocontact').value, 10) || 7);
+  persistDashboard();
+  syncAtsFile(DRIVE_DASHBOARD_FILE, cachedDashboard);
+  showToast('ダッシュボード設定を保存しました', 'success');
+}
+
 // -- Google Calendar pane --
 function renderGcalPane() {
   const enabled = !!cachedGcal.enabled;
@@ -7485,8 +8703,8 @@ function renderGmailPane() {
       poolEl.innerHTML = accounts.map(email => {
         const valid = !!getActiveGmailToken(email);
         const status = valid
-          ? '<span style="color:var(--success); font-size:12px;">✓ 接続済み</span>'
-          : '<span style="color:var(--error); font-size:12px;">⚠ トークン期限切れ</span>';
+          ? '<span style="color:var(--success); font-size:12px;"><i data-lucide="check" class="lucide"></i> 接続済み</span>'
+          : '<span style="color:var(--error); font-size:12px;"><i data-lucide="alert-triangle" class="lucide"></i> トークン期限切れ</span>';
         return `<div class="master-item">
           <div>
             <div style="font-weight:500;">${escapeHtml(email)}</div>
@@ -7494,7 +8712,7 @@ function renderGmailPane() {
           </div>
           <div style="display:flex; gap:6px;">
             ${valid ? '' : `<button class="btn btn-small" onclick="reconnectGmailAccount('${escapeHtml(email)}')">再接続</button>`}
-            <button class="btn-ghost" onclick="removeGmailAccount('${escapeHtml(email)}')">🗑️ 接続解除</button>
+            <button class="btn-ghost" onclick="removeGmailAccount('${escapeHtml(email)}')"><i data-lucide="trash-2" class="lucide"></i> 接続解除</button>
           </div>
         </div>`;
       }).join('');
@@ -7604,7 +8822,7 @@ function renderGmailPendingList() {
       </div>
       <div class="pending-actions">
         ${draft
-          ? `<button class="btn btn-small btn-primary" onclick="confirmPendingMail('${escapeHtml(p.id)}', '${escapeHtml(p.matchedCandidateId)}')">✓ 保存</button>`
+          ? `<button class="btn btn-small btn-primary" onclick="confirmPendingMail('${escapeHtml(p.id)}', '${escapeHtml(p.matchedCandidateId)}')"><i data-lucide="check" class="lucide"></i> 保存</button>`
           : `<select id="pendingSel_${escapeHtml(p.id)}"><option value="">候補者を選択...</option>${candOpts}</select>
              <button class="btn btn-small btn-primary" onclick="confirmPendingMail('${escapeHtml(p.id)}', document.getElementById('pendingSel_${escapeHtml(p.id)}').value)">紐付けて保存</button>`}
         <button class="btn-ghost" onclick="dismissPendingMail('${escapeHtml(p.id)}')">削除</button>
@@ -7639,7 +8857,7 @@ async function confirmPendingMail(pendingId, candidateId) {
   c.logs = c.logs || [];
   c.logs.push(logEntry);
   triggerTasksOnLogAdded(c, logEntry);
-  pushActivity(c, 'log_added', '📧 ' + (logLabelMeta(labelId).label) + '：' + (logEntry.summary || '').substring(0, 40));
+  pushActivity(c, 'log_added', '<i data-lucide="mail" class="lucide"></i> ' + (logLabelMeta(labelId).label) + '：' + (logEntry.summary || '').substring(0, 40));
   persistCandidate(c);
   syncIndexFromCandidate(c);
 
@@ -7651,7 +8869,7 @@ async function confirmPendingMail(pendingId, candidateId) {
   await runDriveSave([
     () => DriveStorage.writeCandidate(c.id, c)
   ], {
-    success: 'やり取りログに反映しました（Driveに保存 ✓）',
+    success: 'やり取りログに反映しました（Driveに保存 <i data-lucide="check" class="lucide"></i>）',
     fail:    'Drive保存失敗、ローカルに保存しました',
     local:   'やり取りログに反映しました（ローカル保存のみ）'
   });
@@ -7938,7 +9156,7 @@ async function runGmailPollManual() {
   const btn = document.getElementById('gmailPollNowBtn');
   if (btn) { btn.disabled = true; btn.textContent = '確認中...'; }
   try { await runGmailPoll({ manual: true }); }
-  finally { if (btn) { btn.disabled = false; btn.textContent = '🔄 今すぐ確認'; } }
+  finally { if (btn) { btn.disabled = false; btn.innerHTML = '<i data-lucide="refresh-cw" class="lucide"></i> 今すぐ確認'; } }
 }
 
 // 1件のメールを処理して、saved / pending / skipped を返す
@@ -8001,7 +9219,7 @@ async function processIncomingMail(msg, apiKey) {
       };
       c.logs.push(newLog);
       triggerTasksOnLogAdded(c, newLog);
-      pushActivity(c, 'log_added', '📧 ' + logLabelMeta(suggestedLabel).label + '：' + suggestedSummary.substring(0, 40));
+      pushActivity(c, 'log_added', '<i data-lucide="mail" class="lucide"></i> ' + logLabelMeta(suggestedLabel).label + '：' + suggestedSummary.substring(0, 40));
       persistCandidate(c);
       syncIndexFromCandidate(c);
       await syncCandidateFile(c);
@@ -8040,7 +9258,7 @@ async function handleTimeRexForCandidate(c, bodyText, apiKey) {
   const targetId = targetPhases.find(id => !(c.flow[id] && c.flow[id].scheduledAt)) || 'casual';
   c.flow[targetId] = Object.assign({}, c.flow[targetId] || {}, { scheduledAt: iso });
   const def = FLOW_PHASES.find(p => p.id === targetId);
-  pushActivity(c, 'edited', `📅 TimeRex 面談日時を${def ? def.label : targetId}に反映: ` + new Date(iso).toLocaleString('ja-JP'));
+  pushActivity(c, 'edited', `<i data-lucide="calendar" class="lucide"></i> TimeRex 面談日時を${def ? def.label : targetId}に反映: ` + new Date(iso).toLocaleString('ja-JP'));
   persistCandidate(c);
   syncIndexFromCandidate(c);
   await syncCandidateFile(c);
@@ -8125,7 +9343,7 @@ function renderCompanyList() {
     </div>
     <div style="display:flex; gap:6px;">
       <button class="btn btn-small" onclick="openCompanyModal('${escapeHtml(c.id)}')">編集</button>
-      <button class="btn-ghost" onclick="deleteCompany('${escapeHtml(c.id)}')">🗑️</button>
+      <button class="btn-ghost" onclick="deleteCompany('${escapeHtml(c.id)}')"><i data-lucide="trash-2" class="lucide"></i></button>
     </div>
   </div>`).join('');
 }
@@ -8187,7 +9405,7 @@ function renderInterviewerList() {
       </div>
       <div style="display:flex; gap:6px;">
         <button class="btn btn-small" onclick="openInterviewerModal('${escapeHtml(i.id)}')">編集</button>
-        <button class="btn-ghost" onclick="deleteInterviewer('${escapeHtml(i.id)}')">🗑️</button>
+        <button class="btn-ghost" onclick="deleteInterviewer('${escapeHtml(i.id)}')"><i data-lucide="trash-2" class="lucide"></i></button>
       </div>
     </div>`;
   }).join('');
@@ -8281,7 +9499,7 @@ function renderUserList() {
       <div style="display:flex; gap:6px;">
         ${isPending ? `<button class="btn btn-small btn-success" onclick="approveUser('${escapeHtml(u.id)}')">承認</button>` : ''}
         <button class="btn btn-small" onclick="openUserModal('${escapeHtml(u.id)}')">編集</button>
-        <button class="btn-ghost" onclick="deleteUser('${escapeHtml(u.id)}')">🗑️</button>
+        <button class="btn-ghost" onclick="deleteUser('${escapeHtml(u.id)}')"><i data-lucide="trash-2" class="lucide"></i></button>
       </div>
     </div>`;
   }).join('');
@@ -8408,6 +9626,7 @@ function deleteUser(id) {
   renderStatusFilter();
   renderRolesLegend();
   renderCandidateList();
+  applyMainView();  // 初期ビュー = home（ダッシュボードのみ表示、他は非表示）
   updateDriveStatus(false);
   applyAuthState();
   updateOverdueBanner();
@@ -8435,6 +9654,25 @@ function deleteUser(id) {
   };
   tryInit();
 })();
+</script>
+
+<script>
+  // Lucide icon initialization.
+  // createIcons() is idempotent and only converts unprocessed [data-lucide] nodes,
+  // so observing DOM mutations here covers the many innerHTML-driven render paths.
+  function initLucide() {
+    if (window.lucide) lucide.createIcons();
+  }
+  document.addEventListener('DOMContentLoaded', () => {
+    initLucide();
+    let pending = false;
+    const mo = new MutationObserver(() => {
+      if (pending) return;
+      pending = true;
+      requestAnimationFrame(() => { pending = false; initLucide(); });
+    });
+    mo.observe(document.body, { childList: true, subtree: true });
+  });
 </script>
 
 </body>

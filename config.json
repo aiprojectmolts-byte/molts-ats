@@ -28,28 +28,28 @@
   "sources": [
     {
       "id": "scout",
-      "icon": "💼",
+      "icon": "<i data-lucide=\"handshake\" class=\"lucide\"></i>",
       "title": "スカウト媒体",
       "subtitle": "YOUTRUST / Wantedly / LinkedIn",
       "hint": "プロフィール貼付 + 候補者URL"
     },
     {
       "id": "self_apply",
-      "icon": "📄",
+      "icon": "<i data-lucide=\"file\" class=\"lucide\"></i>",
       "title": "自主応募",
       "subtitle": "自社HPや問い合わせから",
       "hint": "職務経歴書（任意）+ 情報手入力"
     },
     {
       "id": "referral",
-      "icon": "👥",
+      "icon": "<i data-lucide=\"users\" class=\"lucide\"></i>",
       "title": "リファラル",
       "subtitle": "社員からの紹介",
       "hint": "紹介者名 + 職務経歴書"
     },
     {
       "id": "agent",
-      "icon": "🏢",
+      "icon": "<i data-lucide=\"building-2\" class=\"lucide\"></i>",
       "title": "エージェント",
       "subtitle": "外部エージェント経由",
       "hint": "エージェント名 + 職務経歴書"
