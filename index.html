@@ -380,6 +380,14 @@
     font-size: 11px; margin-right: 6px; margin-bottom: 6px;
   }
 
+  .send-history-group { margin-top: 12px; }
+  .send-history-group:first-child { margin-top: 4px; }
+  .send-history-group-header {
+    font-size: 12px; font-weight: 500;
+    color: var(--text-secondary); margin-bottom: 4px;
+    padding: 4px 0; border-bottom: 1px solid var(--border-light);
+  }
+
   .history-item {
     border-bottom: 1px solid var(--border-light);
     font-size: 12px;
@@ -642,8 +650,98 @@
   .summary-edit-badge.manual   { background: var(--warning-bg); color: var(--warning-text); }
   .summary-edit-badge.from-log { background: var(--info-bg); color: var(--info-text); }
 
+  /* --- Candidate detail more-menu (⋯) --- */
+  .more-menu-wrap { position: relative; display: inline-block; }
+  .more-menu {
+    display: none; position: absolute;
+    top: calc(100% + 6px); right: 0;
+    background: var(--bg-primary); border: 1px solid var(--border);
+    border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    min-width: 200px; z-index: 50;
+  }
+  .more-menu.show { display: block; }
+  .more-menu-item {
+    padding: 10px 14px; font-size: 13px; cursor: pointer;
+  }
+  .more-menu-item:hover { background: var(--bg-secondary); }
+  .more-menu-item.disabled { opacity: 0.4; pointer-events: none; }
+
+  /* --- Tag categories --- */
+  .tag-group { margin-top: 10px; }
+  .tag-group-label {
+    font-size: 11px; color: var(--text-secondary);
+    margin-bottom: 4px; letter-spacing: 0.03em;
+  }
+  .tag-chip-row { display: flex; flex-wrap: wrap; gap: 4px; }
+  .tag-chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 10px; font-size: 11px; border-radius: 12px;
+    font-weight: 500;
+  }
+  .tag-chip-x {
+    cursor: pointer; font-size: 12px; line-height: 1;
+    margin-left: 2px; opacity: 0.6;
+  }
+  .tag-chip-x:hover { opacity: 1; }
+  .tag-suggest {
+    display: inline-block; font-size: 11px; padding: 3px 10px;
+    border-radius: 10px; cursor: pointer; user-select: none;
+  }
+
+  /* --- Talent pool --- */
+  .talent-pool-banner {
+    background: var(--bg-secondary); border-radius: 8px;
+    padding: 12px 14px; margin-top: 8px; font-size: 13px;
+  }
+  .talent-pool-banner.registered {
+    background: var(--success-bg); color: var(--success-text-strong);
+    border-left: 3px solid var(--success);
+  }
+  .tp-type-chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 10px; font-size: 11px; font-weight: 500;
+    border-radius: 12px; background: var(--bg-primary); color: var(--primary);
+    border: 1px solid var(--primary-light); margin-right: 4px; margin-bottom: 4px;
+  }
+  .tp-form {
+    background: var(--bg-secondary); border-radius: 8px;
+    padding: 14px; margin-top: 10px;
+  }
+  .tp-form-checkbox {
+    display: block; padding: 6px; font-size: 13px;
+    margin-bottom: 4px;
+  }
+  .tp-form-checkbox input { margin-right: 6px; }
+  .tp-form-checkbox input[type="text"] {
+    margin-left: 8px; padding: 4px 8px; font-size: 12px;
+    border: 1px solid var(--border); border-radius: 4px; width: 220px;
+  }
+
+  /* --- List view tabs --- */
+  .list-tabs {
+    display: flex; gap: 0; border-bottom: 1px solid var(--border);
+    margin-bottom: 16px;
+  }
+  .list-tab {
+    padding: 10px 20px; font-size: 14px;
+    border: none; background: transparent; cursor: pointer;
+    color: var(--text-secondary); border-bottom: 3px solid transparent;
+    font-family: inherit;
+  }
+  .list-tab.active {
+    color: var(--primary); border-bottom-color: var(--primary);
+    font-weight: 500;
+  }
+
   /* --- Tasks --- */
-  .task-list { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+  .task-group { margin-top: 12px; }
+  .task-group:first-child { margin-top: 4px; }
+  .task-group-title {
+    font-size: 12px; font-weight: 500;
+    color: var(--text-secondary); margin-bottom: 6px;
+    letter-spacing: 0.03em;
+  }
+  .task-list { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
   .task-item {
     display: flex; justify-content: space-between; align-items: center;
     padding: 10px 14px; background: var(--bg-secondary);
@@ -1150,6 +1248,10 @@
     </div>
   </div>
   <div class="main-content">
+    <div class="list-tabs">
+      <button class="list-tab active" data-mode="candidates" onclick="setListView('candidates')">👥 候補者一覧</button>
+      <button class="list-tab" data-mode="talentPool" onclick="setListView('talentPool')">🤝 タレントプール</button>
+    </div>
     <div class="toolbar">
       <div class="toolbar-left">
         <button class="btn btn-primary btn-primary-large" data-perm="candidates.create" onclick="startNewCandidateWizard()">+ 新規候補者を追加</button>
@@ -1159,12 +1261,14 @@
         <select class="select" id="listStatusFilter" onchange="renderCandidateList()">
           <option value="">すべてのステータス</option>
         </select>
+        <button class="btn btn-small" onclick="openTagFilterModal()">🏷 タグで絞り込み</button>
       </div>
     </div>
     <div class="filters">
       <label class="filter-checkbox"><input type="checkbox" id="filterOverdue" onchange="renderCandidateList()"> 期日超過のみ</label>
       <label class="filter-checkbox"><input type="checkbox" id="filterRequiresAction" onchange="renderCandidateList()"> ⚡ 要対応のみ</label>
       <label class="filter-checkbox"><input type="checkbox" id="filterMine" onchange="renderCandidateList()"> 自分の担当のみ</label>
+      <span id="activeTagFilterChips"></span>
       <span class="candidate-count" id="candidateCount">総数: 0件</span>
     </div>
     <div class="candidate-table-wrap">
@@ -1222,9 +1326,10 @@
 <!-- ============================================================ -->
 <div class="screen" id="screen-scout">
   <div class="wizard-header">
-    <div style="display: flex; align-items: center; gap: 16px;">
-      <button class="back-link" onclick="showScreen('add')">← 戻る</button>
+    <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+      <button class="back-link" id="scoutBackBtn" onclick="showScreen('add')">← 戻る</button>
       <div style="font-size: 16px; font-weight: 500;" id="scoutHeaderTitle">新規候補者追加</div>
+      <span id="scoutHeaderMediaBadge" style="display:none; font-size:12px; padding:3px 10px; background:var(--info-bg); color:var(--info-text); border-radius:12px;"></span>
     </div>
   </div>
   <div class="wizard-steps">
@@ -1239,25 +1344,33 @@
   </div>
   <div class="scout-layout">
     <div class="scout-panel">
-      <label class="scout-label">ソース情報</label>
-      <div class="scout-source-box" id="scoutSourceBox">
-        <!-- Source-dependent inputs are injected here -->
+      <div id="scoutNewOnlyGroup">
+        <label class="scout-label">ソース情報</label>
+        <div class="scout-source-box" id="scoutSourceBox">
+          <!-- Source-dependent inputs are injected here -->
+        </div>
+        <label class="scout-label">候補者名<span class="required">*</span></label>
+        <input type="text" class="scout-input" id="scoutCandidateName" placeholder="例：山田 太郎">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <label class="scout-label" style="margin-bottom:0;">候補者プロフィール</label>
+          <span id="profileAnalyzingIndicator" style="display:none; font-size:11px; color:var(--info); align-items:center; gap:6px;">
+            <span class="mini-spinner"></span><span id="profileAnalyzingText">解析中...</span>
+          </span>
+        </div>
+        <textarea class="scout-textarea" id="scoutProfile" placeholder="プロフィールを貼り付けると、媒体・名前・URLを自動入力します"></textarea>
       </div>
-      <label class="scout-label">候補者名<span class="required">*</span></label>
-      <input type="text" class="scout-input" id="scoutCandidateName" placeholder="例：山田 太郎">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-        <label class="scout-label" style="margin-bottom:0;">候補者プロフィール</label>
-        <span id="profileAnalyzingIndicator" style="display:none; font-size:11px; color:var(--info); align-items:center; gap:6px;">
-          <span class="mini-spinner"></span><span id="profileAnalyzingText">解析中...</span>
-        </span>
+      <div id="scoutExistingSpRow" style="display:none; margin-bottom:12px;">
+        <label class="scout-label">送信媒体</label>
+        <select class="scout-input" id="scoutExistingSpSelect" onchange="onScoutExistingSpChange()" style="margin-bottom:0;"></select>
       </div>
-      <textarea class="scout-textarea" id="scoutProfile" placeholder="プロフィールを貼り付けると、媒体・名前・URLを自動入力します"></textarea>
       <div style="display: flex; gap: 8px; margin-bottom: 12px;">
         <select class="scout-input" id="scoutMsgType" style="margin-bottom: 0; flex: 1;">
           <option value="first">初回メッセージ</option>
           <option value="second">2回目（SNS補助連絡）</option>
           <option value="interview_url">面談設定（URL送付）</option>
           <option value="interview_ask">面談設定（候補日時確認）</option>
+          <option value="reschedule_apology">リスケ謝罪</option>
+          <option value="decline_reply">辞退返信</option>
         </select>
         <select class="scout-input" id="scoutTargetCompany" style="margin-bottom: 0; flex: 1;"></select>
       </div>
@@ -1279,7 +1392,8 @@
       </div>
       <div class="hint-box">💡 「候補者として登録」で一覧に追加されます。送付履歴に自動記録されます。</div>
       <button class="btn btn-success" id="scoutRegisterMain" style="width: 100%; margin-bottom: 8px;" onclick="registerCandidateFromScout(true)">✓ 候補者として登録して一覧に戻る</button>
-      <button class="btn" id="scoutRegisterContinue" style="width: 100%;" onclick="registerCandidateFromScout(false)">続けて新規候補者を追加</button>
+      <button class="btn" id="scoutRegisterContinue" style="width: 100%; margin-bottom: 8px;" onclick="registerCandidateFromScout(false)">続けて新規候補者を追加</button>
+      <button class="btn btn-success" id="scoutSendOnly" style="width: 100%; display: none;" onclick="registerCandidateFromScout(false)">✉️ 送付して候補者詳細に戻る</button>
     </div>
   </div>
 </div>
@@ -1297,7 +1411,12 @@
       </div>
     </div>
     <div class="detail-actions">
-      <button class="btn btn-primary" onclick="openScoutForExistingCandidate()">✉️ メッセージを送る</button>
+      <div class="more-menu-wrap" id="detailMoreMenuWrap">
+        <button class="btn" onclick="toggleDetailMoreMenu(event)">⋯</button>
+        <div class="more-menu" id="detailMoreMenu">
+          <div class="more-menu-item" id="detailMoreItemScout" onclick="handleDetailMoreScout()">✉️ メッセージを送る</div>
+        </div>
+      </div>
       <button class="btn" onclick="openCandidateEditModal()">✏️ 編集</button>
       <button class="btn-ghost" onclick="deleteCurrentCandidate()">🗑️ 削除</button>
     </div>
@@ -1369,9 +1488,14 @@
       <!-- Template pane -->
       <div class="settings-pane" id="pane-template">
         <div class="settings-title">テンプレート設定</div>
-        <p class="settings-subtitle">スカウトメッセージのテンプレートを編集できます。「◯◯」は候補者名に置換されます。</p>
+        <p class="settings-subtitle">
+          スカウトメッセージのテンプレートを編集できます。使用可能な変数：
+          <code>◯◯</code>／<code>◯◯さん</code>（候補者の姓）、
+          <code>{送付媒体}</code>（メインのsourceProfileの媒体名）、
+          <code>{SNS媒体名}</code>（SNS補助メッセージで選択中の媒体名）
+        </p>
         <div class="tpl-tabs" id="tplTabs"></div>
-        <div class="settings-field">
+        <div class="settings-field" id="tplEditorContainer">
           <textarea class="settings-textarea" id="tplEditor" style="min-height: 300px; font-family: ui-monospace, monospace; font-size:12px;"></textarea>
         </div>
         <div class="settings-actions">
@@ -1685,6 +1809,19 @@
   </div>
 </div>
 
+<div class="modal-overlay" id="tagFilterModal">
+  <div class="modal-card" style="width: min(640px, 95vw);">
+    <div class="modal-title">🏷 タグで絞り込み</div>
+    <div style="font-size:12px; color:var(--text-secondary); margin-bottom:10px;">複数選択するとAND条件で絞り込みます。</div>
+    <div id="tagFilterGroups"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="clearTagFilters()">すべてクリア</button>
+      <button class="btn" onclick="closeModal('tagFilterModal')">キャンセル</button>
+      <button class="btn btn-primary" onclick="applyTagFilters()">適用</button>
+    </div>
+  </div>
+</div>
+
 <div class="modal-overlay" id="updateProfileModal">
   <div class="modal-card" style="width: min(960px, 95vw); max-height: 92vh;">
     <div class="modal-title" id="updateProfileTitle">プロフィールを更新</div>
@@ -1733,10 +1870,6 @@
     <div class="form-row">
       <label class="form-label">次回期日（YYYY-MM-DD）</label>
       <input type="date" class="form-input" id="editCandDue">
-    </div>
-    <div class="form-row">
-      <label class="form-label">タグ（カンマ区切り）</label>
-      <input type="text" class="form-input" id="editCandTags" placeholder="例：Aランク, 関東">
     </div>
     <div class="form-row">
       <label class="form-label">メモ</label>
@@ -1805,7 +1938,70 @@ let cachedCompanies    = { companies: [] };
 let cachedInterviewers = { interviewers: [] };
 let cachedUsers        = { users: [] };
 let cachedScope        = { positions: [] };
-let cachedTemplates    = { first: '', second: '', interview_url: '', interview_ask: '' };
+// リスケ謝罪・辞退返信テンプレートのデフォルト文面
+const DEFAULT_RESCHEDULE_APOLOGY_TPL =
+`{候補者の呼び方}さん
+お世話になっております。
+誠に申し訳ございませんが、{日時}に予定しておりました面談について、
+こちらの都合により日程を変更させていただけますでしょうか。
+ご迷惑をおかけして大変恐縮ですが、
+改めて以下の日程はいかがでしょうか。
+
+▼面談可能日程
+・
+・
+・
+
+何卒よろしくお願いいたします。
+{署名}`;
+
+const DEFAULT_DECLINE_REPLY_TPLS = {
+  future:
+`{候補者の呼び方}さん
+ご連絡いただきありがとうございます。
+今のフェーズではご検討が難しいとのこと、承知いたしました。
+またタイミングが合いましたら、ぜひお声がけできれば幸いです。
+{候補者の呼び方}さんの今後のご活躍を応援しております。
+
+{署名}`,
+  other_company:
+`{候補者の呼び方}さん
+ご丁寧にご連絡いただきありがとうございます。
+ご縁がなく残念ですが、新天地でのご活躍を心よりお祈りしております。
+またいつかご一緒できる機会があれば嬉しいです。
+
+{署名}`,
+  conditions:
+`{候補者の呼び方}さん
+ご連絡いただきありがとうございます。
+条件面でご期待に沿えず、大変申し訳ございません。
+またご縁がありましたらぜひお声がけください。
+引き続きよろしくお願いいたします。
+
+{署名}`,
+  other:
+`{候補者の呼び方}さん
+ご丁寧にご連絡いただきありがとうございます。
+今回はご縁がなく残念ですが、またいつかご一緒できる機会があれば幸いです。
+{候補者の呼び方}さんの今後のご活躍をお祈りしております。
+
+{署名}`
+};
+const DECLINE_REPLY_REASONS = [
+  { id: 'future',        label: '転職予定なし・時期尚早' },
+  { id: 'other_company', label: '他社に決まった' },
+  { id: 'conditions',    label: '条件が合わない' },
+  { id: 'other',         label: '理由不明・その他' }
+];
+
+let cachedTemplates    = {
+  first: '', second: '', interview_url: '', interview_ask: '',
+  reschedule_apology:          DEFAULT_RESCHEDULE_APOLOGY_TPL,
+  decline_reply_future:        DEFAULT_DECLINE_REPLY_TPLS.future,
+  decline_reply_other_company: DEFAULT_DECLINE_REPLY_TPLS.other_company,
+  decline_reply_conditions:    DEFAULT_DECLINE_REPLY_TPLS.conditions,
+  decline_reply_other:         DEFAULT_DECLINE_REPLY_TPLS.other
+};
 let cachedSlack        = { webhookUrl: '', defaultChannel: '', events: [] };
 let cachedGcal         = {
   enabled: false,
@@ -1848,6 +2044,36 @@ let listSortDir = 'desc';              // 'asc' | 'desc'
 let editingTemplateKey = 'first';
 let editingScopePositionId = null;
 let editingScopeCompanyId = null;
+
+// スカウト画面の起動モード（'new' = 新規追加ウィザード / 'existing' = 既存候補者から）
+let scoutMode = 'new';
+let scoutActiveSpId = null;  // 既存モード時に対象とする sourceProfile ID
+
+// タグカテゴリ定義（ランク・居住地・職種 + 旧データ用のその他）
+const TAG_CATEGORIES = [
+  { id: 'rank',     label: 'ランク',   icon: '🏆', color: '#C9A961',
+    defaults: ['Aランク','Bランク','将来候補','今回は見送り'] },
+  { id: 'location', label: '居住地',   icon: '📍', color: '#2563EB',
+    defaults: ['関東','関西','東海','リモート希望','移住可'] },
+  { id: 'job',      label: '職種',     icon: '💼', color: '#16A34A',
+    defaults: ['マーケター','エンジニア','デザイナー','事業開発'] },
+  { id: 'other',    label: 'その他',   icon: '🏷', color: '#5F5E5A', defaults: [] }
+];
+function tagCategoryMeta(id) { return TAG_CATEGORIES.find(x => x.id === id) || TAG_CATEGORIES[3]; }
+
+// タレントプールの接点種別
+const TALENT_POOL_TYPES = [
+  { id: 'event',      icon: '📅', label: 'イベント招待' },
+  { id: 'info',       icon: '📢', label: '情報発信（note・事例記事など）' },
+  { id: 'position',   icon: '💼', label: 'ポジション待ち' },
+  { id: 'reapproach', icon: '🔄', label: '再アプローチ' }
+];
+function talentPoolTypeMeta(id) { return TALENT_POOL_TYPES.find(x => x.id === id) || { id, icon: '🏷', label: id }; }
+
+// 候補者一覧のタグフィルタ（[{category, label}]）
+let listTagFilters = [];
+// 候補者一覧の表示モード
+let listViewMode = 'candidates';  // 'candidates' | 'talentPool'
 
 // プロフィール自動解析用
 let PLATFORM_KEYWORDS = {};          // { "LinkedIn": [...], ... }
@@ -1958,7 +2184,12 @@ function applyConfig(cfg) {
     first: tpl.first || '',
     second: tpl.second || '',
     interview_url: tpl.interview_url || '',
-    interview_ask: tpl.interview_ask || ''
+    interview_ask: tpl.interview_ask || '',
+    reschedule_apology:           tpl.reschedule_apology || DEFAULT_RESCHEDULE_APOLOGY_TPL,
+    decline_reply_future:         tpl.decline_reply_future || DEFAULT_DECLINE_REPLY_TPLS.future,
+    decline_reply_other_company:  tpl.decline_reply_other_company || DEFAULT_DECLINE_REPLY_TPLS.other_company,
+    decline_reply_conditions:     tpl.decline_reply_conditions || DEFAULT_DECLINE_REPLY_TPLS.conditions,
+    decline_reply_other:          tpl.decline_reply_other || DEFAULT_DECLINE_REPLY_TPLS.other
   };
   if (cfg.scope && Array.isArray(cfg.scope.positions)) {
     cachedScope = { positions: JSON.parse(JSON.stringify(cfg.scope.positions)) };
@@ -2473,7 +2704,7 @@ async function loadAllFromDrive() {
     if (interviewers && Array.isArray(interviewers.interviewers)) { cachedInterviewers = interviewers; persistInterviewers(); }
     if (users && Array.isArray(users.users)) { cachedUsers = users; persistUsers(); }
     if (scope && Array.isArray(scope.positions)) { cachedScope = scope; persistScope(); }
-    if (templates && typeof templates === 'object') { cachedTemplates = { ...cachedTemplates, ...templates }; persistTemplates(); }
+    if (templates && typeof templates === 'object') { cachedTemplates = { ...cachedTemplates, ...templates }; persistTemplates(); migrateFacebookPlaceholder(); }
     if (slack && typeof slack === 'object') { cachedSlack = { ...cachedSlack, ...slack }; persistSlack(); }
     if (gcal && typeof gcal === 'object') { cachedGcal = { ...cachedGcal, ...gcal }; persistGcal(); }
     if (gmail && typeof gmail === 'object') {
@@ -2497,6 +2728,18 @@ function persistInterviewers() { try { localStorage.setItem(LS_INTERVIEWERS, JSO
 function persistUsers()        { try { localStorage.setItem(LS_USERS,        JSON.stringify(cachedUsers)); } catch (e) {} }
 function persistScope()        { try { localStorage.setItem(LS_SCOPE,        JSON.stringify(cachedScope)); } catch (e) {} }
 function persistTemplates()    { try { localStorage.setItem(LS_TEMPLATES,    JSON.stringify(cachedTemplates)); } catch (e) {} }
+
+// 旧デフォルトテンプレートの "facebookから失礼いたします" を {SNS媒体名} 変数に置換する一度限りのマイグレーション
+function migrateFacebookPlaceholder() {
+  if (cachedTemplates && typeof cachedTemplates.second === 'string'
+      && cachedTemplates.second.includes('facebookから失礼いたします')) {
+    cachedTemplates.second = cachedTemplates.second.replace(/facebookから失礼いたします/g, '{SNS媒体名}から失礼いたします');
+    persistTemplates();
+    // Drive同期は非同期で投げ捨て（connected時のみ書き込みされる）
+    try { syncAtsFile(DRIVE_TEMPLATES_FILE, cachedTemplates); } catch (e) {}
+    console.log('[Migration] templates.second: facebook → {SNS媒体名}');
+  }
+}
 function persistSlack()        { try { localStorage.setItem(LS_SLACK,        JSON.stringify(cachedSlack)); } catch (e) {} }
 function persistGcal()         { try { localStorage.setItem(LS_GCAL,         JSON.stringify(cachedGcal)); } catch (e) {} }
 function persistGmail()        { try { localStorage.setItem(LS_GMAIL,        JSON.stringify(cachedGmail)); } catch (e) {} }
@@ -2534,7 +2777,78 @@ function persistCandidate(candidate) {
 }
 function loadCandidate(id) {
   const c = safeParse(localStorage.getItem(LS_CANDIDATE_PREFIX + id), null);
-  return c ? ensureSourceProfilesMigrated(c) : null;
+  if (!c) return null;
+  ensureSourceProfilesMigrated(c);
+  ensureTagsMigrated(c);
+  return c;
+}
+
+// 旧データ互換: 文字列配列のタグを { id, label, category, addedBy, addedAt } 構造に変換
+function ensureTagsMigrated(c) {
+  if (!c) return c;
+  if (!Array.isArray(c.tags)) { c.tags = []; return c; }
+  c.tags = c.tags.map((t, i) => {
+    if (typeof t === 'string') {
+      return {
+        id: 'tag_' + String(i + 1).padStart(3, '0'),
+        label: t,
+        category: 'other',
+        addedBy: c.createdBy || 'system',
+        addedAt: c.createdAt || new Date().toISOString()
+      };
+    }
+    if (!t.id) t.id = 'tag_' + Math.random().toString(36).slice(2, 8);
+    if (!t.category) t.category = 'other';
+    return t;
+  });
+  return c;
+}
+
+function nextTagId(c) {
+  let max = 0;
+  (c.tags || []).forEach(t => { const m = /^tag_(\d+)$/.exec(t.id || ''); if (m) max = Math.max(max, parseInt(m[1], 10)); });
+  return 'tag_' + String(max + 1).padStart(3, '0');
+}
+function addTagToCandidate(c, label, category) {
+  const clean = (label || '').trim();
+  if (!clean) return null;
+  const catId = category || 'other';
+  const dup = (c.tags || []).some(t => (t.category || 'other') === catId && (t.label || '').trim() === clean);
+  if (dup) return null;
+  c.tags = c.tags || [];
+  const tag = {
+    id: nextTagId(c),
+    label: clean, category: catId,
+    addedBy: currentUserEmail || 'unknown',
+    addedAt: new Date().toISOString()
+  };
+  c.tags.push(tag);
+  return tag;
+}
+function canAddTag() {
+  const role = currentRoleId();
+  return role === 'admin' || role === 'member' || role === 'interviewer';
+}
+function canRemoveTag(t) {
+  const role = currentRoleId();
+  if (role === 'admin' || role === 'member') return true;
+  if (role === 'interviewer') return t && t.addedBy && t.addedBy.toLowerCase() === (currentUserEmail || '').toLowerCase();
+  return false;
+}
+
+// 全候補者に登録されたユニークなタグ（カテゴリ別）を集める（サジェスト用）
+function collectAllUsedTags() {
+  const seen = new Set();
+  const all = [];
+  (cachedIndex.candidates || []).forEach(entry => {
+    const full = loadCandidate(entry.id);
+    if (!full) return;
+    (full.tags || []).forEach(t => {
+      const key = (t.category || 'other') + '|' + (t.label || '');
+      if (!seen.has(key)) { seen.add(key); all.push({ category: t.category || 'other', label: t.label }); }
+    });
+  });
+  return all;
 }
 function removeCandidateLs(id) {
   try { localStorage.removeItem(LS_CANDIDATE_PREFIX + id); } catch (e) {}
@@ -2688,6 +3002,7 @@ function buildCandidateSkeleton(data) {
     sendHistory: [], logs: [], activityLog: [], tags: [], tasks: [],
     flow: {},
     sourceProfiles: [],
+    talentPool: null,
     slackThreadTs: null,
     nextActionDue: null, memo: '',
     createdAt: now, updatedAt: now, createdBy: currentUserEmail || 'unknown'
@@ -2859,6 +3174,25 @@ function renderCandidateList() {
   });
   if (onlyMine && currentUserEmail) list = list.filter(c => c.assignee === currentUserEmail);
 
+  // タレントプールタブ: talentPool.registered === true のみ
+  if (listViewMode === 'talentPool') {
+    list = list.filter(c => {
+      const full = loadCandidate(c.id);
+      return full && full.talentPool && full.talentPool.registered === true;
+    });
+  }
+
+  // タグフィルタ（AND条件）
+  if (listTagFilters.length > 0) {
+    list = list.filter(c => {
+      const full = loadCandidate(c.id);
+      if (!full) return false;
+      return listTagFilters.every(f =>
+        (full.tags || []).some(t => (t.category || 'other') === f.category && t.label === f.label)
+      );
+    });
+  }
+
   const dir = listSortDir === 'asc' ? 1 : -1;
   list.sort((a, b) => {
     const av = a[listSortKey] || ''; const bv = b[listSortKey] || '';
@@ -2974,6 +3308,8 @@ function startNewCandidateWizard() {
   wizardSelectedSource = null;
   wizardPrefill = null;
   currentCandidateId = null;  // 新規追加フローでは既存候補者からのプリフィル対象をなくす
+  scoutMode = 'new';
+  scoutActiveSpId = null;
   showScreen('add');
 }
 function renderSourceGrid() {
@@ -3062,6 +3398,110 @@ function prepareScoutScreen() {
 
   // URL必須のバリデーション（scout媒体ソースのみ）。未入力ならボタンdisable。
   validateScoutUrl();
+
+  // 起動モードに応じてヘッダ/ボタンを切替
+  const isExisting = scoutMode === 'existing';
+  const backBtn = document.getElementById('scoutBackBtn');
+  if (backBtn) {
+    if (isExisting) {
+      backBtn.textContent = '← 候補者詳細に戻る';
+      backBtn.onclick = () => {
+        scoutMode = 'new'; scoutActiveSpId = null;
+        showScreen('detail');
+      };
+    } else {
+      backBtn.textContent = '← 戻る';
+      backBtn.onclick = () => showScreen('add');
+    }
+  }
+  const regMain  = document.getElementById('scoutRegisterMain');
+  const regCont  = document.getElementById('scoutRegisterContinue');
+  const sendOnly = document.getElementById('scoutSendOnly');
+  // 既存モードでは「登録」系ボタンすべて非表示。送付はコピーで自動記録する。
+  if (regMain)  regMain.style.display  = isExisting ? 'none' : '';
+  if (regCont)  regCont.style.display  = isExisting ? 'none' : '';
+  if (sendOnly) sendOnly.style.display = 'none';
+
+  // シンプルUI: プロフィール入力欄・URL入力欄・スコープ判定・APIキーヒントは非表示
+  const newOnlyGroup = document.getElementById('scoutNewOnlyGroup');
+  if (newOnlyGroup) newOnlyGroup.style.display = isExisting ? 'none' : '';
+  const scopeBadge = document.getElementById('scoutScopeBadge');
+  const scopeReason = document.getElementById('scoutScopeReason');
+  if (isExisting && scopeBadge) scopeBadge.style.display = 'none';
+  if (isExisting && scopeReason) scopeReason.style.display = 'none';
+
+  // ヘッダのタイトル・媒体バッジ
+  const headerTitle = document.getElementById('scoutHeaderTitle');
+  const mediaBadge  = document.getElementById('scoutHeaderMediaBadge');
+  if (isExisting) {
+    const c = currentCandidateId ? loadCandidate(currentCandidateId) : null;
+    const sp = (c && scoutActiveSpId) ? (c.sourceProfiles || []).find(x => x.id === scoutActiveSpId) : getMainSourceProfile(c);
+    const platform = (sp && sp.platform) || (c && c.sourcePlatform) || '';
+    if (headerTitle) headerTitle.textContent = `✉️ ${c ? c.name : '候補者'} へのメッセージを生成`;
+    if (mediaBadge) {
+      if (platform) { mediaBadge.textContent = `${platformIcon(platform)} ${platform}`; mediaBadge.style.display = ''; }
+      else { mediaBadge.style.display = 'none'; }
+    }
+  } else if (mediaBadge) {
+    mediaBadge.style.display = 'none';
+  }
+
+  // ヒントボックスの文面を既存モード向けに差し替え
+  const hintBox = document.querySelector('.scout-panel .hint-box');
+  if (hintBox) {
+    hintBox.textContent = isExisting
+      ? '💡 「📋 コピー」を押すと自動でクリップボードにコピー＆送付履歴に記録されます。'
+      : '💡 コピー後、「候補者として登録」で一覧に追加されます。送付履歴に自動記録。';
+  }
+
+  // 既存モードで sourceProfiles が2件以上なら「送信媒体」プルダウンを表示
+  const spRow = document.getElementById('scoutExistingSpRow');
+  const spSelect = document.getElementById('scoutExistingSpSelect');
+  if (isExisting && currentCandidateId && spRow && spSelect) {
+    const c = loadCandidate(currentCandidateId);
+    const sps = (c && c.sourceProfiles) || [];
+    if (sps.length >= 2) {
+      spSelect.innerHTML = sps.map(sp => {
+        const mark = sp.isMain ? '（メイン）' : '';
+        const selected = sp.id === scoutActiveSpId ? ' selected' : '';
+        return `<option value="${escapeHtml(sp.id)}"${selected}>${platformIcon(sp.platform)} ${escapeHtml(sp.platform || 'その他')}${mark}</option>`;
+      }).join('');
+      spRow.style.display = '';
+    } else {
+      spRow.style.display = 'none';
+    }
+  } else if (spRow) {
+    spRow.style.display = 'none';
+  }
+}
+
+// 既存モード: 「送信媒体」プルダウンの変更で対象sourceProfileを切替
+function onScoutExistingSpChange() {
+  const sel = document.getElementById('scoutExistingSpSelect');
+  if (!sel) return;
+  const newSpId = sel.value;
+  if (!newSpId) return;
+  scoutActiveSpId = newSpId;
+  const c = loadCandidate(currentCandidateId);
+  if (!c) return;
+  const sp = (c.sourceProfiles || []).find(x => x.id === newSpId);
+  if (!sp) return;
+  // 媒体プルダウン（scout source box は hidden だがvalueを同期する必要あり）
+  const ps = document.getElementById('scoutPlatform');
+  if (ps && sp.platform) {
+    const opt = Array.from(ps.options).find(o => o.value === sp.platform);
+    if (opt) ps.value = sp.platform;
+  }
+  // URL + プロフィール（hidden group にあるが値は生成で使われる）
+  const urlEl = document.getElementById('scoutUrl');
+  const profEl = document.getElementById('scoutProfile');
+  if (urlEl)  urlEl.value  = sp.url || '';
+  if (profEl) profEl.value = sp.profileText || '';
+  // ヘッダの媒体バッジも更新
+  const mediaBadge = document.getElementById('scoutHeaderMediaBadge');
+  if (mediaBadge && sp.platform) {
+    mediaBadge.textContent = `${platformIcon(sp.platform)} ${sp.platform}`;
+  }
 }
 
 // スカウト画面のURL必須バリデーション（scout媒体ソース時のみ）
@@ -3122,16 +3562,51 @@ async function generateScoutMessage() {
     }
   }
 
+  const surname = extractSurname(name);
+
+  // --- リスケ謝罪: テンプレート直接生成（AI呼ばず） ---
+  if (msgType === 'reschedule_apology') {
+    const tpl = cachedTemplates.reschedule_apology || DEFAULT_RESCHEDULE_APOLOGY_TPL;
+    const c = currentCandidateId ? loadCandidate(currentCandidateId) : null;
+    const scheduledAt = c ? getLatestScheduledAt(c) : null;
+    const filled = fillMessageTemplate(tpl, { surname, scheduledAt });
+    scoutCurrentMessage = filled;
+    const gen = document.getElementById('scoutGenerated');
+    gen.textContent = filled;
+    gen.classList.remove('placeholder');
+    showToast('リスケ謝罪メッセージを生成しました', 'success');
+    return;
+  }
+
+  // --- 辞退返信: AIで辞退理由を分類 → 該当パターンのテンプレートを使う ---
+  if (msgType === 'decline_reply') {
+    showLoading(true);
+    document.getElementById('scoutGenerateBtn').disabled = true;
+    try {
+      const c = currentCandidateId ? loadCandidate(currentCandidateId) : null;
+      const reasonId = apiKey && c ? await classifyDeclineReason(c, apiKey) : 'other';
+      const tplKey = 'decline_reply_' + reasonId;
+      const tpl = cachedTemplates[tplKey] || cachedTemplates.decline_reply_other || DEFAULT_DECLINE_REPLY_TPLS.other;
+      const filled = fillMessageTemplate(tpl, { surname });
+      scoutCurrentMessage = filled;
+      const gen = document.getElementById('scoutGenerated');
+      gen.textContent = filled;
+      gen.classList.remove('placeholder');
+      const reasonLabel = (DECLINE_REPLY_REASONS.find(r => r.id === reasonId) || {}).label || 'その他';
+      showToast(`辞退返信を生成しました（理由: ${reasonLabel}）`, 'success');
+    } finally {
+      showLoading(false);
+      document.getElementById('scoutGenerateBtn').disabled = false;
+    }
+    return;
+  }
+
   // If no API key, fall back to inserting candidate name into the template only
   const template = (cachedTemplates && cachedTemplates[msgType]) || '';
-  const surname = extractSurname(name);
 
   if (!apiKey) {
     if (!template) { showToast('APIキーまたはテンプレートが未設定です', 'error'); return; }
-    const filled = template
-      .replace(/◯◯さん/g, surname + 'さん')
-      .replace(/◯◯/g, surname)
-      .replace(/\{送付媒体\}/g, getScoutPlatform() || '');
+    const filled = fillMessageTemplate(template, { surname });
     scoutCurrentMessage = filled;
     const gen = document.getElementById('scoutGenerated');
     gen.textContent = filled;
@@ -3184,6 +3659,112 @@ function getScoutPlatform() {
   const el = document.getElementById('scoutPlatform');
   return el ? el.value : '';
 }
+
+// 候補者のやり取りログから辞退理由を Haiku で分類（future / other_company / conditions / other）
+async function classifyDeclineReason(candidate, apiKey) {
+  if (!candidate) return 'other';
+  const jitaiLogs = (candidate.logs || []).filter(l => l.label === 'jitai');
+  if (jitaiLogs.length === 0) return 'other';
+  if (!apiKey) return 'other';
+  const latest = jitaiLogs[jitaiLogs.length - 1];
+  const combined = jitaiLogs.slice(-3).map(l =>
+    '要約: ' + (l.summary || '') + '\n本文: ' + ((l.reply || '').substring(0, 1500))
+  ).join('\n---\n');
+  const prompt = `以下は採用候補者からの辞退連絡です。辞退理由を以下の4パターンのいずれかに分類してください。
+
+出力は以下のいずれか1語のみ（説明・記号・余計な文字は一切不要）:
+- future         (転職予定なし・時期尚早)
+- other_company  (他社に決まった)
+- conditions     (条件が合わない)
+- other          (理由不明・その他)
+
+辞退連絡:
+${combined}`;
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 20,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    if (!res.ok) return 'other';
+    const data = await res.json();
+    const text = ((data.content && data.content[0] && data.content[0].text) || '').trim().toLowerCase();
+    if (/other[_\s]?company/.test(text)) return 'other_company';
+    if (/future/.test(text)) return 'future';
+    if (/condition/.test(text)) return 'conditions';
+    return 'other';
+  } catch (e) { console.warn('[classifyDeclineReason]', e); return 'other'; }
+}
+
+// 候補者のメインsourceProfileの媒体名（{送付媒体} 用）
+// 新規モードでは選択中のscoutPlatform、既存モードではメインの sourceProfile の platform
+function getMainPlatform() {
+  if (scoutMode === 'existing' && currentCandidateId) {
+    const c = loadCandidate(currentCandidateId);
+    const main = getMainSourceProfile(c);
+    if (main && main.platform) return main.platform;
+  }
+  return getScoutPlatform();
+}
+
+// テンプレート内の変数を統一的に置換
+//   ◯◯ / ◯◯さん         → 候補者姓（旧形式）
+//   {候補者の呼び方}      → 候補者姓（新形式）
+//   {署名}                → デフォルト署名
+//   {日時}                → 面談予定日時（リスケ謝罪用、opts.scheduledAt）
+//   {送付媒体}            → メイン sourceProfile の media（新規時は選択中のplatform）
+//   {SNS媒体名}           → 現在選択中のplatform（送信媒体プルダウンの値）
+function fillMessageTemplate(template, opts) {
+  opts = opts || {};
+  const surname = opts.surname || '';
+  const scoutPlatform = opts.scoutPlatform || getScoutPlatform() || '';
+  const mainPlatform  = opts.mainPlatform  || getMainPlatform()  || scoutPlatform;
+  const signature = opts.signature != null ? opts.signature : getDefaultSignature();
+  const scheduledText = opts.scheduledAt ? formatJaDateTime(opts.scheduledAt) : '';
+  return (template || '')
+    .replace(/◯◯さん/g, surname + 'さん')
+    .replace(/◯◯/g, surname)
+    .replace(/\{候補者の呼び方\}/g, surname)
+    .replace(/\{署名\}/g, signature)
+    .replace(/\{日時\}/g, scheduledText)
+    .replace(/\{送付媒体\}/g, mainPlatform || '')
+    .replace(/\{SNS媒体名\}/g, scoutPlatform || '');
+}
+// デフォルトの署名文字列（ユーザー名 + 会社ブランド）
+function getDefaultSignature() {
+  const brand = (CONFIG && CONFIG.company && CONFIG.company.brandName) || '';
+  const u = currentUserEmail ? findUserByEmail(currentUserEmail) : null;
+  const name = (u && u.name) || (currentUserEmail ? displayName(currentUserEmail) : '採用担当');
+  return brand ? `${name}\n${brand} 採用担当` : name;
+}
+// 候補者フローの中で最も新しい scheduledAt を返す
+function getLatestScheduledAt(candidate) {
+  if (!candidate || !candidate.flow) return null;
+  const times = Object.values(candidate.flow).map(p => p && p.scheduledAt).filter(Boolean);
+  if (times.length === 0) return null;
+  times.sort();
+  return times[times.length - 1];
+}
+function formatJaDateTime(iso) {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return '';
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const h = String(d.getHours()).padStart(2, '0');
+  const min = String(d.getMinutes()).padStart(2, '0');
+  return `${y}/${m}/${day} ${h}:${min}`;
+}
 function extractSurname(fullName) {
   if (!fullName) return '';
   const parts = String(fullName).trim().split(/[\s　]+/);
@@ -3204,7 +3785,9 @@ function buildSystemPrompt() {
 - 本文のみ出力する（前置き・後書きの説明文は不要）`;
 }
 function buildUserPrompt({ name, surname, profile, msgType, targetCompanyId }) {
-  const template = cachedTemplates[msgType] || '';
+  const rawTemplate = cachedTemplates[msgType] || '';
+  // 事前に ◯◯ / {送付媒体} / {SNS媒体名} を置換してから AI に渡す
+  const template = fillMessageTemplate(rawTemplate, { surname });
   const company = targetCompanyId ? getCompanyById(targetCompanyId) : null;
   let scopeSection = '';
   const pos = getActiveScopePosition();
@@ -3223,7 +3806,7 @@ function buildUserPrompt({ name, surname, profile, msgType, targetCompanyId }) {
 ${profile || '（プロフィールが提供されていません。雛形の構造を維持したまま、一般的な表現でパーソナライズ部分を埋めてください）'}
 ${scopeSection}
 
-## 雛形テンプレート（◯◯を ${surname} に置換してから編集）
+## 雛形テンプレート
 ${template}
 
 上記の雛形をベースにメッセージ本文を生成してください。`;
@@ -4137,14 +4720,23 @@ function renderSourceProfilesHtml(c) {
     <div class="add-source-form" id="addSourceForm">
       <div class="row">
         <label style="width:70px;">URL</label>
-        <input type="text" id="addSourceUrl" placeholder="https://..." oninput="onAddSourceUrlInput()">
+        <input type="text" id="addSourceUrl" placeholder="https://linkedin.com/in/..." oninput="onAddSourceUrlInput()">
       </div>
-      <div style="font-size:11px; color:var(--text-tertiary); margin-left:78px;">
-        自動判定: <span id="addSourcePlatformHint" class="platform-hint">(URL入力後に判定)</span>
+      <div style="font-size:11px; margin-left:78px;" id="addSourcePlatformHintWrap">
+        <span id="addSourcePlatformHint" class="platform-hint" style="color:var(--text-tertiary);">URL入力後に媒体を自動判別します</span>
       </div>
       <div>
-        <label>プロフィールテキスト（任意）</label>
-        <textarea id="addSourceProfile" placeholder="プロフィールを貼り付けると自動で要約が生成されます"></textarea>
+        <label>プロフィールテキスト（任意・推奨）</label>
+        <div style="font-size:11px; color:var(--text-tertiary); margin: 2px 0 6px;">LinkedInなどのプロフィールページのテキストをそのままコピーして貼り付けてください</div>
+        <textarea id="addSourceProfile" placeholder="（プロフィール本文を貼り付け）" onpaste="onAddSourceProfilePaste()" oninput="onAddSourceProfileInput()"></textarea>
+        <div id="addSourceAnalyzeNote" style="font-size:11px; color:var(--text-secondary); margin-top:4px; line-height:1.6;">
+          💡 貼り付けると自動で以下が行われます：<br>
+          ・AIがプロフィールを要約・構造化して保存<br>
+          ・スカウト生成時にこの情報を活用<br>
+          ・スコープ判定（推奨 / 要注意 / 見送り）を自動実行
+        </div>
+        <div id="addSourceAnalyzeIndicator" style="display:none; font-size:11px; color:var(--info); margin-top:4px;">🤖 AI解析中...</div>
+        <div id="addSourceApiKeyHint" style="display:none; font-size:11px; color:var(--warning-text); background:var(--warning-bg); padding:6px 10px; border-radius:4px; margin-top:6px;">APIキーを設定するとAI解析が利用できます（設定 → APIキー設定）</div>
       </div>
       <div class="actions">
         <button class="btn btn-small" onclick="hideAddSourceForm()">キャンセル</button>
@@ -4162,9 +4754,11 @@ function renderSourceProfileItemHtml(sp, canEdit) {
   const mainCls = sp.isMain ? ' main' : '';
   const mainBadge = sp.isMain ? '<span class="source-main-badge">★ メイン</span>' : '';
   const urlHtml = sp.url ? `<a href="${escapeHtml(sp.url)}" target="_blank">${escapeHtml(sp.url)}</a>` : '<span class="source-label">URL未登録</span>';
+  const canScout = can('candidates.scout');
   const actions = canEdit ? `<div class="source-profile-actions">
     <button class="btn btn-small" onclick="openUpdateProfileModal('${escapeHtml(sp.id)}')">📝 プロフィールを更新</button>
     ${sp.isMain ? '' : `<button class="btn btn-small" onclick="setMainSourceProfile('${escapeHtml(sp.id)}')">★ メインにする</button>`}
+    ${!sp.isMain && canScout ? `<button class="btn btn-small" onclick="openScoutForSpSns('${escapeHtml(sp.id)}')">📲 SNS補助メッセージを送る</button>` : ''}
     <button class="btn-ghost" onclick="deleteSourceProfile('${escapeHtml(sp.id)}')">🗑️ 削除</button>
   </div>` : '';
   return `<div class="source-profile-item${mainCls}">
@@ -4181,10 +4775,18 @@ function showAddSourceForm() {
   const form = document.getElementById('addSourceForm');
   if (!form) return;
   form.classList.add('show');
-  document.getElementById('addSourceUrl').value = '';
-  document.getElementById('addSourceProfile').value = '';
-  document.getElementById('addSourcePlatformHint').textContent = '(URL入力後に判定)';
-  setTimeout(() => document.getElementById('addSourceUrl').focus(), 0);
+  const urlEl = document.getElementById('addSourceUrl');
+  const profEl = document.getElementById('addSourceProfile');
+  const hint = document.getElementById('addSourcePlatformHint');
+  if (urlEl) urlEl.value = '';
+  if (profEl) profEl.value = '';
+  if (hint) { hint.innerHTML = 'URL入力後に媒体を自動判別します'; hint.style.color = 'var(--text-tertiary)'; }
+  const indicator = document.getElementById('addSourceAnalyzeIndicator');
+  if (indicator) indicator.style.display = 'none';
+  const apiKey = localStorage.getItem(LS_API_KEY);
+  const apiHint = document.getElementById('addSourceApiKeyHint');
+  if (apiHint) apiHint.style.display = apiKey ? 'none' : '';
+  setTimeout(() => urlEl && urlEl.focus(), 0);
 }
 function hideAddSourceForm() {
   const form = document.getElementById('addSourceForm');
@@ -4193,9 +4795,45 @@ function hideAddSourceForm() {
 function onAddSourceUrlInput() {
   const url = document.getElementById('addSourceUrl').value.trim();
   const hint = document.getElementById('addSourcePlatformHint');
-  if (!url) { hint.textContent = '(URL入力後に判定)'; return; }
+  if (!hint) return;
+  if (!url) {
+    hint.innerHTML = 'URL入力後に媒体を自動判別します';
+    hint.style.color = 'var(--text-tertiary)';
+    return;
+  }
   const p = inferPlatformFromUrl(url);
-  hint.textContent = platformIcon(p) + ' ' + p;
+  hint.innerHTML = `→ ${platformIcon(p)} <strong>${escapeHtml(p)}</strong> と判別されました ✓`;
+  hint.style.color = 'var(--success)';
+}
+
+// プロフィールテキストの貼り付け/入力で自動AI解析（APIキーがあれば）
+let addSourceAnalyzeTimer = null;
+function onAddSourceProfilePaste() {
+  setTimeout(() => runAddSourceAnalyze(), 50);
+}
+function onAddSourceProfileInput() {
+  if (addSourceAnalyzeTimer) clearTimeout(addSourceAnalyzeTimer);
+  addSourceAnalyzeTimer = setTimeout(() => { addSourceAnalyzeTimer = null; runAddSourceAnalyze(); }, 700);
+}
+async function runAddSourceAnalyze() {
+  const profEl = document.getElementById('addSourceProfile');
+  const indicator = document.getElementById('addSourceAnalyzeIndicator');
+  if (!profEl || !indicator) return;
+  const profile = (profEl.value || '').trim();
+  if (!profile) { indicator.style.display = 'none'; return; }
+  const apiKey = localStorage.getItem(LS_API_KEY);
+  if (!apiKey) { indicator.style.display = 'none'; return; }
+  indicator.style.display = '';
+  indicator.textContent = '🤖 AI解析中...';
+  indicator.style.color = 'var(--info)';
+  try {
+    await summarizeProfile(profile, apiKey);  // 結果は profileSummaryCache に入る
+    indicator.textContent = '✓ 解析完了';
+    indicator.style.color = 'var(--success)';
+  } catch (e) {
+    indicator.textContent = '解析に失敗しました';
+    indicator.style.color = 'var(--error)';
+  }
 }
 async function submitAddSourceProfile() {
   const c = loadCandidate(currentCandidateId);
@@ -4217,13 +4855,18 @@ async function submitAddSourceProfile() {
     addedAt: new Date().toISOString()
   };
   c.sourceProfiles.push(sp);
-  // プロフィールテキストがあれば要約を生成（APIキーあれば）
+  // プロフィールテキストがあれば要約を生成（キャッシュがあれば即返る）
   if (profileText) {
     const apiKey = localStorage.getItem(LS_API_KEY) || '';
     if (apiKey) {
-      showLoading(true);
-      try { sp.summary = await summarizeProfile(profileText, apiKey); }
-      finally { showLoading(false); }
+      const cached = profileSummaryCache.get(profileCacheKey(profileText));
+      if (cached) {
+        sp.summary = cached;
+      } else {
+        showLoading(true);
+        try { sp.summary = await summarizeProfile(profileText, apiKey); }
+        finally { showLoading(false); }
+      }
     }
   }
   syncLegacyFromMainProfile(c);
@@ -4239,6 +4882,14 @@ async function submitAddSourceProfile() {
     fail:    'Drive保存失敗、ローカルに保存しました',
     local:   'URLを追加しました（ローカル保存のみ）'
   });
+
+  // 追加したのが 2件目以降（= メインでない）なら SNS補助メッセージへの導線を出す
+  if (!sp.isMain && c.sourceProfiles.length >= 2 && can('candidates.scout')) {
+    const msg = `📲 ${sp.platform || 'その他'} へのSNS補助メッセージを作成しますか？`;
+    if (confirm(msg)) {
+      openScoutForExistingCandidate({ spId: sp.id, msgType: 'second' });
+    }
+  }
 }
 
 async function setMainSourceProfile(spId) {
@@ -4482,15 +5133,21 @@ async function applyProfileUpdate() {
 
 // ========== タスク管理 ==================================================
 
+// タスク種別
+//   category: 'candidate' = 候補者に連絡・返信が必要 / 'internal' = 社内処理・入力が必要
 const TASK_TYPES = {
-  reply:             { label: '要返信',                    defaultDays: 1 },
-  schedule:          { label: '日程確定',                  defaultDays: 1 },
-  interview_result:  { label: '面談結果を入力',            defaultDays: 0 },
-  overdue:           { label: 'アクションが必要',          defaultDays: 0 },
-  offer_onboarding:  { label: '入社手続きを開始',          defaultDays: 3 },
-  reschedule_them:   { label: '日程再調整',                defaultDays: 1 },
-  reschedule_us:     { label: '候補者に謝罪＋日程再提案',  defaultDays: 0 }
+  reply:             { label: '返信する',                  defaultDays: 1, category: 'candidate' },
+  schedule:          { label: '日程を提案する',            defaultDays: 1, category: 'candidate' },
+  reschedule_us:     { label: '候補者に謝罪＋日程再提案',  defaultDays: 0, category: 'candidate' },
+  interview_result:  { label: '面談結果を入力する',        defaultDays: 0, category: 'internal' },
+  offer_onboarding:  { label: '入社手続きを開始する',      defaultDays: 3, category: 'internal' },
+  overdue:           { label: 'アクションが必要',          defaultDays: 0, category: 'internal' },
+  reschedule_them:   { label: '日程再調整',                defaultDays: 1, category: 'internal' }
 };
+const TASK_CATEGORIES = [
+  { id: 'candidate', icon: '📧', label: '候補者アクション' },
+  { id: 'internal',  icon: '🏢', label: '社内アクション' }
+];
 
 // ログラベルからタスク種別への対応
 const LOG_LABEL_TO_TASK_TYPE = {
@@ -4632,6 +5289,11 @@ function ballChipHtml(state) {
   return '';
 }
 
+function taskCategoryOf(t) {
+  const meta = TASK_TYPES[t.type];
+  return (meta && meta.category) || 'internal';
+}
+
 function renderTasksSectionHtml(c) {
   const canEdit = can('candidates.edit', { candidate: c });
   const open = getOpenTasks(c);
@@ -4642,11 +5304,26 @@ function renderTasksSectionHtml(c) {
       <div class="source-label">発生中のタスクはありません</div>
     </div>`;
   }
-  const openHtml = open.map(t => renderTaskItemHtml(t, canEdit, false)).join('');
-  const doneHtml = done.length ? `<div style="font-size:11px; color:var(--text-tertiary); margin-top:10px; margin-bottom:4px;">最近対応済み</div>${done.map(t => renderTaskItemHtml(t, false, true)).join('')}` : '';
+  // カテゴリごとに未対応タスクをグルーピング（空カテゴリは非表示）
+  const groupsHtml = TASK_CATEGORIES.map(cat => {
+    const tasks = open.filter(t => taskCategoryOf(t) === cat.id);
+    if (tasks.length === 0) return '';
+    const items = tasks.map(t => renderTaskItemHtml(t, canEdit, false)).join('');
+    return `<div class="task-group">
+      <div class="task-group-title">${cat.icon} ${escapeHtml(cat.label)}（${tasks.length}件）</div>
+      <div class="task-list">${items}</div>
+    </div>`;
+  }).join('');
+  const doneHtml = done.length
+    ? `<div class="task-group">
+        <div class="task-group-title" style="color:var(--text-tertiary);">最近対応済み</div>
+        <div class="task-list">${done.map(t => renderTaskItemHtml(t, false, true)).join('')}</div>
+      </div>`
+    : '';
   return `<div class="detail-section" style="margin-bottom: 16px;">
     <div class="detail-section-title"><span>⚡ タスク（${open.length}件未対応）</span></div>
-    <div class="task-list">${openHtml}${doneHtml}</div>
+    ${groupsHtml || (open.length === 0 ? '<div class="source-label">未対応タスクはありません</div>' : '')}
+    ${doneHtml}
   </div>`;
 }
 function renderTaskItemHtml(t, canEdit, isDone) {
@@ -4657,6 +5334,27 @@ function renderTaskItemHtml(t, canEdit, isDone) {
     : '期限なし';
   const assigneeText = t.assignee ? displayName(t.assignee) : '未割当';
   const completedText = isDone && t.completedAt ? `（${new Date(t.completedAt).toLocaleString('ja-JP')} 完了）` : '';
+  const actionBtns = [];
+  if (!isDone && canEdit) {
+    const canScout = can('candidates.scout');
+    // タスク種別に応じたメッセージ生成への導線
+    if (canScout) {
+      if (t.type === 'schedule') {
+        actionBtns.push(`<button class="btn btn-small" onclick="openScoutFromTaskType('schedule')">✉️ 面談設定メッセージを生成</button>`);
+      } else if (t.type === 'reschedule_us') {
+        actionBtns.push(`<button class="btn btn-small" onclick="openScoutFromTaskType('reschedule_us')">✉️ リスケ謝罪メッセージを生成</button>`);
+      } else if (t.type === 'reschedule_them') {
+        actionBtns.push(`<button class="btn btn-small" onclick="openScoutFromTaskType('reschedule_them')">✉️ 日程再調整メッセージを生成</button>`);
+      } else if (t.type === 'reply') {
+        // 辞退ログが存在する場合は「辞退返信」生成ボタンを出す
+        const c = currentCandidateId ? loadCandidate(currentCandidateId) : null;
+        if (c && (c.logs || []).some(l => l.label === 'jitai')) {
+          actionBtns.push(`<button class="btn btn-small" onclick="openScoutFromTaskType('reply_decline')">✉️ 辞退返信メッセージを生成</button>`);
+        }
+      }
+    }
+    actionBtns.push(`<button class="btn btn-small btn-primary" onclick="markTaskDone('${escapeHtml(t.id)}')">対応済み</button>`);
+  }
   return `<div class="task-item ${overdue ? 'overdue' : ''} ${isDone ? 'done' : ''}">
     <div style="min-width:0;">
       <div class="task-title">⚡ ${escapeHtml(t.title)}${completedText}</div>
@@ -4666,7 +5364,7 @@ function renderTaskItemHtml(t, canEdit, isDone) {
         ${t.source === 'auto' ? ' / 自動生成' : ''}
       </div>
     </div>
-    ${!isDone && canEdit ? `<div class="task-actions"><button class="btn btn-small btn-primary" onclick="markTaskDone('${escapeHtml(t.id)}')">対応済み</button></div>` : ''}
+    ${actionBtns.length ? `<div class="task-actions">${actionBtns.join('')}</div>` : ''}
   </div>`;
 }
 
@@ -4776,6 +5474,18 @@ async function createSlackThreadManual() {
   showToast('Slackスレッドを作成しました', 'success');
 }
 
+async function recreateSlackThread() {
+  const c = loadCandidate(currentCandidateId);
+  if (!c) return;
+  if (!cachedSlack.webhookUrl) { showToast('Slack Webhook URLが未設定です', 'error'); return; }
+  if (!confirm('Slackスレッドを再作成しますか？古いスレッドは引き継がれません')) return;
+  c.slackThreadTs = null;
+  persistCandidate(c);
+  await ensureSlackThreadForCandidate(c);
+  renderCandidateDetail(c);
+  showToast('Slackスレッドを再作成しました', 'success');
+}
+
 // ========== やり取りログ（候補者詳細のAI要約付きフォーム） ================
 
 const LOG_LABELS = [
@@ -4840,13 +5550,16 @@ function renderInteractionLogEntryHtml(l, canEdit) {
   const editBtn = canEdit && l.id
     ? `<button class="log-edit-btn" onclick="startEditLog('${escapeHtml(l.id)}')">✏️ 編集</button>`
     : '';
+  const delBtn = canEdit && l.id
+    ? `<button class="log-edit-btn" style="margin-left:4px;" onclick="deleteLogEntry('${escapeHtml(l.id)}')">🗑️ 削除</button>`
+    : '';
   return `<div class="log-entry">
     <div class="log-header">
       <span class="log-label ${escapeHtml(meta.cls)}">${escapeHtml(meta.label)}</span>
       ${badge}
       <span class="log-date">${escapeHtml(dateText)}</span>
       <span class="log-author">記録：${escapeHtml(who)}</span>
-      ${editBtn}
+      ${editBtn}${delBtn}
     </div>
     <div class="log-summary">${escapeHtml(l.summary || '')}</div>
     ${hasReply
@@ -4896,6 +5609,29 @@ function cancelEditLog() {
   const c = loadCandidate(currentCandidateId);
   if (c) renderCandidateDetail(c);
 }
+async function deleteLogEntry(logId) {
+  const c = loadCandidate(currentCandidateId);
+  if (!c) return;
+  if (!can('candidates.edit', { candidate: c })) { showToast('編集権限がありません', 'error'); return; }
+  const log = (c.logs || []).find(l => l.id === logId);
+  if (!log) return;
+  if (!confirm('このやり取りログを削除しますか？この操作は取り消せません')) return;
+  c.logs = c.logs.filter(l => l.id !== logId);
+  pushActivity(c, 'edited', 'やり取りログを削除：' + (logLabelMeta(log.label).label || log.label) + ' / ' + (log.summary || '').substring(0, 40));
+  persistCandidate(c);
+  syncIndexFromCandidate(c);
+  // 編集中のログが削除対象なら編集状態も解除
+  if (editingLogId === logId) editingLogId = null;
+  renderCandidateDetail(c);
+  await runDriveSave([
+    () => DriveStorage.writeCandidate(c.id, c)
+  ], {
+    success: 'やり取りログを削除しました（Driveに保存 ✓）',
+    fail:    'Drive保存失敗、ローカルに保存しました',
+    local:   'やり取りログを削除しました（ローカル保存のみ）'
+  });
+}
+
 async function saveLogEdit(logId) {
   const c = loadCandidate(currentCandidateId);
   if (!c) return;
@@ -4956,8 +5692,11 @@ function toggleLogForm(show) {
 async function aiSummarizeReply() {
   const apiKey = localStorage.getItem(LS_API_KEY);
   if (!apiKey) { showToast('APIキーが未設定です', 'error'); return; }
-  const reply = (document.getElementById('logFormReply').value || '').trim();
-  if (!reply) { showToast('返信全文を入力してください', 'error'); return; }
+  const replyFull = (document.getElementById('logFormReply').value || '').trim();
+  if (!replyFull) { showToast('返信全文を入力してください', 'error'); return; }
+  const MAX_CHARS = 2000;
+  const truncated = replyFull.length > MAX_CHARS;
+  const replyBody = truncated ? replyFull.substring(0, MAX_CHARS) : replyFull;
   const btn = document.querySelector('.log-add-form .ai-btn');
   if (btn) { btn.disabled = true; btn.textContent = '🤖 要約中...'; }
   try {
@@ -4973,21 +5712,33 @@ async function aiSummarizeReply() {
         model: 'claude-haiku-4-5-20251001',
         max_tokens: 400,
         messages: [{ role: 'user', content:
-`以下の候補者からの返信メッセージを、採用担当者向けに1〜3行で要約してください。
-ルール：
-- 要点だけ（定型挨拶は省く）
-- 日程・意向・次のアクションが読み取れるように
-- 本文のみ出力（前置き・箇条書き記号は不要）
+`あなたは採用担当者のアシスタントです。
+以下の候補者からの返信を採用担当者向けに要約してください。
 
-返信本文：
-${reply}`
+【要約のルール】
+・1〜3行の自然な日本語で書く
+・マークダウン・絵文字・記号（** / ✅ / 【】など）は一切使わない
+・意欲・温度感・具体的なアクション・次にすべきことを自然な文章の中に含める
+・箇条書きにしない、普通の文章で書く
+・敬語・挨拶文は省略する
+
+良い例：
+「面談に前向きで、募集内容に興味あり。日程調整が必要。」
+「転職は検討していないが将来の可能性はあるとのこと。タイミングを見て再アプローチ予定。」
+
+悪い例：
+「**意欲：高い** ✅ 次のアクション：日程調整」
+
+【返信本文】
+${replyBody}`
         }]
       })
     });
     if (!res.ok) throw new Error('API Error: ' + res.status);
     const data = await res.json();
-    const summary = ((data.content && data.content[0] && data.content[0].text) || '').trim();
+    let summary = ((data.content && data.content[0] && data.content[0].text) || '').trim();
     if (!summary) { showToast('要約に失敗しました', 'error'); return; }
+    if (truncated) summary += '（長文のため一部省略）';
     document.getElementById('logFormSummary').value = summary;
     showToast('要約を下書きしました', 'success');
   } catch (e) {
@@ -5303,9 +6054,56 @@ async function runScopeJudgementLite(apiKey, profile /*, targetCompanyId */) {
   return !!r;
 }
 
-function copyScoutMessage() {
+async function copyScoutMessage() {
   if (!scoutCurrentMessage) { showToast('先にメッセージを生成してください', 'error'); return; }
-  navigator.clipboard.writeText(scoutCurrentMessage).then(() => showToast('コピーしました', 'success'));
+  try {
+    await navigator.clipboard.writeText(scoutCurrentMessage);
+  } catch (e) {
+    showToast('クリップボードへのコピーに失敗しました', 'error');
+    return;
+  }
+  // 既存モード: 送付履歴に自動記録
+  if (scoutMode === 'existing' && currentCandidateId) {
+    await recordSendForCurrentCandidate();
+  } else {
+    showToast('クリップボードにコピーしました', 'success');
+  }
+}
+
+// 既存候補者モードで、選択中のsourceProfileに紐づけて送付履歴に記録する
+async function recordSendForCurrentCandidate() {
+  const c = loadCandidate(currentCandidateId);
+  if (!c) return;
+  if (!scoutCurrentMessage) return;
+  const msgType = document.getElementById('scoutMsgType').value;
+  const platform = getScoutPlatform();
+  const nowIso = new Date().toISOString();
+  c.sendHistory = c.sendHistory || [];
+  c.sendHistory.push({
+    id: 'send_' + String(c.sendHistory.length + 1).padStart(3, '0'),
+    date: nowIso,
+    platform,
+    msgType,
+    message: scoutCurrentMessage
+  });
+  c.nextActionDue = calculateNextActionDue(nowIso);
+  const prev = c.status;
+  if (msgType === 'first'  && c.status === 'not_sent') c.status = 'sent_first';
+  else if (msgType === 'first')  c.status = 'sent_first';
+  else if (msgType === 'second') c.status = 'sent_second';
+  const typeLabel = { first: '初回メッセージ', second: '2回目（SNS補助連絡）', interview_url: '面談設定（URL）', interview_ask: '面談設定（日時確認）' }[msgType] || msgType;
+  pushActivity(c, 'sent', typeLabel + (platform ? ' / ' + platform : '') + (prev !== c.status ? `（ステータス: ${getStatusMeta(prev).label} → ${getStatusMeta(c.status).label}）` : ''));
+  c.updatedAt = nowIso;
+  persistCandidate(c);
+  syncIndexFromCandidate(c);
+  await runDriveSave([
+    () => DriveStorage.writeCandidate(c.id, c),
+    () => DriveStorage.writeAts(DRIVE_INDEX_FILE, cachedIndex)
+  ], {
+    success: '📋 コピー＆送付を記録しました ✓',
+    fail:    'コピー済み。Drive保存失敗（ローカルには保存）',
+    local:   '📋 コピー＆送付を記録しました ✓（ローカル保存のみ）'
+  });
 }
 
 async function registerCandidateFromScout(goBackToList) {
@@ -5325,29 +6123,41 @@ async function registerCandidateFromScout(goBackToList) {
     validateScoutUrl();
     return;
   }
-  if (!can('candidates.create')) { showToast('候補者を追加する権限がありません', 'error'); return; }
+  const isExistingMode = scoutMode === 'existing';
+  if (!isExistingMode && !can('candidates.create')) { showToast('候補者を追加する権限がありません', 'error'); return; }
+  if (isExistingMode && !can('candidates.scout')) { showToast('スカウト権限がありません', 'error'); return; }
 
-  // If candidate already exists (same name), append to existing
-  let existing = (cachedIndex.candidates || []).find(c => (c.name || '').trim() === name);
+  // 既存候補者の特定: existingモードならIDで、それ以外は氏名一致で探す
+  let existing = isExistingMode && currentCandidateId
+    ? (cachedIndex.candidates || []).find(c => c.id === currentCandidateId)
+    : (cachedIndex.candidates || []).find(c => (c.name || '').trim() === name);
   let candidate;
   let isNew = false;
   const nowIso = new Date().toISOString();
   if (existing) {
     candidate = loadCandidate(existing.id) || buildCandidateSkeleton({ id: existing.id, name });
+    // 既存モードで氏名が変更されていたら反映
+    if (name && candidate.name !== name) candidate.name = name;
     if (targetCompanyId) candidate.targetCompanyId = targetCompanyId;
-    // スカウト画面の「媒体」= sourceProfiles の platform で紐付け。
-    // 該当があれば上書き、なければ新規 sourceProfile を作成（メインは保持）。
-    if (platform) {
+    // 対象のsourceProfileを特定: scoutActiveSpId（指定あり）> platform一致 > 新規作成
+    if (platform || scoutActiveSpId) {
       candidate.sourceProfiles = candidate.sourceProfiles || [];
-      const existingSp = candidate.sourceProfiles.find(sp => sp.platform === platform);
+      let existingSp = null;
+      if (scoutActiveSpId) {
+        existingSp = candidate.sourceProfiles.find(sp => sp.id === scoutActiveSpId);
+      }
+      if (!existingSp && platform) {
+        existingSp = candidate.sourceProfiles.find(sp => sp.platform === platform);
+      }
       if (existingSp) {
         if (url)     existingSp.url = url;
         if (profile) existingSp.profileText = profile;
+        if (platform && platform !== existingSp.platform) existingSp.platform = platform;
       } else {
         const isFirstSp = candidate.sourceProfiles.length === 0;
         candidate.sourceProfiles.push({
           id: nextSourceProfileId(candidate),
-          platform,
+          platform: platform || inferPlatformFromUrl(url) || 'その他',
           url: url || '',
           profileText: profile || '',
           summary: null,
@@ -5438,7 +6248,12 @@ async function registerCandidateFromScout(goBackToList) {
   // 新規登録通知は仕様変更により送信しない
   updateOverdueBanner();
 
-  if (goBackToList) {
+  if (isExistingMode) {
+    // 既存候補者モード → 詳細画面に戻る（送付履歴に記録された状態で）
+    scoutMode = 'new';
+    scoutActiveSpId = null;
+    setTimeout(() => showScreen('detail'), 500);
+  } else if (goBackToList) {
     setTimeout(() => showScreen('list'), 500);
   } else {
     wizardSelectedSource = null;
@@ -5446,32 +6261,495 @@ async function registerCandidateFromScout(goBackToList) {
   }
 }
 
-function openScoutForExistingCandidate() {
+// 既存候補者からスカウト画面を開く。
+//   opts.msgType:            メッセージ種別の明示指定（first/second/interview_url/interview_ask）
+//   opts.useSupplementarySp: true なら main 以外の2件目を対象にする（SNS補助用）
+//   opts.spId:               対象 sourceProfile を明示的にIDで指定（優先）
+function openScoutForExistingCandidate(opts) {
+  opts = opts || {};
   const c = loadCandidate(currentCandidateId);
   if (!c) return;
-  wizardSelectedSource = c.sourceType || 'scout';
+
+  scoutMode = 'existing';
+  wizardSelectedSource = 'scout';  // 既存モードは常にscoutフォーム（platform dropdown + URL必須）
+
+  // 対象となる sourceProfile を決定
+  const list = c.sourceProfiles || [];
+  let sp = null;
+  if (opts.spId) {
+    sp = list.find(x => x.id === opts.spId) || getMainSourceProfile(c);
+  } else if (opts.useSupplementarySp) {
+    // main 以外の最初のエントリ。無ければ 2番目の要素、それも無ければ main/1件目
+    sp = list.find(x => !x.isMain) || list[1] || getMainSourceProfile(c);
+  } else {
+    sp = getMainSourceProfile(c);
+  }
+  scoutActiveSpId = sp ? sp.id : null;
+
   prepareScoutScreen();
   showScreen('scout');
+
   document.getElementById('scoutCandidateName').value = c.name || '';
-  // 既定の媒体: メインの sourceProfile の platform（なければ legacy の sourcePlatform）
+  // 媒体プルダウン
   const ps = document.getElementById('scoutPlatform');
   if (ps) {
-    const main = getMainSourceProfile(c);
-    const defaultPlatform = (main && main.platform) || c.sourcePlatform || '';
-    if (defaultPlatform) {
-      const opt = Array.from(ps.options).find(o => o.value === defaultPlatform);
-      if (opt) ps.value = defaultPlatform;
+    const p = (sp && sp.platform) || c.sourcePlatform || '';
+    if (p) {
+      const opt = Array.from(ps.options).find(o => o.value === p);
+      if (opt) ps.value = p;
     }
   }
-  // 選択されている媒体の sourceProfile の URL + プロフィールを自動入力
-  prefillScoutFromPlatform();
+  // URL + プロフィール（選択中のsourceProfileから直接）
+  const urlEl = document.getElementById('scoutUrl');
+  const profEl = document.getElementById('scoutProfile');
+  if (urlEl)  urlEl.value  = (sp && sp.url) || '';
+  if (profEl) profEl.value = (sp && sp.profileText) || '';
+
+  // メッセージ種別の自動選択
+  const msgTypeEl = document.getElementById('scoutMsgType');
+  if (msgTypeEl) {
+    if (opts.msgType) {
+      msgTypeEl.value = opts.msgType;
+    } else {
+      msgTypeEl.value = (c.sendHistory || []).length === 0 ? 'first' : 'second';
+    }
+  }
+
   if (c.targetCompanyId) document.getElementById('scoutTargetCompany').value = c.targetCompanyId;
   validateScoutUrl();
 }
 
+// 2件目以降のsourceProfileでSNS補助メッセージを送る
+function openScoutForSupplementary() {
+  openScoutForExistingCandidate({ msgType: 'second', useSupplementarySp: true });
+}
+// 指定 sourceProfile を対象にSNS補助メッセージを開く（ソース情報セクションのボタンから）
+function openScoutForSpSns(spId) {
+  openScoutForExistingCandidate({ spId, msgType: 'second' });
+}
+// タスク「日程を提案する」からスカウト画面を開く（面談設定URL版）
+function openScoutForScheduleTask() {
+  openScoutForExistingCandidate({ msgType: 'interview_url' });
+}
+// タスクからタスク種別に応じたメッセージ種別でスカウト画面を開く
+function openScoutFromTaskType(taskType) {
+  const map = {
+    schedule:        'interview_url',
+    reschedule_us:   'reschedule_apology',
+    reschedule_them: 'interview_url',
+    reply_decline:   'decline_reply'
+  };
+  const msgType = map[taskType] || 'first';
+  openScoutForExistingCandidate({ msgType });
+}
+
+// 候補者詳細ヘッダーの「⋯」メニュー
+function toggleDetailMoreMenu(ev) {
+  if (ev) ev.stopPropagation();
+  const m = document.getElementById('detailMoreMenu');
+  if (m) m.classList.toggle('show');
+}
+function hideDetailMoreMenu() {
+  const m = document.getElementById('detailMoreMenu');
+  if (m) m.classList.remove('show');
+}
+// ⋯メニュー内の「メッセージを送る」
+function handleDetailMoreScout() {
+  hideDetailMoreMenu();
+  openScoutForExistingCandidate();
+}
+document.addEventListener('click', e => {
+  const wrap = document.getElementById('detailMoreMenuWrap');
+  if (wrap && !wrap.contains(e.target)) hideDetailMoreMenu();
+});
+
+// マルチチャネルメッセージボタン: URLが2件以上ならスカウト画面へ、それ未満なら誘導バナーを表示
+let multichannelPromptShown = false;
+function openMultichannelMessage() {
+  const c = loadCandidate(currentCandidateId);
+  if (!c) return;
+  if ((c.sourceProfiles || []).length >= 2) {
+    openScoutForExistingCandidate({ msgType: 'second', useSupplementarySp: true });
+  } else {
+    multichannelPromptShown = true;
+    renderCandidateDetail(c);
+  }
+}
+function handleMultichannelAddUrl() {
+  multichannelPromptShown = false;
+  showAddSourceForm();
+  setTimeout(() => {
+    const form = document.getElementById('addSourceForm');
+    if (form) {
+      form.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const url = document.getElementById('addSourceUrl');
+      if (url) url.focus();
+    }
+  }, 100);
+}
+function dismissMultichannelPrompt() {
+  multichannelPromptShown = false;
+  const c = loadCandidate(currentCandidateId);
+  if (c) renderCandidateDetail(c);
+}
+
 // ----- Candidate detail ------------------------------------------
+// ========== タグ表示・操作 ================================================
+
+function renderTagsBodyHtml(c) {
+  const tags = c.tags || [];
+  const byCat = {};
+  tags.forEach(t => { const k = t.category || 'other'; (byCat[k] = byCat[k] || []).push(t); });
+
+  const groupsHtml = TAG_CATEGORIES.map(cat => {
+    const arr = byCat[cat.id] || [];
+    if (arr.length === 0) return '';
+    const chips = arr.map(t => {
+      const canDel = canRemoveTag(t);
+      const style = `background:${cat.color}20; color:${cat.color}; border:1px solid ${cat.color}60;`;
+      return `<span class="tag-chip" style="${style}">
+        ${escapeHtml(t.label)}
+        ${canDel ? `<span class="tag-chip-x" onclick="deleteTagFromCandidate('${escapeHtml(t.id)}')" title="削除">×</span>` : ''}
+      </span>`;
+    }).join('');
+    return `<div class="tag-group">
+      <div class="tag-group-label">${cat.icon} ${escapeHtml(cat.label)}</div>
+      <div class="tag-chip-row">${chips}</div>
+    </div>`;
+  }).join('');
+
+  const empty = tags.length === 0 ? '<span class="source-label">タグ未設定</span>' : '';
+  const form = canAddTag() ? renderAddTagFormHtml() : '';
+  return `${empty}${groupsHtml}${form}`;
+}
+
+function renderAddTagFormHtml() {
+  const catOpts = TAG_CATEGORIES.map(cat => `<option value="${cat.id}">${cat.icon} ${cat.label}</option>`).join('');
+  return `<div class="add-tag-form" id="addTagForm" style="display:none; margin-top:12px; padding:12px; background:var(--bg-secondary); border-radius:8px;">
+    <div style="display:flex; gap:8px; margin-bottom:8px; flex-wrap:wrap;">
+      <select id="addTagCategory" onchange="renderAddTagSuggestions()" style="flex:0 0 140px; padding:6px 10px; font-size:12px; border:1px solid var(--border); border-radius:4px; font-family:inherit;">
+        ${catOpts}
+      </select>
+      <input type="text" id="addTagLabel" placeholder="タグ名を入力" oninput="renderAddTagSuggestions()" onkeydown="if(event.key==='Enter'){event.preventDefault();submitAddTag();}" style="flex:1; min-width:120px; padding:6px 10px; font-size:12px; border:1px solid var(--border); border-radius:4px; font-family:inherit;">
+      <button class="btn btn-small btn-primary" onclick="submitAddTag()">追加</button>
+      <button class="btn btn-small" onclick="toggleAddTagForm(false)">キャンセル</button>
+    </div>
+    <div style="font-size:11px; color:var(--text-tertiary); margin-bottom:4px;">候補（クリックで入力）</div>
+    <div id="addTagSuggestions" style="display:flex; flex-wrap:wrap; gap:4px;"></div>
+  </div>`;
+}
+
+function toggleAddTagForm(show) {
+  const form = document.getElementById('addTagForm');
+  if (!form) return;
+  const willShow = typeof show === 'boolean' ? show : (form.style.display === 'none' || !form.style.display);
+  form.style.display = willShow ? '' : 'none';
+  if (willShow) {
+    document.getElementById('addTagLabel').value = '';
+    renderAddTagSuggestions();
+    setTimeout(() => document.getElementById('addTagLabel').focus(), 0);
+  }
+}
+
+function renderAddTagSuggestions() {
+  const catSel = document.getElementById('addTagCategory');
+  const inputEl = document.getElementById('addTagLabel');
+  const listEl = document.getElementById('addTagSuggestions');
+  if (!catSel || !listEl) return;
+  const cat = catSel.value;
+  const input = (inputEl?.value || '').toLowerCase().trim();
+  const defaults = (tagCategoryMeta(cat).defaults || []);
+  // 同じカテゴリで他の候補者に使われているユニークなラベル
+  const usedLabels = collectAllUsedTags().filter(t => t.category === cat).map(t => t.label);
+  const all = Array.from(new Set([...defaults, ...usedLabels]));
+  // 既にこの候補者に付いているタグは除外
+  const c = loadCandidate(currentCandidateId);
+  const already = new Set((c?.tags || []).filter(t => (t.category || 'other') === cat).map(t => t.label));
+  const filtered = all
+    .filter(l => !already.has(l))
+    .filter(l => !input || l.toLowerCase().includes(input));
+  const meta = tagCategoryMeta(cat);
+  if (filtered.length === 0) {
+    listEl.innerHTML = '<span style="font-size:11px; color:var(--text-tertiary);">候補なし</span>';
+    return;
+  }
+  listEl.innerHTML = filtered.slice(0, 20).map(l => {
+    const safe = escapeHtml(l).split("'").join('&#39;');
+    return `<span class="tag-suggest" style="background:${meta.color}15; color:${meta.color}; border:1px dashed ${meta.color}60;" onclick="pickTagSuggestion('${safe}')">${escapeHtml(l)}</span>`;
+  }).join('');
+}
+function pickTagSuggestion(label) {
+  document.getElementById('addTagLabel').value = label;
+  renderAddTagSuggestions();
+  document.getElementById('addTagLabel').focus();
+}
+
+async function submitAddTag() {
+  const c = loadCandidate(currentCandidateId);
+  if (!c) return;
+  if (!canAddTag()) { showToast('タグを追加する権限がありません', 'error'); return; }
+  const cat = document.getElementById('addTagCategory').value;
+  const label = (document.getElementById('addTagLabel').value || '').trim();
+  if (!label) { showToast('タグ名を入力してください', 'error'); return; }
+  const tag = addTagToCandidate(c, label, cat);
+  if (!tag) { showToast('同じタグが既に存在します', 'error'); return; }
+  pushActivity(c, 'edited', `タグ追加: ${tagCategoryMeta(cat).label} / ${label}`);
+  persistCandidate(c);
+  syncIndexFromCandidate(c);
+  renderCandidateDetail(c);
+  await runDriveSave([
+    () => DriveStorage.writeCandidate(c.id, c)
+  ], { success: 'タグを追加しました（Driveに保存 ✓）', fail: 'Drive保存失敗、ローカルに保存しました', local: 'タグを追加しました（ローカル保存のみ）' });
+  // フォームを閉じずに開いたまま、次のタグを続けて入れやすくする
+  toggleAddTagForm(true);
+}
+
+async function deleteTagFromCandidate(tagId) {
+  const c = loadCandidate(currentCandidateId);
+  if (!c) return;
+  const t = (c.tags || []).find(x => x.id === tagId);
+  if (!t) return;
+  if (!canRemoveTag(t)) { showToast('このタグを削除する権限がありません', 'error'); return; }
+  if (!confirm(`タグ「${t.label}」を削除しますか？`)) return;
+  c.tags = c.tags.filter(x => x.id !== tagId);
+  pushActivity(c, 'edited', `タグ削除: ${tagCategoryMeta(t.category).label} / ${t.label}`);
+  persistCandidate(c);
+  syncIndexFromCandidate(c);
+  renderCandidateDetail(c);
+  await runDriveSave([
+    () => DriveStorage.writeCandidate(c.id, c)
+  ], { success: 'タグを削除しました（Driveに保存 ✓）', fail: 'Drive保存失敗、ローカルに保存しました', local: 'タグを削除しました（ローカル保存のみ）' });
+}
+
+// ========== タレントプール ================================================
+
+function renderTalentPoolSectionHtml(c) {
+  const tp = c.talentPool;
+  const canEdit = can('candidates.edit', { candidate: c });
+  if (!tp || !tp.registered) {
+    if (!canEdit) return '<div class="source-label">タレントプール未登録</div>';
+    return `<div class="talent-pool-banner">
+      <div style="font-size:12px; color:var(--text-secondary); margin-bottom:8px;">将来再度コンタクトを取る可能性のある候補者をプールに登録できます。</div>
+      <button class="btn btn-small btn-primary" onclick="openTalentPoolForm()">🤝 タレントプールに追加</button>
+    </div>
+    ${renderTalentPoolFormHtml(null)}`;
+  }
+  const typesHtml = (tp.types || []).map(id => {
+    const m = talentPoolTypeMeta(id);
+    return `<span class="tp-type-chip">${m.icon} ${escapeHtml(m.label)}</span>`;
+  }).join('');
+  const at = tp.registeredAt ? new Date(tp.registeredAt).toLocaleString('ja-JP') : '—';
+  const by = tp.registeredBy ? displayName(tp.registeredBy) : '—';
+  return `<div class="talent-pool-banner registered">
+    <div style="margin-bottom:6px;">${typesHtml || '<span class="source-label">接点種別なし</span>'}</div>
+    ${tp.positionNote ? `<div style="font-size:12px;">💼 ポジション待ち: <strong>${escapeHtml(tp.positionNote)}</strong></div>` : ''}
+    ${tp.reapproachTiming ? `<div style="font-size:12px;">🔄 再アプローチ: <strong>${escapeHtml(tp.reapproachTiming)}</strong></div>` : ''}
+    ${tp.memo ? `<div style="font-size:12px; white-space:pre-wrap; margin-top:6px; padding:6px 8px; background:var(--bg-primary); border-radius:4px;">${escapeHtml(tp.memo)}</div>` : ''}
+    <div style="font-size:11px; color:var(--text-tertiary); margin-top:8px;">登録: ${escapeHtml(at)} / ${escapeHtml(by)}</div>
+    ${canEdit ? `<div style="display:flex; gap:6px; margin-top:8px;">
+      <button class="btn btn-small" onclick="openTalentPoolForm()">✏️ 編集</button>
+      <button class="btn-ghost" onclick="removeFromTalentPool()">🗑️ 削除</button>
+    </div>` : ''}
+  </div>
+  ${renderTalentPoolFormHtml(tp)}`;
+}
+
+function renderTalentPoolFormHtml(existing) {
+  const types = new Set(existing ? (existing.types || []) : []);
+  const checks = TALENT_POOL_TYPES.map(t => {
+    const checked = types.has(t.id) ? ' checked' : '';
+    const extraInput = t.id === 'position'
+      ? `<input type="text" id="tpPositionNote" placeholder="例：マーケター" value="${escapeHtml(existing?.positionNote || '')}">`
+      : t.id === 'reapproach'
+      ? `<input type="text" id="tpReapproachTiming" placeholder="例：2026年秋以降" value="${escapeHtml(existing?.reapproachTiming || '')}">`
+      : '';
+    return `<label class="tp-form-checkbox">
+      <input type="checkbox" value="${t.id}" class="tpTypeCheck"${checked}>
+      ${t.icon} ${escapeHtml(t.label)}
+      ${extraInput}
+    </label>`;
+  }).join('');
+  return `<div class="tp-form" id="tpForm" style="display:none;">
+    <div style="font-size:11px; color:var(--text-secondary); margin-bottom:8px;">接点種別（複数選択可）</div>
+    ${checks}
+    <div style="margin-top:10px;">
+      <label class="form-label">メモ</label>
+      <textarea class="form-input" id="tpMemo" style="min-height:60px;">${escapeHtml(existing?.memo || '')}</textarea>
+    </div>
+    <div style="display:flex; gap:6px; justify-content:flex-end; margin-top:10px;">
+      <button class="btn btn-small" onclick="closeTalentPoolForm()">キャンセル</button>
+      <button class="btn btn-small btn-primary" onclick="saveTalentPool()">保存</button>
+    </div>
+  </div>`;
+}
+
+function openTalentPoolForm() {
+  const form = document.getElementById('tpForm');
+  if (form) form.style.display = '';
+}
+function closeTalentPoolForm() {
+  const form = document.getElementById('tpForm');
+  if (form) form.style.display = 'none';
+}
+
+async function saveTalentPool() {
+  const c = loadCandidate(currentCandidateId);
+  if (!c) return;
+  if (!can('candidates.edit', { candidate: c })) { showToast('編集権限がありません', 'error'); return; }
+  const checks = document.querySelectorAll('.tpTypeCheck:checked');
+  const types = Array.from(checks).map(cb => cb.value);
+  const positionNote    = (document.getElementById('tpPositionNote')?.value || '').trim();
+  const reapproachTiming = (document.getElementById('tpReapproachTiming')?.value || '').trim();
+  const memo = (document.getElementById('tpMemo')?.value || '').trim();
+  if (types.length === 0 && !memo) { showToast('接点種別を1つ以上選ぶかメモを入力してください', 'error'); return; }
+  const isUpdate = !!(c.talentPool && c.talentPool.registered);
+  c.talentPool = {
+    registered: true,
+    types, positionNote, reapproachTiming, memo,
+    registeredAt: (c.talentPool && c.talentPool.registeredAt) || new Date().toISOString(),
+    registeredBy: (c.talentPool && c.talentPool.registeredBy) || currentUserEmail || 'unknown'
+  };
+  pushActivity(c, 'edited', (isUpdate ? 'タレントプールを更新' : 'タレントプールに登録'));
+  persistCandidate(c);
+  syncIndexFromCandidate(c);
+  renderCandidateDetail(c);
+  await runDriveSave([
+    () => DriveStorage.writeCandidate(c.id, c)
+  ], { success: 'タレントプールを保存しました（Driveに保存 ✓）', fail: 'Drive保存失敗、ローカルに保存しました', local: 'タレントプールを保存しました（ローカル保存のみ）' });
+}
+
+async function removeFromTalentPool() {
+  const c = loadCandidate(currentCandidateId);
+  if (!c) return;
+  if (!can('candidates.edit', { candidate: c })) { showToast('編集権限がありません', 'error'); return; }
+  if (!confirm('タレントプールから削除しますか？')) return;
+  c.talentPool = null;
+  pushActivity(c, 'edited', 'タレントプールから削除');
+  persistCandidate(c);
+  syncIndexFromCandidate(c);
+  renderCandidateDetail(c);
+  await runDriveSave([
+    () => DriveStorage.writeCandidate(c.id, c)
+  ], { success: 'タレントプールから削除しました（Driveに保存 ✓）', fail: 'Drive保存失敗、ローカルに保存しました', local: 'タレントプールから削除しました（ローカル保存のみ）' });
+}
+
+// ========== 候補者一覧のタグフィルタ・タレントプールタブ =====================
+
+function openTagFilterModal() {
+  const all = collectAllUsedTags();
+  const byCat = {};
+  all.forEach(t => { const k = t.category || 'other'; (byCat[k] = byCat[k] || []).push(t); });
+  const active = new Set(listTagFilters.map(f => f.category + '|' + f.label));
+  const html = TAG_CATEGORIES.map(cat => {
+    const arr = byCat[cat.id] || [];
+    if (arr.length === 0) return '';
+    const labels = arr.map(t => {
+      const key = cat.id + '|' + t.label;
+      const checked = active.has(key) ? ' checked' : '';
+      return `<label style="display:inline-flex; align-items:center; gap:4px; padding:4px 10px; background:${cat.color}15; color:${cat.color}; border:1px solid ${cat.color}40; border-radius:12px; font-size:12px; margin:3px; cursor:pointer;">
+        <input type="checkbox" data-cat="${cat.id}" data-label="${escapeHtml(t.label)}"${checked} style="margin-right:4px;">
+        ${cat.icon} ${escapeHtml(t.label)}
+      </label>`;
+    }).join('');
+    return `<div style="margin-bottom:12px;">
+      <div style="font-size:12px; font-weight:500; color:${cat.color}; margin-bottom:4px;">${cat.icon} ${escapeHtml(cat.label)}</div>
+      <div>${labels}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('tagFilterGroups').innerHTML = html || '<div class="source-label">使用されているタグはありません</div>';
+  openModal('tagFilterModal');
+}
+function applyTagFilters() {
+  const cbs = document.querySelectorAll('#tagFilterGroups input[type="checkbox"]:checked');
+  listTagFilters = Array.from(cbs).map(cb => ({ category: cb.dataset.cat, label: cb.dataset.label }));
+  closeModal('tagFilterModal');
+  renderActiveTagFilterChips();
+  renderCandidateList();
+}
+function clearTagFilters() {
+  listTagFilters = [];
+  closeModal('tagFilterModal');
+  renderActiveTagFilterChips();
+  renderCandidateList();
+}
+function removeTagFilter(i) {
+  listTagFilters.splice(i, 1);
+  renderActiveTagFilterChips();
+  renderCandidateList();
+}
+function renderActiveTagFilterChips() {
+  const el = document.getElementById('activeTagFilterChips');
+  if (!el) return;
+  if (listTagFilters.length === 0) { el.innerHTML = ''; return; }
+  el.innerHTML = listTagFilters.map((f, i) => {
+    const cat = tagCategoryMeta(f.category);
+    return `<span class="tag-chip" style="background:${cat.color}20; color:${cat.color}; border:1px solid ${cat.color}60; margin-right:4px;">
+      ${cat.icon} ${escapeHtml(f.label)}
+      <span class="tag-chip-x" onclick="removeTagFilter(${i})">×</span>
+    </span>`;
+  }).join('');
+}
+
+function setListView(mode) {
+  listViewMode = mode;
+  renderCandidateList();
+  document.querySelectorAll('.list-tab').forEach(el => el.classList.toggle('active', el.dataset.mode === mode));
+}
+
+// マルチチャネル用URLが足りない時の誘導バナー
+function renderMultichannelPromptHtml(c) {
+  const count = (c.sourceProfiles || []).length;
+  return `<div class="profile-diff-banner" style="background: var(--warning-bg); color: var(--warning-text); border-left-color: var(--warning);">
+    <div>📲 <strong>マルチチャネルメッセージにはURLが2件以上必要です</strong></div>
+    <div style="margin-top:4px; font-size:12px;">現在のURL数：<strong>${count}件</strong>。追加の媒体URL（LinkedIn / Wantedly 等）を登録すると、その媒体向けのSNS補助メッセージを生成できます。</div>
+    <div class="actions">
+      <button class="btn btn-small btn-primary" onclick="handleMultichannelAddUrl()">+ URLを追加</button>
+      <button class="btn btn-small" onclick="dismissMultichannelPrompt()">閉じる</button>
+    </div>
+  </div>`;
+}
+
+// 送付履歴: 媒体別グループで表示（メイン=💼、非メイン=📲（SNS補助））
+function renderSendHistoryGroupedHtml(c) {
+  const arr = (c.sendHistory || []).slice();
+  if (arr.length === 0) return '<div class="source-label">送付履歴はありません</div>';
+  const mainPlatform = (getMainSourceProfile(c) || {}).platform || c.sourcePlatform || '';
+  const groups = {};
+  arr.forEach(h => { const key = h.platform || '（媒体未記録）'; (groups[key] = groups[key] || []).push(h); });
+  const platforms = Object.keys(groups).sort((a, b) => {
+    if (a === mainPlatform) return -1;
+    if (b === mainPlatform) return 1;
+    return a.localeCompare(b);
+  });
+  const TYPE_LABELS = { first: '1回目', second: '2回目', interview_url: '面談設定（URL）', interview_ask: '面談設定（日時確認）', interview_date: '面談設定（日時確認）' };
+  return platforms.map(platform => {
+    const isMain = platform === mainPlatform;
+    const icon   = isMain ? '💼' : '📲';
+    const suffix = isMain ? '' : '<span style="font-size:11px; color:var(--text-tertiary); margin-left:4px;">（SNS補助）</span>';
+    const entries = groups[platform].slice().sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+    const rows = entries.map(h => {
+      const d = h.date ? new Date(h.date).toLocaleString('ja-JP') : '—';
+      const label = TYPE_LABELS[h.msgType] || h.msgType || '';
+      const by = h.byName || (h.by ? displayName(h.by) : '');
+      return `<div class="history-item" onclick="this.classList.toggle('open')">
+        <div class="history-header">
+          <span class="history-toggle">▶</span>
+          <span class="history-type">${escapeHtml(label)}</span>
+          <span class="history-date">${escapeHtml(d)}${by ? ' / ' + escapeHtml(by) : ''}</span>
+        </div>
+        <div class="history-body">${escapeHtml(h.message || '（本文なし）')}</div>
+      </div>`;
+    }).join('');
+    return `<div class="send-history-group">
+      <div class="send-history-group-header">${icon} ${escapeHtml(platform)}${suffix}</div>
+      ${rows}
+    </div>`;
+  }).join('');
+}
+
 function openCandidateDetail(id) {
   currentCandidateId = id;
+  multichannelPromptShown = false;
   const c = loadCandidate(id);
   if (!c) {
     showToast('候補者が見つかりません', 'error');
@@ -5496,10 +6774,12 @@ function renderCandidateDetail(c) {
     const canEdit  = can('candidates.edit', { candidate: c });
     const canScout = can('candidates.scout');
     const canDel   = can('candidates.delete');
+    // ⋯メニュー内の「✉️ メッセージを送る」
+    const scoutItem = document.getElementById('detailMoreItemScout');
+    if (scoutItem) scoutItem.style.display = canScout ? '' : 'none';
     actionsWrap.querySelectorAll('button').forEach(btn => {
       const t = btn.textContent.trim();
-      if (t.startsWith('✉️')) btn.style.display = canScout ? '' : 'none';
-      else if (t.startsWith('✏️')) btn.style.display = canEdit ? '' : 'none';
+      if (t.startsWith('✏️')) btn.style.display = canEdit ? '' : 'none';
       else if (t.startsWith('🗑️')) btn.style.display = canDel ? '' : 'none';
     });
   }
@@ -5517,30 +6797,20 @@ function renderCandidateDetail(c) {
     else if (dDiff <= 3) dueCls = 'due-soon';
   }
 
-  const tagsHtml = (c.tags && c.tags.length)
-    ? c.tags.map(t => `<span class="tag">${escapeHtml(t)}</span>`).join(' ')
-    : '<span class="source-label">タグ未設定</span>';
+  const tagsHtml = renderTagsBodyHtml(c);
 
-  const sendHistoryHtml = (c.sendHistory && c.sendHistory.length)
-    ? c.sendHistory.slice().reverse().map(h => {
-        const d = h.date ? new Date(h.date).toLocaleString('ja-JP') : '—';
-        const typeLabel = { first: '初回メッセージ', second: '2回目（SNS補助連絡）', interview_url: '面談設定（URL）', interview_ask: '面談設定（日時確認）', interview_date: '面談設定（日時確認）' }[h.msgType] || h.msgType;
-        return `<div class="history-item" onclick="this.classList.toggle('open')">
-          <div class="history-header">
-            <span class="history-toggle">▶</span>
-            <span class="history-type">${escapeHtml(typeLabel)}</span>
-            <span class="history-date">${escapeHtml(d)}</span>
-          </div>
-          <div class="history-body">${escapeHtml(h.message || '（本文なし）')}</div>
-        </div>`;
-      }).join('')
-    : '<div class="source-label">送付履歴はありません</div>';
+  const sendHistoryHtml = renderSendHistoryGroupedHtml(c);
 
   const body = document.getElementById('detailBody');
   const ballState = getBallState(c);
+  const slackHint = '※ Slack Incoming Webhookの制約により、同一チャンネルに ↳ [候補者名] のプレフィックスで投稿されます';
   const slackBtn = cachedSlack.webhookUrl && !c.slackThreadTs
-    ? `<button class="btn btn-small" onclick="createSlackThreadManual()">📢 Slackスレッドを作成</button>`
-    : (c.slackThreadTs ? '<span class="source-label">📢 Slackスレッド作成済み</span>' : '');
+    ? `<button class="btn btn-small" onclick="createSlackThreadManual()" title="${escapeHtml(slackHint)}">📢 Slackスレッドを作成</button>
+       <span style="font-size:10px; color:var(--text-tertiary); margin-left:4px;">${escapeHtml(slackHint)}</span>`
+    : (c.slackThreadTs
+        ? `<span class="source-label" title="${escapeHtml(slackHint)}">📢 Slackスレッド作成済み</span>
+           <button class="btn btn-small" style="margin-left:6px;" onclick="recreateSlackThread()">🔄 Slackスレッドを再作成する</button>`
+        : '');
   body.innerHTML = `
     <div>
       ${renderTasksSectionHtml(c)}
@@ -5582,14 +6852,25 @@ function renderCandidateDetail(c) {
         ${renderInteractionLogsHtml(c)}
       </div>
 
+      <div class="detail-section" style="margin-bottom: 16px;">
+        <div class="detail-section-title">
+          <span>タグ</span>
+          ${canAddTag() ? '<button class="btn btn-small" onclick="toggleAddTagForm()">+ タグを追加</button>' : ''}
+        </div>
+        ${tagsHtml}
+      </div>
+
       <div class="detail-section">
-        <div class="detail-section-title">タグ</div>
-        <div>${tagsHtml}</div>
+        <div class="detail-section-title">
+          <span>🤝 タレントプール</span>
+        </div>
+        ${renderTalentPoolSectionHtml(c)}
       </div>
     </div>
 
     <div>
       ${renderProfileDiffBannerHtml(c)}
+      ${multichannelPromptShown ? renderMultichannelPromptHtml(c) : ''}
       <div class="detail-section" style="margin-bottom: 16px;">
         <div class="detail-section-title">
           <span>候補者プロフィール</span>
@@ -5823,7 +7104,6 @@ function openCandidateEditModal() {
   document.getElementById('editCandAssignee').innerHTML = '<option value="">未設定</option>'
     + users.map(u => `<option value="${escapeHtml(u.email)}"${u.email === c.assignee ? ' selected' : ''}>${escapeHtml(u.name)}（${escapeHtml(u.email)}）</option>`).join('');
   document.getElementById('editCandDue').value = c.nextActionDue || '';
-  document.getElementById('editCandTags').value = (c.tags || []).join(', ');
   document.getElementById('editCandMemo').value = c.memo || '';
   openModal('candidateEditModal');
 }
@@ -5839,7 +7119,6 @@ async function saveCandidateFromEditModal() {
   c.targetCompanyId = document.getElementById('editCandCompany').value || null;
   c.assignee = document.getElementById('editCandAssignee').value || null;
   c.nextActionDue = document.getElementById('editCandDue').value || null;
-  c.tags = document.getElementById('editCandTags').value.split(',').map(s => s.trim()).filter(Boolean);
   c.memo = document.getElementById('editCandMemo').value;
   const changes = [];
   if (before.status !== c.status)     changes.push('ステータス: ' + (getStatusMeta(before.status).label || before.status) + ' → ' + (getStatusMeta(c.status).label || c.status));
@@ -5980,33 +7259,81 @@ function saveScopeSettings() {
 }
 
 // -- Template pane --
+const TEMPLATE_TABS = [
+  { key: 'first',              label: '初回メッセージ' },
+  { key: 'second',             label: '2回目（SNS補助連絡）' },
+  { key: 'interview_url',      label: '面談設定（URL送付版）' },
+  { key: 'interview_ask',      label: '面談設定（候補日時確認版）' },
+  { key: 'reschedule_apology', label: 'リスケ謝罪' },
+  { key: 'decline_reply',      label: '辞退返信' }
+];
+function isDeclineReplyTab() { return editingTemplateKey === 'decline_reply'; }
+
 function renderTemplatePane() {
-  const tabs = [
-    { key: 'first',         label: '初回メッセージ' },
-    { key: 'second',        label: '2回目（SNS補助連絡）' },
-    { key: 'interview_url', label: '面談設定（URL送付版）' },
-    { key: 'interview_ask', label: '面談設定（候補日時確認版）' }
-  ];
   const tabsEl = document.getElementById('tplTabs');
-  tabsEl.innerHTML = tabs.map(t =>
+  tabsEl.innerHTML = TEMPLATE_TABS.map(t =>
     `<button class="tpl-tab${t.key === editingTemplateKey ? ' active' : ''}" onclick="switchTemplateTab('${t.key}')">${t.label}</button>`
   ).join('');
-  document.getElementById('tplEditor').value = cachedTemplates[editingTemplateKey] || '';
+  const container = document.getElementById('tplEditorContainer');
+  if (!container) return;
+  if (isDeclineReplyTab()) {
+    // 4バリアントをまとめて編集
+    container.innerHTML = DECLINE_REPLY_REASONS.map((r, i) => `
+      <div style="margin-bottom: 14px;">
+        <div style="font-size:12px; font-weight:500; color: var(--text-secondary); margin-bottom:4px;">${i+1}. ${escapeHtml(r.label)}</div>
+        <textarea class="settings-textarea" id="tplEditor_decline_${r.id}" style="min-height: 140px; font-family: ui-monospace, monospace; font-size:12px;">${escapeHtml(cachedTemplates['decline_reply_' + r.id] || '')}</textarea>
+      </div>
+    `).join('');
+  } else {
+    container.innerHTML = `<textarea class="settings-textarea" id="tplEditor" style="min-height: 300px; font-family: ui-monospace, monospace; font-size:12px;"></textarea>`;
+    document.getElementById('tplEditor').value = cachedTemplates[editingTemplateKey] || '';
+  }
 }
+
 function switchTemplateTab(key) {
   // Persist current editor value before switch
-  cachedTemplates[editingTemplateKey] = document.getElementById('tplEditor').value;
+  if (isDeclineReplyTab()) {
+    DECLINE_REPLY_REASONS.forEach(r => {
+      const el = document.getElementById('tplEditor_decline_' + r.id);
+      if (el) cachedTemplates['decline_reply_' + r.id] = el.value;
+    });
+  } else {
+    const el = document.getElementById('tplEditor');
+    if (el) cachedTemplates[editingTemplateKey] = el.value;
+  }
   editingTemplateKey = key;
   renderTemplatePane();
 }
+
 function resetTemplateToDefault() {
-  const def = (CONFIG && CONFIG.templates && CONFIG.templates[editingTemplateKey]) || '';
-  cachedTemplates[editingTemplateKey] = def;
+  if (isDeclineReplyTab()) {
+    DECLINE_REPLY_REASONS.forEach(r => {
+      cachedTemplates['decline_reply_' + r.id] =
+        (CONFIG && CONFIG.templates && CONFIG.templates['decline_reply_' + r.id]) ||
+        DEFAULT_DECLINE_REPLY_TPLS[r.id];
+    });
+  } else if (editingTemplateKey === 'reschedule_apology') {
+    cachedTemplates.reschedule_apology =
+      (CONFIG && CONFIG.templates && CONFIG.templates.reschedule_apology) ||
+      DEFAULT_RESCHEDULE_APOLOGY_TPL;
+  } else {
+    const def = (CONFIG && CONFIG.templates && CONFIG.templates[editingTemplateKey]) || '';
+    cachedTemplates[editingTemplateKey] = def;
+  }
   renderTemplatePane();
   showToast('デフォルトに戻しました（保存ボタンを押すと反映）', 'success');
 }
+
 function saveTemplates() {
-  cachedTemplates[editingTemplateKey] = document.getElementById('tplEditor').value;
+  if (isDeclineReplyTab()) {
+    DECLINE_REPLY_REASONS.forEach(r => {
+      const el = document.getElementById('tplEditor_decline_' + r.id);
+      if (el) cachedTemplates['decline_reply_' + r.id] = el.value;
+    });
+  } else {
+    const el = document.getElementById('tplEditor');
+    if (el) cachedTemplates[editingTemplateKey] = el.value;
+  }
   persistTemplates();
   syncAtsFile(DRIVE_TEMPLATES_FILE, cachedTemplates);
   showToast('テンプレートを保存しました', 'success');
@@ -7036,6 +8363,7 @@ function deleteUser(id) {
   await loadConfig();
   // temp storage keys before applyConfig (applyConfig sets them)
   loadFromLocalStorage();
+  migrateFacebookPlaceholder();
 
   // Seed companies/interviewers if localStorage was empty
   if ((!cachedCompanies.companies || !cachedCompanies.companies.length) && CONFIG && CONFIG.seed && CONFIG.seed.companies) {
