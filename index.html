@@ -1375,6 +1375,121 @@
     .main-content, .detail-layout { padding: 16px; }
   }
 
+  /* ===== スコープ判定（複数ポジション + 根拠付き） ===== */
+  .scope-card {
+    background: var(--card, var(--bg-primary));
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 22px;
+    margin-bottom: 16px;
+  }
+  .scope-overall {
+    font-size: 15px;
+    font-weight: 700;
+    padding: 12px 16px;
+    border-radius: 8px;
+    margin-bottom: 14px;
+    text-align: center;
+    letter-spacing: 0.5px;
+  }
+  .scope-overall.ok   { background: var(--success-bg); color: var(--success); border: 1px solid var(--success); }
+  .scope-overall.warn { background: #fff5e6;           color: #c47b1a;        border: 1px solid #e89c3d; }
+  .scope-overall.ng   { background: var(--error-bg);   color: var(--error);   border: 1px solid var(--error); }
+  .scope-section { margin-bottom: 14px; }
+  .scope-section:last-child { margin-bottom: 0; }
+  .scope-section-title {
+    font-size: 12px; font-weight: 600;
+    color: var(--text-secondary); margin-bottom: 6px;
+    padding-bottom: 5px; border-bottom: 1px solid var(--border);
+    letter-spacing: 0.04em;
+  }
+  .scope-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 7px 0; font-size: 13px; line-height: 1.6;
+  }
+  .scope-icon { flex-shrink: 0; font-size: 14px; width: 18px; text-align: center; }
+  .scope-icon.ok   { color: var(--success); }
+  .scope-icon.warn { color: #c47b1a; }
+  .scope-icon.ng   { color: var(--error); }
+  .scope-item-body { flex: 1; }
+  .scope-item-label { font-weight: 600; color: var(--text); }
+  .scope-item-reason { color: var(--text-secondary); margin-top: 2px; }
+  .scope-item-sub {
+    display: flex; align-items: flex-start; gap: 6px;
+    margin-top: 4px; padding-left: 2px;
+    font-size: 12px; color: var(--text-secondary);
+  }
+  .scope-item-sub-mark { flex-shrink: 0; color: var(--text-secondary); }
+  .scope-item-sub-body { flex: 1; }
+  .scope-item-sub-label { font-weight: 600; color: var(--text); margin-right: 6px; }
+  .scope-item-sub-reason { color: var(--text-secondary); }
+  .scope-loading {
+    text-align: center; padding: 20px;
+    color: var(--text-secondary); font-size: 13px;
+  }
+  /* 複数ポジション表示 */
+  .scope-position-result {
+    margin-bottom: 14px;
+    padding: 12px 14px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .scope-position-result.rank-1 { border-color: var(--primary); }
+  .scope-position-header {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 10px;
+    cursor: pointer; user-select: none;
+    flex-wrap: wrap;
+  }
+  .scope-rank-badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 26px; height: 26px; border-radius: 50%;
+    font-size: 13px; font-weight: 700; flex-shrink: 0;
+    background: var(--bg-secondary); color: var(--text-secondary);
+  }
+  .scope-rank-badge.rank-1 { background: var(--primary); color: #fff; }
+  .scope-position-name { font-size: 14px; font-weight: 600; color: var(--primary); }
+  .scope-position-company { font-size: 11px; color: var(--text-secondary); }
+  .scope-position-detail { padding-left: 36px; }
+  .scope-position-result.collapsed .scope-position-detail { display: none; }
+  .scope-position-actions { margin-left: auto; display: flex; gap: 6px; }
+  .scope-score-link {
+    font-size: 12px; color: var(--text-secondary);
+    cursor: pointer; text-decoration: underline;
+    margin-top: 6px; display: inline-block;
+    background: none; border: none; padding: 0;
+  }
+  .scope-score-link:hover { color: var(--primary); }
+  .scope-score-detail {
+    display: none; margin-top: 8px;
+    padding: 10px 12px;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border); border-radius: 6px;
+    font-size: 12px; line-height: 1.8;
+    font-family: 'SFMono-Regular', Consolas, monospace;
+    white-space: pre;
+  }
+  .scope-score-detail.show { display: block; }
+  .scope-score-total { font-weight: 700; color: var(--primary); font-size: 13px; }
+  .scope-score-minus { color: var(--error); }
+  .scope-result-summary {
+    padding: 10px 14px; border-radius: 8px;
+    font-size: 13px; font-weight: 600; margin-bottom: 14px;
+  }
+  .scope-result-summary.ok   { background: var(--success-bg); color: var(--success); border: 1px solid var(--success); }
+  .scope-result-summary.warn { background: #fff5e6;           color: #c47b1a;        border: 1px solid #e89c3d; }
+  .scope-result-summary.ng   { background: var(--error-bg);   color: var(--error);   border: 1px solid var(--error); }
+  /* 履歴バッジ */
+  .history-scope-badge {
+    font-size: 11px; padding: 2px 8px; border-radius: 4px;
+    white-space: nowrap; font-weight: 500;
+  }
+  .history-scope-badge.ok   { background: var(--success-bg); color: var(--success); border: 1px solid var(--success); }
+  .history-scope-badge.warn { background: #fff5e6;           color: #c47b1a;        border: 1px solid #e89c3d; }
+  .history-scope-badge.ng   { background: var(--error-bg);   color: var(--error);   border: 1px solid var(--error); }
+  .history-scope-badge.none { background: var(--bg);         color: var(--text-secondary); border: 1px solid var(--border); }
+
   /* Lucide icon base */
   .lucide {
     width: 14px; height: 14px;
@@ -1599,6 +1714,10 @@
         <span class="scope-badge" id="scoutScopeBadge" style="display:none;"><i data-lucide="check" class="lucide"></i> スコープ判定: 推奨</span>
       </div>
       <div id="scoutScopeReason" style="display:none; background: var(--info-bg); color: var(--info-text); padding: 8px 12px; border-radius: 6px; font-size: 12px; margin-bottom: 10px; border-left: 3px solid var(--info); white-space: pre-wrap; line-height:1.6;"></div>
+      <div style="margin-bottom: 10px;">
+        <button class="btn btn-small" id="scoutRunAllScopeBtn" onclick="runAllScopeJudgementsForScout()"><i data-lucide="refresh-cw" class="lucide"></i> 全ポジションで判定</button>
+      </div>
+      <div id="scoutScopeMultiCard" class="scope-card" style="display:none; margin-bottom: 12px;"></div>
       <div class="scout-generated placeholder" id="scoutGenerated">ここに生成されたメッセージが表示されます。</div>
       <div class="button-row">
         <button class="btn" onclick="copyScoutMessage()"><i data-lucide="clipboard" class="lucide"></i> コピー</button>
@@ -2475,6 +2594,7 @@ function applyConfig(cfg) {
   };
   if (cfg.scope && Array.isArray(cfg.scope.positions)) {
     cachedScope = { positions: JSON.parse(JSON.stringify(cfg.scope.positions)) };
+    normalizeScopeCache();
   }
   if (cfg.slack) {
     cachedSlack = {
@@ -2987,7 +3107,7 @@ async function loadAllFromDrive() {
     if (companies && Array.isArray(companies.companies)) { cachedCompanies = companies; persistCompanies(); }
     if (interviewers && Array.isArray(interviewers.interviewers)) { cachedInterviewers = interviewers; persistInterviewers(); }
     if (users && Array.isArray(users.users)) { cachedUsers = users; persistUsers(); }
-    if (scope && Array.isArray(scope.positions)) { cachedScope = scope; persistScope(); }
+    if (scope && Array.isArray(scope.positions)) { cachedScope = scope; normalizeScopeCache(); persistScope(); }
     if (templates && typeof templates === 'object') { cachedTemplates = { ...cachedTemplates, ...templates }; persistTemplates(); migrateFacebookPlaceholder(); }
     if (slack && typeof slack === 'object') { cachedSlack = { ...cachedSlack, ...slack }; persistSlack(); }
     if (gcal && typeof gcal === 'object') { cachedGcal = { ...cachedGcal, ...gcal }; persistGcal(); }
@@ -3044,7 +3164,7 @@ function loadFromLocalStorage() {
   const users = safeParse(localStorage.getItem(LS_USERS), null);
   if (users && Array.isArray(users.users)) cachedUsers = users;
   const scope = safeParse(localStorage.getItem(LS_SCOPE), null);
-  if (scope && Array.isArray(scope.positions)) cachedScope = scope;
+  if (scope && Array.isArray(scope.positions)) { cachedScope = scope; normalizeScopeCache(); }
   const templates = safeParse(localStorage.getItem(LS_TEMPLATES), null);
   if (templates && typeof templates === 'object') cachedTemplates = { ...cachedTemplates, ...templates };
   const slack = safeParse(localStorage.getItem(LS_SLACK), null);
@@ -3068,6 +3188,12 @@ function loadFromLocalStorage() {
   }
 }
 function persistCandidate(candidate) {
+  // 後方互換: mainScopePositionId のスナップショットを c.scopeResult にも書き込む
+  try {
+    if (candidate && candidate.scopeResults && candidate.mainScopePositionId) {
+      candidate.scopeResult = candidate.scopeResults[candidate.mainScopePositionId] || candidate.scopeResult || null;
+    }
+  } catch (e) {}
   try { localStorage.setItem(LS_CANDIDATE_PREFIX + candidate.id, JSON.stringify(candidate)); } catch (e) {}
 }
 function loadCandidate(id) {
@@ -3075,6 +3201,7 @@ function loadCandidate(id) {
   if (!c) return null;
   ensureSourceProfilesMigrated(c);
   ensureTagsMigrated(c);
+  ensureScopeResultsMigrated(c);
   return c;
 }
 
@@ -3293,7 +3420,9 @@ function buildCandidateSkeleton(data) {
     sourceType: 'scout', sourcePlatform: '', sourceUrl: '',
     profile: '', profileSummary: null, status: 'not_sent',
     assignee: null, targetCompanyId: null, positionId: null,
-    scopeResult: null,
+    scopeResult: null,        // 後方互換: mainScopePositionId のスナップショット
+    scopeResults: {},         // { [positionId]: ScopeResult } — 複数ポジション判定結果
+    mainScopePositionId: null,
     sendHistory: [], logs: [], activityLog: [], tags: [], tasks: [],
     flow: {},
     sourceProfiles: [],
@@ -3302,6 +3431,32 @@ function buildCandidateSkeleton(data) {
     nextActionDue: null, memo: '',
     createdAt: now, updatedAt: now, createdBy: currentUserEmail || 'unknown'
   }, data || {});
+}
+
+// 旧形式 (c.scopeResult 単体) → 新形式 (c.scopeResults マップ + mainScopePositionId)
+function ensureScopeResultsMigrated(c) {
+  if (!c) return c;
+  if (c.scopeResults && typeof c.scopeResults === 'object') {
+    if (!c.mainScopePositionId) {
+      // 最高スコアを main にする
+      let bestId = null, bestScore = -Infinity;
+      Object.keys(c.scopeResults).forEach(pid => {
+        const r = c.scopeResults[pid];
+        const s = (r && typeof r.score === 'number') ? r.score : 0;
+        if (s > bestScore) { bestScore = s; bestId = pid; }
+      });
+      if (bestId) c.mainScopePositionId = bestId;
+    }
+    return c;
+  }
+  c.scopeResults = {};
+  if (c.scopeResult && c.scopeResult.positionId) {
+    c.scopeResults[c.scopeResult.positionId] = c.scopeResult;
+    c.mainScopePositionId = c.scopeResult.positionId;
+  } else {
+    c.mainScopePositionId = null;
+  }
+  return c;
 }
 
 // URLから媒体名を推定（URL追加時の自動判定）
@@ -3704,6 +3859,7 @@ function prepareScoutScreen() {
   document.getElementById('scoutMsgType').value = 'first';
   scoutCurrentMessage = '';
   scoutCurrentScopeSummary = null;
+  scoutAllScopeResults = null;
   profileLastAnalyzedText = '';
   const gen = document.getElementById('scoutGenerated');
   gen.textContent = 'ここに生成されたメッセージが表示されます。';
@@ -3711,6 +3867,8 @@ function prepareScoutScreen() {
   document.getElementById('scoutScopeBadge').style.display = 'none';
   const reasonEl = document.getElementById('scoutScopeReason');
   if (reasonEl) reasonEl.style.display = 'none';
+  const multiCard = document.getElementById('scoutScopeMultiCard');
+  if (multiCard) { multiCard.style.display = 'none'; multiCard.innerHTML = ''; }
   setProfileAnalyzingIndicator(false);
 
   // API key hint
@@ -4112,9 +4270,12 @@ function buildUserPrompt({ name, surname, profile, msgType, targetCompanyId }) {
   let scopeSection = '';
   const pos = getActiveScopePosition();
   if (pos) {
+    const condOf = arr => (arr || []).map(x => (typeof x === 'string') ? x : x.condition).filter(Boolean);
+    const qConds = condOf(pos.quantitative);
+    const lConds = condOf(pos.qualitative);
     scopeSection = '\n\n## スコープ（参考）\n'
-      + (pos.quantitative && pos.quantitative.length ? '定量条件:\n- ' + pos.quantitative.join('\n- ') + '\n' : '')
-      + (pos.qualitative && pos.qualitative.length ? '定性条件:\n- ' + pos.qualitative.join('\n- ') + '\n' : '');
+      + (qConds.length ? '定量条件:\n- ' + qConds.join('\n- ') + '\n' : '')
+      + (lConds.length ? '定性条件:\n- ' + lConds.join('\n- ') + '\n' : '');
   }
   return `# 候補者情報
 - 候補者名：${name}
@@ -6258,10 +6419,277 @@ function renderProfileDiffBannerHtml(c) {
   }).join('');
 }
 
+// ========== スコープ判定：データ正規化 + Markdown パーサ + スコア ========
+// 参考実装（/Documents/scout/index.html）から移植。
+// 条件は string[] または {id,condition,signal?,level?}[] のどちらでも受けられるよう
+// 起動時に normalize し、プロンプトは必ず .condition にアクセスする。
+
+function normalizeScopeConditions(arr, prefix) {
+  if (!Array.isArray(arr)) return [];
+  return arr.map((x, i) => {
+    const raw = (typeof x === 'string') ? { condition: x } : (x || {});
+    if (!raw.condition) return null;
+    const base = { id: raw.id || (prefix + (i + 1)), condition: String(raw.condition) };
+    if (prefix === 'ql') base.signal = raw.signal ? String(raw.signal) : '';
+    if (prefix === 'ng') {
+      base.level = (raw.level === '非推奨' || raw.level === '要確認') ? raw.level : '要確認';
+    }
+    return base;
+  }).filter(Boolean);
+}
+
+function normalizeScopePosition(pos) {
+  if (!pos || typeof pos !== 'object') return pos;
+  pos.quantitative = normalizeScopeConditions(pos.quantitative, 'q');
+  pos.qualitative  = normalizeScopeConditions(pos.qualitative,  'ql');
+  pos.ng           = normalizeScopeConditions(pos.ng,           'ng');
+  return pos;
+}
+
+function normalizeScopeCache() {
+  if (!cachedScope || !Array.isArray(cachedScope.positions)) return;
+  cachedScope.positions.forEach(normalizeScopePosition);
+}
+
+// AI応答（Markdown）を 3階層オブジェクトへパース
+function parseScopeResult(text) {
+  const result = { overall: '', '定量条件': [], '定性条件': [], 'NG条件': [], '歓迎条件': [] };
+  if (!text) return result;
+  const lines = String(text).split('\n');
+  let currentSection = '';
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (!line) continue;
+    const headingMatch = line.match(/^##\s*(.+)$/);
+    if (headingMatch) {
+      const heading = headingMatch[1].trim();
+      if (heading.includes('総合判定')) currentSection = 'overall';
+      else if (heading.includes('定量')) currentSection = '定量条件';
+      else if (heading.includes('定性')) currentSection = '定性条件';
+      else if (heading.includes('NG'))  currentSection = 'NG条件';
+      else if (heading.includes('歓迎')) currentSection = '歓迎条件';
+      else currentSection = '';
+      continue;
+    }
+    if (currentSection === 'overall') {
+      if (!result.overall) result.overall = line;
+      continue;
+    }
+    if (!currentSection) continue;
+    const subMatch = line.match(/^└\s*(.+)$/);
+    if (subMatch) {
+      const items = result[currentSection];
+      if (items && items.length > 0) {
+        const subText = subMatch[1].trim();
+        const subColonSplit = subText.split(/[:：]/);
+        let subLabel = '';
+        let subReason = subText;
+        if (subColonSplit.length >= 2) {
+          subLabel = subColonSplit[0].trim();
+          subReason = subColonSplit.slice(1).join(':').trim();
+        }
+        items[items.length - 1].subInfo = { label: subLabel, reason: subReason };
+      }
+      continue;
+    }
+    const cleaned = line.replace(/^[・\-*•]\s*/, '');
+    const iconMatch = cleaned.match(/(✅|⚠️|⚠|❌)/);
+    const icon = iconMatch ? iconMatch[1] : '';
+    let label = '', reason = '';
+    const colonSplit = cleaned.split(/[:：]/);
+    if (colonSplit.length >= 2) {
+      label = colonSplit[0].trim();
+      reason = colonSplit.slice(1).join(':').trim();
+      if (icon) reason = reason.replace(icon, '').trim();
+    } else {
+      reason = cleaned.replace(icon, '').trim();
+    }
+    result[currentSection].push({ icon, label, reason });
+  }
+  return result;
+}
+
+function calcScopeScore(parsed) {
+  let score = 0;
+  const d = { quantOk: 0, qualOk: 0, ngBad: 0, ngWarn: 0 };
+  (parsed['定量条件'] || []).forEach(it => { if (it.icon === '✅') { score += 3; d.quantOk++; } });
+  (parsed['定性条件'] || []).forEach(it => { if (it.icon === '✅') { score += 2; d.qualOk++; } });
+  (parsed['NG条件']   || []).forEach(it => {
+    if (it.icon === '❌') { score -= 5; d.ngBad++; }
+    else if (it.icon === '⚠️' || it.icon === '⚠') { score -= 2; d.ngWarn++; }
+  });
+  d.quantPoints  = d.quantOk * 3;
+  d.qualPoints   = d.qualOk * 2;
+  d.ngBadPoints  = d.ngBad * -5;
+  d.ngWarnPoints = d.ngWarn * -2;
+  d.total = score;
+  return { score, detail: d };
+}
+
+function buildScopeSystemPrompt(pos) {
+  const quant = pos.quantitative || [];
+  const qual  = pos.qualitative  || [];
+  const ng    = pos.ng           || [];
+  const quantText = quant.length ? quant.map(x => '- ' + x.condition).join('\n') : '- （設定なし）';
+  const qualText  = qual.length ? qual.map(x => {
+    const sig = x.signal ? '（シグナル例：' + x.signal + '）' : '';
+    return '- ' + x.condition + sig;
+  }).join('\n') : '- （設定なし）';
+  const ngText = ng.length ? ng.map(x => '- [' + (x.level || '要確認') + '] ' + x.condition).join('\n') : '- （設定なし）';
+  const quantOutputLines = quant.length
+    ? quant.map(x => '・' + x.condition + '：[✅または⚠️または❌] [理由を1行]\n└ 根拠：[プロフィール内の該当箇所や判断根拠]').join('\n')
+    : '・該当なし';
+  const qualOutputLines = qual.length
+    ? qual.map(x => '・' + x.condition + '：[✅または⚠️または❌] [理由を1行]\n└ 根拠：[プロフィール内の該当箇所や判断根拠]').join('\n')
+    : '・該当なし';
+  const brandName = (CONFIG && CONFIG.company && CONFIG.company.brandName) || '当社';
+  return `あなたは${brandName}の採用スコープ判定AIです。
+以下のスコープ条件に対して、候補者プロフィールが当てはまるかどうかを判定してください。
+
+# スコープ条件
+
+## 定量条件
+${quantText}
+
+## 定性条件
+${qualText}
+
+## NG条件
+${ngText}
+
+# 出力形式(必ずこの形式で出力すること)
+
+## 総合判定
+✅ スカウト推奨 / ⚠️ 要確認 / ❌ スカウト非推奨 のいずれかひとつ
+
+## 定量条件
+${quantOutputLines}
+
+## 定性条件
+${qualOutputLines}
+
+## NG条件
+・該当するNG条件があれば記載、なければ「なし」
+└ 根拠：[プロフィール内の該当箇所や判断根拠]（該当NGがある場合のみ）
+
+# 出力ルール
+- 各条件の判定理由に加えて、判断の根拠となったプロフィール内の具体的な記載を以下の形式で出力してください。
+  └ 根拠：{プロフィール内の該当箇所や判断根拠}
+- 根拠には、実際にプロフィールに書かれていた文言や要約を端的に記載すること。
+- 記載が見当たらない場合は「└ 根拠：プロフィール内に明確な記載なし」とすること。
+
+# 判定基準
+- 定量条件をすべてクリア かつ 非推奨NGに該当しない → ✅ スカウト推奨
+- 定量条件は満たすが定性条件が弱い、または要確認NGあり → ⚠️ 要確認
+- 定量条件を満たさない、または非推奨NGあり → ❌ スカウト非推奨`;
+}
+
+// rawText（Markdown）から 3階層 HTML を生成
+function buildScopeResultHtml(rawText) {
+  const sections = parseScopeResult(rawText || '');
+  let html = '';
+  if (sections.overall) {
+    const cls = sections.overall.includes('✅') ? 'ok'
+              : sections.overall.includes('⚠') ? 'warn' : 'ng';
+    html += `<div class="scope-overall ${cls}">${escapeHtml(sections.overall.trim())}</div>`;
+  }
+  const order = [
+    { key: '定量条件', title: '定量条件' },
+    { key: '定性条件', title: '定性条件' },
+    { key: 'NG条件',   title: 'NG条件' },
+    { key: '歓迎条件', title: '歓迎条件' }
+  ];
+  for (const sec of order) {
+    const items = sections[sec.key];
+    if (!items || items.length === 0) continue;
+    html += `<div class="scope-section"><div class="scope-section-title">${sec.title}</div>`;
+    for (const item of items) {
+      const iconCls = item.icon === '✅' ? 'ok'
+                    : (item.icon === '⚠️' || item.icon === '⚠') ? 'warn'
+                    : item.icon === '❌' ? 'ng' : '';
+      const iconChar = item.icon || '・';
+      html += `<div class="scope-item">`;
+      html += `<span class="scope-icon ${iconCls}">${iconChar}</span>`;
+      html += `<div class="scope-item-body">`;
+      if (item.label)  html += `<span class="scope-item-label">${escapeHtml(item.label)}</span>`;
+      if (item.reason) html += `<div class="scope-item-reason">${escapeHtml(item.reason)}</div>`;
+      if (item.subInfo) {
+        html += `<div class="scope-item-sub"><span class="scope-item-sub-mark">└</span><div class="scope-item-sub-body">`;
+        if (item.subInfo.label)  html += `<span class="scope-item-sub-label">${escapeHtml(item.subInfo.label)}</span>`;
+        if (item.subInfo.reason) html += `<span class="scope-item-sub-reason">${escapeHtml(item.subInfo.reason)}</span>`;
+        html += `</div></div>`;
+      }
+      html += `</div></div>`;
+    }
+    html += `</div>`;
+  }
+  return html || `<div class="scope-loading">${escapeHtml(rawText || '')}</div>`;
+}
+
+// 総合判定バッジのみ（履歴/一覧用）
+function renderScopeBadgeHtml(scopeResult) {
+  if (!scopeResult) return '<span class="history-scope-badge none">判定なし</span>';
+  // 新形式: structured object with verdict or rawText
+  let overall = '';
+  if (scopeResult.overall) overall = scopeResult.overall;
+  else if (scopeResult.rawText) overall = (parseScopeResult(scopeResult.rawText).overall || '').trim();
+  else if (scopeResult.verdict) {
+    overall = scopeResult.verdict === 'recommend' ? '✅ スカウト推奨'
+            : scopeResult.verdict === 'caution'   ? '⚠️ 要確認'
+            : scopeResult.verdict === 'not_recommend' ? '❌ スカウト非推奨'
+            : '';
+  }
+  if (!overall) return '<span class="history-scope-badge none">判定なし</span>';
+  const cls = overall.includes('✅') ? 'ok' : overall.includes('⚠') ? 'warn' : overall.includes('❌') ? 'ng' : 'none';
+  return `<span class="history-scope-badge ${cls}">${escapeHtml(overall)}</span>`;
+}
+
+// verdict文字列をMarkdownの「総合判定」行に正規化
+function verdictToOverall(verdict) {
+  return verdict === 'recommend' ? '✅ スカウト推奨'
+       : verdict === 'caution'   ? '⚠️ 要確認'
+       : verdict === 'not_recommend' ? '❌ スカウト非推奨'
+       : '';
+}
+function overallToVerdict(overall) {
+  const s = String(overall || '');
+  if (s.includes('✅')) return 'recommend';
+  if (s.includes('⚠'))  return 'caution';
+  if (s.includes('❌')) return 'not_recommend';
+  return null;
+}
+
 // ========== スコープ自動判定（Haiku, キャッシュ付き） ==================
 // 唯一のスコープ判定関数。プロフィール貼り付け時・生成時・登録時すべてで使用する。
 // 同一 (positionId, profile) に対して1回だけAPIを呼び、結果はキャッシュ + 候補者レコードに保存。
 
+// AI応答テキストと位置情報から ScopeResult オブジェクトを構築
+function buildScopeResult(rawText, pos, model) {
+  if (!rawText || !pos) return null;
+  const parsed = parseScopeResult(rawText);
+  const overall = (parsed.overall || '').trim();
+  const verdict = overallToVerdict(overall);
+  if (!verdict) return null;
+  const { score, detail: scoreDetail } = calcScopeScore(parsed);
+  const company = pos.companyId ? (typeof getCompanyById === 'function' ? getCompanyById(pos.companyId) : null) : null;
+  return {
+    verdict,
+    detail: overall,               // 後方互換用（旧UIが参照）
+    rawText,
+    overall,
+    parsed,
+    score,
+    scoreDetail,
+    positionId: pos.id,
+    positionName: pos.name || '',
+    companyId: pos.companyId || null,
+    companyName: company ? company.name : '',
+    judgedAt: new Date().toISOString(),
+    model: model || ''
+  };
+}
+
+// 参考ファイル互換。旧シンプル形式(verdictWord/reasonText)から ScopeResult を構築
 function scopeResultFromVerdict(verdictWord, reasonText, pos, fullText) {
   if (verdictWord !== '推奨' && verdictWord !== '要注意' && verdictWord !== '見送り') return null;
   const verdict = verdictWord === '推奨' ? 'recommend'
@@ -6270,9 +6698,15 @@ function scopeResultFromVerdict(verdictWord, reasonText, pos, fullText) {
   return {
     verdict,
     detail: reasonText || fullText || '',
+    rawText: fullText || '',
+    overall: verdictToOverall(verdict),
+    parsed: null,
+    score: 0, scoreDetail: null,
     judgedAt: new Date().toISOString(),
     positionId: pos ? pos.id : null,
-    positionName: pos ? pos.name : ''
+    positionName: pos ? pos.name : '',
+    companyId: pos && pos.companyId ? pos.companyId : null,
+    companyName: ''
   };
 }
 
@@ -6299,22 +6733,31 @@ function applyScopeResultToScoutUI(result) {
   }
 }
 
+// スコープ判定モデル（Sonnetで根拠付き3階層Markdownを取得）
+const SCOPE_JUDGE_MODEL = 'claude-sonnet-4-5-20250929';
+
+// 単一ポジションに対する判定を API 経由で実行（キャッシュ付き）
+// opts.positionId があればそれ、なければ getActiveScopePosition()
+// opts.silentUI = true で scoutUI への副作用なし
 async function runScopeJudgement(apiKey, profile, opts) {
   opts = opts || {};
-  const pos = getActiveScopePosition();
+  const pos = opts.position
+    || (opts.positionId ? (cachedScope.positions || []).find(p => p.id === opts.positionId) : null)
+    || getActiveScopePosition();
   if (!pos || (!pos.quantitative?.length && !pos.qualitative?.length) || !profile) {
-    applyScopeResultToScoutUI(null);
+    if (!opts.silentUI) applyScopeResultToScoutUI(null);
     return null;
   }
-  // 1) キャッシュヒットならAPIを叩かず再利用
   const cacheKey = scopeCacheKey(pos.id, profile);
   if (!opts.force && scopeJudgementCache.has(cacheKey)) {
     const cached = scopeJudgementCache.get(cacheKey);
-    scoutCurrentScopeSummary = cached;
-    applyScopeResultToScoutUI(cached);
+    if (!opts.silentUI) {
+      scoutCurrentScopeSummary = cached;
+      applyScopeResultToScoutUI(cached);
+    }
     return cached;
   }
-  if (!apiKey) { applyScopeResultToScoutUI(null); return null; }
+  if (!apiKey) { if (!opts.silentUI) applyScopeResultToScoutUI(null); return null; }
   try {
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
@@ -6325,53 +6768,145 @@ async function runScopeJudgement(apiKey, profile, opts) {
         'anthropic-dangerous-direct-browser-access': 'true'
       },
       body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 300,
-        messages: [{
-          role: 'user',
-          content: `以下の候補者プロフィールが採用スコープに合うか判定してください。
-
-出力形式（厳守）：
-判定: 推奨 / 要注意 / 見送り のいずれかひとつ
-理由: 1〜2行で簡潔に
-
-スコープ定量条件:
-${(pos.quantitative || []).map(s => '- ' + s).join('\n') || '-（なし）'}
-スコープ定性条件:
-${(pos.qualitative || []).map(s => '- ' + s).join('\n') || '-（なし）'}
-NG条件:
-${(pos.ng || []).map(s => '- ' + s).join('\n') || '-（なし）'}
-
-候補者プロフィール:
-${profile}`
-        }]
+        model: SCOPE_JUDGE_MODEL,
+        max_tokens: 2000,
+        system: buildScopeSystemPrompt(pos),
+        messages: [{ role: 'user', content: '## 候補者プロフィール\n' + profile }]
       })
     });
-    if (!res.ok) { applyScopeResultToScoutUI(null); return null; }
+    if (!res.ok) { if (!opts.silentUI) applyScopeResultToScoutUI(null); return null; }
     const data = await res.json();
-    const full = ((data.content && data.content[0] && data.content[0].text) || '').trim();
-    const verdictMatch = full.match(/判定\s*[:：]\s*(推奨|要注意|見送り)/);
-    const reasonMatch  = full.match(/理由\s*[:：]\s*([\s\S]*)/);
-    const verdictWord = verdictMatch ? verdictMatch[1]
-      : (/推奨/.test(full) ? '推奨' : /見送り/.test(full) ? '見送り' : /要注意/.test(full) ? '要注意' : null);
-    const reasonText = reasonMatch ? reasonMatch[1].trim() : '';
-    const result = scopeResultFromVerdict(verdictWord, reasonText, pos, full);
-    if (!result) { applyScopeResultToScoutUI(null); return null; }
+    const rawText = ((data.content && data.content[0] && data.content[0].text) || '').trim();
+    const result = buildScopeResult(rawText, pos, SCOPE_JUDGE_MODEL);
+    if (!result) { if (!opts.silentUI) applyScopeResultToScoutUI(null); return null; }
     scopeJudgementCache.set(cacheKey, result);
-    scoutCurrentScopeSummary = result;
-    applyScopeResultToScoutUI(result);
+    if (!opts.silentUI) {
+      scoutCurrentScopeSummary = result;
+      applyScopeResultToScoutUI(result);
+    }
     return result;
   } catch (e) {
     console.warn('[Scope] judgement failed', e);
-    applyScopeResultToScoutUI(null);
+    if (!opts.silentUI) applyScopeResultToScoutUI(null);
     return null;
   }
+}
+
+// 複数ポジション（＝全会社 or 指定会社内の全ポジション）を並列判定
+// 戻り値: { [positionId]: ScopeResult } + ランキング配列
+async function runScopeJudgementAll(apiKey, profile, opts) {
+  opts = opts || {};
+  if (!apiKey || !profile) return { results: {}, ranked: [] };
+  let positions = (cachedScope.positions || []).filter(p =>
+    (p.quantitative && p.quantitative.length) || (p.qualitative && p.qualitative.length)
+  );
+  if (opts.companyIds && opts.companyIds.length) {
+    const set = new Set(opts.companyIds);
+    positions = positions.filter(p => set.has(p.companyId));
+  }
+  if (positions.length === 0) return { results: {}, ranked: [] };
+  const results = await Promise.all(positions.map(pos =>
+    runScopeJudgement(apiKey, profile, { position: pos, force: !!opts.force, silentUI: true })
+  ));
+  const out = {};
+  const ranked = [];
+  positions.forEach((pos, i) => {
+    const r = results[i];
+    if (r) { out[pos.id] = r; ranked.push(r); }
+  });
+  ranked.sort((a, b) => (b.score || 0) - (a.score || 0));
+  return { results: out, ranked };
 }
 
 // 後方互換: 既存呼び出しを維持しつつ、内部は統一関数へ委譲
 async function runScopeJudgementLite(apiKey, profile /*, targetCompanyId */) {
   const r = await runScopeJudgement(apiKey, profile);
   return !!r;
+}
+
+// スカウト画面のランキング結果（登録時に candidate.scopeResults に流す）
+let scoutAllScopeResults = null;
+
+// スカウト画面から全ポジション判定を発火
+async function runAllScopeJudgementsForScout() {
+  const apiKey = localStorage.getItem(LS_API_KEY);
+  if (!apiKey) { showToast('APIキーが未設定です', 'error'); return; }
+  const profile = (document.getElementById('scoutProfile')?.value || '').trim();
+  if (!profile) { showToast('プロフィールを入力してください', 'error'); return; }
+  const btn = document.getElementById('scoutRunAllScopeBtn');
+  const card = document.getElementById('scoutScopeMultiCard');
+  if (btn) btn.disabled = true;
+  if (card) {
+    card.style.display = '';
+    card.innerHTML = '<div class="scope-loading">全ポジションを判定しています...</div>';
+  }
+  try {
+    const { results, ranked } = await runScopeJudgementAll(apiKey, profile, { force: true });
+    if (ranked.length === 0) {
+      if (card) card.innerHTML = '<div class="scope-loading">判定対象のポジションがありません。</div>';
+      showToast('判定対象のポジションがありません', 'error');
+      return;
+    }
+    scoutAllScopeResults = results;
+    // 最高スコアをスカウトUIのバッジにも反映
+    scoutCurrentScopeSummary = ranked[0];
+    applyScopeResultToScoutUI(ranked[0]);
+    // 既存の registerCandidateFromScout でメインとして採用されるよう positionId を固定
+    if (ranked[0].positionId) {
+      editingScopePositionId = ranked[0].positionId;
+    }
+    renderScoutScopeMultiCard(ranked);
+    showToast(`${ranked.length}ポジションを判定しました（最適: ${ranked[0].positionName}）`, 'success');
+  } catch (e) {
+    console.warn('[Scope] scout-all failed', e);
+    if (card) card.innerHTML = `<div class="scope-loading" style="color: var(--error);">判定に失敗しました: ${escapeHtml(e.message)}</div>`;
+    showToast('判定に失敗しました: ' + e.message, 'error');
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+function renderScoutScopeMultiCard(ranked) {
+  const card = document.getElementById('scoutScopeMultiCard');
+  if (!card) return;
+  if (!ranked || !ranked.length) { card.style.display = 'none'; card.innerHTML = ''; return; }
+  const best = ranked[0];
+  const bestOverall = (best.overall || verdictToOverall(best.verdict) || '').trim();
+  const summCls = bestOverall.includes('✅') ? 'ok' : bestOverall.includes('⚠') ? 'warn' : 'ng';
+  let html = `<div class="scope-result-summary ${summCls}">総合判定：${escapeHtml(best.positionName || '')}が最もマッチしています</div>`;
+  ranked.forEach((r, idx) => {
+    const rank = idx + 1;
+    const rankNum = ['①','②','③','④','⑤','⑥','⑦','⑧','⑨','⑩'][idx] || `(${rank})`;
+    const isFirst = idx === 0;
+    const overall = (r.overall || verdictToOverall(r.verdict) || '').trim();
+    const overallCls = overall.includes('✅') ? 'ok' : overall.includes('⚠') ? 'warn' : 'ng';
+    const collapsed = rank > 1 ? ' collapsed' : '';
+    const uid = `scoutScopePos_${rank}`;
+    html += `<div class="scope-position-result rank-${rank}${collapsed}" id="${uid}">`;
+    html += `<div class="scope-position-header" onclick="toggleCandidateScopePos('${uid}')">`;
+    html += `<span class="scope-rank-badge${isFirst ? ' rank-1' : ''}">${rankNum}</span>`;
+    html += `<span class="scope-position-name">${escapeHtml(r.positionName || '')}</span>`;
+    if (r.companyName) html += `<span class="scope-position-company">${escapeHtml(r.companyName)}</span>`;
+    html += `<span class="scope-overall ${overallCls}" style="margin-bottom:0; padding:6px 10px; font-size:12px;">${escapeHtml(overall || '判定不明')}</span>`;
+    html += `</div><div class="scope-position-detail">`;
+    if (r.rawText) html += buildScopeResultHtml(r.rawText);
+    const d = r.scoreDetail;
+    if (d) {
+      const sid = `scoutScopeScoreDetail_${rank}`;
+      html += `<button class="scope-score-link" onclick="toggleScopeScoreDetailCandidate('${sid}')"><i data-lucide="bar-chart-2" class="lucide"></i> スコア詳細を見る</button>`;
+      html += `<div class="scope-score-detail" id="${sid}">`;
+      html += `<span class="scope-score-total">マッチスコア：${d.total}点</span>\n\n`;
+      html += `定量条件　✅ ${d.quantOk}件 × 3点 = ${d.quantPoints}点\n`;
+      html += `定性条件　✅ ${d.qualOk}件 × 2点 = ${d.qualPoints}点\n`;
+      html += `NG非推奨　❌ ${d.ngBad}件 × -5点 = <span class="${d.ngBadPoints < 0 ? 'scope-score-minus' : ''}">${d.ngBadPoints}点</span>\n`;
+      html += `NG要確認　⚠️ ${d.ngWarn}件 × -2点 = <span class="${d.ngWarnPoints < 0 ? 'scope-score-minus' : ''}">${d.ngWarnPoints}点</span>\n`;
+      html += `────────────────\n<span class="scope-score-total">合計：${d.total}点</span>`;
+      html += `</div>`;
+    }
+    html += `</div></div>`;
+  });
+  card.innerHTML = html;
+  card.style.display = '';
 }
 
 async function copyScoutMessage() {
@@ -6525,15 +7060,35 @@ async function registerCandidateFromScout(goBackToList) {
     const typeLabel = { first: '初回メッセージ', second: '2回目（SNS補助連絡）', interview_url: '面談設定（URL）', interview_ask: '面談設定（日時確認）' }[msgType] || msgType;
     pushActivity(candidate, 'sent', typeLabel + (platform ? ' / ' + platform : '') + (prev !== candidate.status ? `（ステータス: ${getStatusMeta(prev).label} → ${getStatusMeta(candidate.status).label}）` : ''));
   }
-  // スコープ判定結果を候補者レコードに保存
-  //   - 画面上で判定済みならそれを使う
-  //   - 未判定で APIキーとプロフィールがあればここで実行（キャッシュに載っていれば即返る）
+  // スコープ判定結果を候補者レコードに保存（scopeResults マップに per-position で積む）
+  //   - 画面上で一括判定済み（scoutAllScopeResults）ならそれを全部流し込む
+  //   - そうでなく画面上で単発判定済みならそれを使う
+  //   - 未判定で APIキーとプロフィールがあればここで単発実行（キャッシュに載っていれば即返る）
   const apiKey = localStorage.getItem(LS_API_KEY) || '';
-  if (!candidate.scopeResult && apiKey && profile) {
-    const r = await runScopeJudgement(apiKey, profile);
-    if (r) candidate.scopeResult = r;
-  } else if (scoutCurrentScopeSummary) {
-    candidate.scopeResult = scoutCurrentScopeSummary;
+  candidate.scopeResults = candidate.scopeResults || {};
+  if (scoutAllScopeResults && Object.keys(scoutAllScopeResults).length) {
+    Object.keys(scoutAllScopeResults).forEach(pid => {
+      candidate.scopeResults[pid] = scoutAllScopeResults[pid];
+    });
+  }
+  let scopedResult = null;
+  if (scoutCurrentScopeSummary && scoutCurrentScopeSummary.positionId) {
+    scopedResult = scoutCurrentScopeSummary;
+  } else if (apiKey && profile) {
+    scopedResult = await runScopeJudgement(apiKey, profile);
+  }
+  if (scopedResult && scopedResult.positionId) {
+    candidate.scopeResults[scopedResult.positionId] = scopedResult;
+  }
+  const savedIds = Object.keys(candidate.scopeResults);
+  if (savedIds.length) {
+    let bestId = candidate.mainScopePositionId || savedIds[0], bestScore = -Infinity;
+    savedIds.forEach(pid => {
+      const s = (candidate.scopeResults[pid] && typeof candidate.scopeResults[pid].score === 'number') ? candidate.scopeResults[pid].score : 0;
+      if (s > bestScore) { bestScore = s; bestId = pid; }
+    });
+    candidate.mainScopePositionId = bestId;
+    candidate.scopeResult = candidate.scopeResults[bestId];
   }
 
   // プロフィール要約を候補者レコードに保存（キャッシュから取り出し、なければ新規生成）
@@ -8067,14 +8622,15 @@ function renderCandidateDetail(c) {
         ${renderProfileSummaryAndRaw(c)}
       </div>
 
-      <!-- 3. スコープ判定 -->
+      <!-- 3. スコープ判定（複数ポジション対応） -->
       <div class="detail-section" style="margin-bottom: 16px;">
-        <div class="detail-section-title">スコープ判定</div>
-        ${c.scopeResult
-          ? `<div class="detail-row"><span class="detail-row-label">判定</span>
-              <span class="detail-row-value">${{recommend:'<i data-lucide="check" class="lucide"></i> 推奨', caution:'△ 要注意', not_recommend:'<i data-lucide="x" class="lucide"></i> 見送り'}[c.scopeResult.verdict] || escapeHtml(c.scopeResult.verdict || '—')}</span></div>
-             ${c.scopeResult.detail ? `<div style="margin-top:8px; font-size:12px; color: var(--text-secondary); white-space:pre-wrap;">${escapeHtml(c.scopeResult.detail)}</div>` : ''}`
-          : '<div class="source-label">判定結果なし</div>'}
+        <div class="detail-section-title">
+          <span>スコープ判定</span>
+          <span class="detail-actions" style="display:flex; gap:6px;">
+            <button class="btn btn-small" onclick="runAllScopeJudgementsForCandidate('${escapeHtml(c.id)}')"><i data-lucide="refresh-cw" class="lucide"></i> 全ポジションで判定</button>
+          </span>
+        </div>
+        ${renderCandidateScopeSection(c)}
       </div>
 
       <!-- 4. 送付履歴 -->
@@ -8099,6 +8655,141 @@ function toggleActivityLog() {
   activityLogOpen = !activityLogOpen;
   const c = loadCandidate(currentCandidateId);
   if (c) renderCandidateDetail(c);
+}
+
+// 候補者詳細のスコープ判定セクションをHTML生成（複数ポジション × 根拠付き3階層）
+function renderCandidateScopeSection(c) {
+  ensureScopeResultsMigrated(c);
+  const results = c.scopeResults || {};
+  const entries = Object.keys(results).map(pid => results[pid]).filter(Boolean);
+  if (entries.length === 0) {
+    return '<div class="source-label">判定結果なし — 右上の「全ポジションで判定」から実行できます</div>';
+  }
+  // スコアで降順ソート
+  entries.sort((a, b) => (b.score || 0) - (a.score || 0));
+  const mainId = c.mainScopePositionId || (entries[0] && entries[0].positionId);
+  let html = '';
+  entries.forEach((r, idx) => {
+    const rank = idx + 1;
+    const rankNum = ['①','②','③','④','⑤','⑥','⑦','⑧','⑨','⑩'][idx] || `(${rank})`;
+    const isMain = r.positionId === mainId;
+    const isFirst = idx === 0;
+    const overall = (r.overall || (r.parsed && r.parsed.overall) || verdictToOverall(r.verdict) || '').trim();
+    const overallCls = overall.includes('✅') ? 'ok' : overall.includes('⚠') ? 'warn' : 'ng';
+    const collapsed = rank > 1 ? ' collapsed' : '';
+    const uid = `scopePos_${escapeHtml(c.id)}_${escapeHtml(r.positionId || ('idx' + idx))}`;
+    html += `<div class="scope-position-result rank-${rank}${collapsed}" id="${uid}">`;
+    html += `<div class="scope-position-header" onclick="toggleCandidateScopePos('${uid}')">`;
+    html += `<span class="scope-rank-badge${isFirst ? ' rank-1' : ''}">${rankNum}</span>`;
+    html += `<span class="scope-position-name">${escapeHtml(r.positionName || '(名称なし)')}</span>`;
+    if (r.companyName) html += `<span class="scope-position-company">${escapeHtml(r.companyName)}</span>`;
+    html += `<span class="scope-overall ${overallCls}" style="margin-bottom:0; padding:6px 10px; font-size:12px;">${escapeHtml(overall || '判定不明')}</span>`;
+    html += `<span class="scope-position-actions" onclick="event.stopPropagation()">`;
+    if (isMain) html += `<span style="font-size:11px; color: var(--text-secondary); padding:4px 8px;"><i data-lucide="star" class="lucide"></i> メイン</span>`;
+    else html += `<button class="btn btn-small" onclick="setMainScopePosition('${escapeHtml(c.id)}', '${escapeHtml(r.positionId)}')">メインに設定</button>`;
+    html += `<button class="btn btn-small" onclick="runSingleScopeJudgementForCandidate('${escapeHtml(c.id)}', '${escapeHtml(r.positionId)}')"><i data-lucide="refresh-cw" class="lucide"></i> 再判定</button>`;
+    html += `</span>`;
+    html += `</div>`;
+    html += `<div class="scope-position-detail">`;
+    if (r.rawText) {
+      html += buildScopeResultHtml(r.rawText);
+    } else if (r.detail) {
+      html += `<div class="scope-loading" style="text-align:left; padding:8px 0;">${escapeHtml(r.detail)}</div>`;
+    }
+    const d = r.scoreDetail;
+    if (d) {
+      const sid = `scopeScoreDetail_${escapeHtml(c.id)}_${escapeHtml(r.positionId || ('idx' + idx))}`;
+      html += `<button class="scope-score-link" onclick="toggleScopeScoreDetailCandidate('${sid}')"><i data-lucide="bar-chart-2" class="lucide"></i> スコア詳細を見る</button>`;
+      html += `<div class="scope-score-detail" id="${sid}">`;
+      html += `<span class="scope-score-total">マッチスコア：${d.total}点</span>\n\n`;
+      html += `定量条件　✅ ${d.quantOk}件 × 3点 = ${d.quantPoints}点\n`;
+      html += `定性条件　✅ ${d.qualOk}件 × 2点 = ${d.qualPoints}点\n`;
+      html += `NG非推奨　❌ ${d.ngBad}件 × -5点 = <span class="${d.ngBadPoints < 0 ? 'scope-score-minus' : ''}">${d.ngBadPoints}点</span>\n`;
+      html += `NG要確認　⚠️ ${d.ngWarn}件 × -2点 = <span class="${d.ngWarnPoints < 0 ? 'scope-score-minus' : ''}">${d.ngWarnPoints}点</span>\n`;
+      html += `────────────────\n<span class="scope-score-total">合計：${d.total}点</span>`;
+      html += `</div>`;
+    }
+    html += `</div></div>`;
+  });
+  return html;
+}
+
+function toggleCandidateScopePos(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.toggle('collapsed');
+}
+function toggleScopeScoreDetailCandidate(id) {
+  const el = document.getElementById(id);
+  if (el) el.classList.toggle('show');
+}
+
+async function runAllScopeJudgementsForCandidate(candidateId) {
+  const c = loadCandidate(candidateId);
+  if (!c) return;
+  const apiKey = localStorage.getItem(LS_API_KEY);
+  if (!apiKey) { showToast('APIキーが未設定です', 'error'); return; }
+  const profile = (c.profile || '').trim();
+  if (!profile) { showToast('プロフィールが登録されていません', 'error'); return; }
+  showToast('全ポジションで判定中...', 'info');
+  showLoading(true);
+  try {
+    const { results, ranked } = await runScopeJudgementAll(apiKey, profile, { force: true });
+    const keys = Object.keys(results);
+    if (keys.length === 0) { showToast('判定対象のポジションがありません', 'error'); return; }
+    c.scopeResults = c.scopeResults || {};
+    keys.forEach(pid => { c.scopeResults[pid] = results[pid]; });
+    if (ranked[0]) c.mainScopePositionId = ranked[0].positionId;
+    c.scopeResult = c.scopeResults[c.mainScopePositionId] || ranked[0] || c.scopeResult;
+    c.updatedAt = new Date().toISOString();
+    persistCandidate(c);
+    syncCandidateFile(c);
+    showToast(`${keys.length}ポジション判定完了（最適: ${ranked[0].positionName}）`, 'success');
+    renderCandidateDetail(c);
+  } catch (e) {
+    console.warn('[Scope] all-positions failed', e);
+    showToast('判定に失敗しました: ' + e.message, 'error');
+  } finally {
+    showLoading(false);
+  }
+}
+
+async function runSingleScopeJudgementForCandidate(candidateId, positionId) {
+  const c = loadCandidate(candidateId);
+  if (!c) return;
+  const apiKey = localStorage.getItem(LS_API_KEY);
+  if (!apiKey) { showToast('APIキーが未設定です', 'error'); return; }
+  const profile = (c.profile || '').trim();
+  if (!profile) { showToast('プロフィールが登録されていません', 'error'); return; }
+  showLoading(true);
+  try {
+    const r = await runScopeJudgement(apiKey, profile, { positionId, force: true, silentUI: true });
+    if (!r) { showToast('判定に失敗しました', 'error'); return; }
+    c.scopeResults = c.scopeResults || {};
+    c.scopeResults[positionId] = r;
+    if (!c.mainScopePositionId) c.mainScopePositionId = positionId;
+    c.scopeResult = c.scopeResults[c.mainScopePositionId] || r;
+    c.updatedAt = new Date().toISOString();
+    persistCandidate(c);
+    syncCandidateFile(c);
+    showToast('再判定しました', 'success');
+    renderCandidateDetail(c);
+  } catch (e) {
+    console.warn('[Scope] single re-judge failed', e);
+    showToast('判定に失敗しました: ' + e.message, 'error');
+  } finally {
+    showLoading(false);
+  }
+}
+
+function setMainScopePosition(candidateId, positionId) {
+  const c = loadCandidate(candidateId);
+  if (!c || !c.scopeResults || !c.scopeResults[positionId]) return;
+  c.mainScopePositionId = positionId;
+  c.scopeResult = c.scopeResults[positionId];
+  c.updatedAt = new Date().toISOString();
+  persistCandidate(c);
+  syncCandidateFile(c);
+  renderCandidateDetail(c);
 }
 
 function renderActivityLogHtml(log) {
@@ -8420,9 +9111,10 @@ function renderScopePane() {
   if (editingScopePositionId) posSel.value = editingScopePositionId;
 
   const pos = (cachedScope.positions || []).find(p => p.id === editingScopePositionId);
-  document.getElementById('scopeQuant').value = pos ? (pos.quantitative || []).join('\n') : '';
-  document.getElementById('scopeQual').value  = pos ? (pos.qualitative  || []).join('\n') : '';
-  document.getElementById('scopeNG').value    = pos ? (pos.ng           || []).join('\n') : '';
+  const toLines = arr => (arr || []).map(x => (typeof x === 'string') ? x : x.condition).filter(Boolean).join('\n');
+  document.getElementById('scopeQuant').value = pos ? toLines(pos.quantitative) : '';
+  document.getElementById('scopeQual').value  = pos ? toLines(pos.qualitative)  : '';
+  document.getElementById('scopeNG').value    = pos ? toLines(pos.ng)           : '';
 }
 function onScopeCompanyChange() {
   editingScopeCompanyId = document.getElementById('scopeCompanySelect').value;
@@ -8449,9 +9141,10 @@ function saveScopeSettings() {
   }
   const pos = cachedScope.positions.find(p => p.id === editingScopePositionId);
   if (!pos) return;
-  pos.quantitative = document.getElementById('scopeQuant').value.split('\n').map(s => s.trim()).filter(Boolean);
-  pos.qualitative  = document.getElementById('scopeQual').value.split('\n').map(s => s.trim()).filter(Boolean);
-  pos.ng           = document.getElementById('scopeNG').value.split('\n').map(s => s.trim()).filter(Boolean);
+  const lines = id => document.getElementById(id).value.split('\n').map(s => s.trim()).filter(Boolean);
+  pos.quantitative = normalizeScopeConditions(lines('scopeQuant').map(c => ({ condition: c })), 'q');
+  pos.qualitative  = normalizeScopeConditions(lines('scopeQual').map(c => ({ condition: c })), 'ql');
+  pos.ng           = normalizeScopeConditions(lines('scopeNG').map(c => ({ condition: c })), 'ng');
   persistScope();
   syncAtsFile(DRIVE_SCOPE_FILE, cachedScope);
   showToast('スコープ設定を保存しました', 'success');
