@@ -1822,6 +1822,19 @@
           <button class="btn" onclick="renderScopePane()">キャンセル</button>
           <button class="btn btn-primary" onclick="saveScopeSettings()"><i data-lucide="save" class="lucide"></i> 保存</button>
         </div>
+
+        <div class="settings-field" style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border);">
+          <label class="settings-field-label">インポート／エクスポート（Markdown形式）</label>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px;">
+            <button class="btn btn-small" onclick="exportCurrentScopePosition()"><i data-lucide="clipboard" class="lucide"></i> このポジションをコピー</button>
+            <button class="btn btn-small" onclick="exportAllScopePositions()"><i data-lucide="clipboard" class="lucide"></i> 全ポジションをコピー</button>
+            <button class="btn btn-small" onclick="openImportCurrentScopeModal()"><i data-lucide="upload" class="lucide"></i> このポジションに取り込む</button>
+            <button class="btn btn-small" onclick="openImportAllScopeModal()"><i data-lucide="upload" class="lucide"></i> 新規ポジションとして取り込む</button>
+          </div>
+          <div style="font-size: 11px; color: var(--text-secondary); margin-top: 6px; line-height: 1.6;">
+            定性条件は「条件 | シグナル例」、NG条件は「条件 | 要確認」または「条件 | 非推奨」の形式で記述できます。
+          </div>
+        </div>
       </div>
 
       <!-- Template pane -->
@@ -2256,6 +2269,19 @@
     <div class="modal-actions">
       <button class="btn" onclick="closeModal('candidateEditModal')">キャンセル</button>
       <button class="btn btn-primary" onclick="saveCandidateFromEditModal()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- スコープ設定 Import/Export モーダル -->
+<div class="modal-overlay" id="scopeIoModal">
+  <div class="modal-card" style="max-width: 720px;">
+    <div class="modal-title" id="scopeIoModalTitle">スコープ設定のエクスポート</div>
+    <div id="scopeIoModalHint" style="font-size: 12px; color: var(--text-secondary); margin-bottom: 8px;"></div>
+    <textarea class="form-input" id="scopeIoModalText" style="min-height: 360px; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 12px; line-height: 1.6;"></textarea>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('scopeIoModal')">閉じる</button>
+      <button class="btn btn-primary" id="scopeIoModalPrimaryBtn" onclick="onScopeIoModalPrimary()"><i data-lucide="clipboard" class="lucide"></i> コピー</button>
     </div>
   </div>
 </div>
@@ -9116,10 +9142,22 @@ function renderScopePane() {
   if (editingScopePositionId) posSel.value = editingScopePositionId;
 
   const pos = (cachedScope.positions || []).find(p => p.id === editingScopePositionId);
-  const toLines = arr => (arr || []).map(x => (typeof x === 'string') ? x : x.condition).filter(Boolean).join('\n');
-  document.getElementById('scopeQuant').value = pos ? toLines(pos.quantitative) : '';
-  document.getElementById('scopeQual').value  = pos ? toLines(pos.qualitative)  : '';
-  document.getElementById('scopeNG').value    = pos ? toLines(pos.ng)           : '';
+  // 定量: 条件だけ。定性: 「条件 | シグナル」、NG: 「条件 | 要確認/非推奨」形式で表示・編集できる。
+  const quantLines = arr => (arr || []).map(x => (typeof x === 'string') ? x : x.condition).filter(Boolean).join('\n');
+  const qualLines  = arr => (arr || []).map(x => {
+    if (typeof x === 'string') return x;
+    if (!x.condition) return '';
+    return x.signal ? `${x.condition} | ${x.signal}` : x.condition;
+  }).filter(Boolean).join('\n');
+  const ngLines    = arr => (arr || []).map(x => {
+    if (typeof x === 'string') return `${x} | 要確認`;
+    if (!x.condition) return '';
+    const lvl = (x.level === '非推奨' || x.level === '要確認') ? x.level : '要確認';
+    return `${x.condition} | ${lvl}`;
+  }).filter(Boolean).join('\n');
+  document.getElementById('scopeQuant').value = pos ? quantLines(pos.quantitative) : '';
+  document.getElementById('scopeQual').value  = pos ? qualLines(pos.qualitative)   : '';
+  document.getElementById('scopeNG').value    = pos ? ngLines(pos.ng)              : '';
 }
 function onScopeCompanyChange() {
   editingScopeCompanyId = document.getElementById('scopeCompanySelect').value;
@@ -9147,9 +9185,18 @@ function saveScopeSettings() {
   const pos = cachedScope.positions.find(p => p.id === editingScopePositionId);
   if (!pos) return;
   const lines = id => document.getElementById(id).value.split('\n').map(s => s.trim()).filter(Boolean);
+  const parseQual = lines('scopeQual').map(raw => {
+    const p = raw.split('|').map(s => s.trim());
+    return { condition: p[0], signal: p[1] || '' };
+  });
+  const parseNg = lines('scopeNG').map(raw => {
+    const p = raw.split('|').map(s => s.trim());
+    const lvl = (p[1] === '非推奨' || p[1] === '要確認') ? p[1] : '要確認';
+    return { condition: p[0], level: lvl };
+  });
   pos.quantitative = normalizeScopeConditions(lines('scopeQuant').map(c => ({ condition: c })), 'q');
-  pos.qualitative  = normalizeScopeConditions(lines('scopeQual').map(c => ({ condition: c })), 'ql');
-  pos.ng           = normalizeScopeConditions(lines('scopeNG').map(c => ({ condition: c })), 'ng');
+  pos.qualitative  = normalizeScopeConditions(parseQual, 'ql');
+  pos.ng           = normalizeScopeConditions(parseNg, 'ng');
   persistScope();
   syncAtsFile(DRIVE_SCOPE_FILE, cachedScope);
   showToast('スコープ設定を保存しました', 'success');
@@ -9197,6 +9244,259 @@ function deleteCurrentScopePosition() {
   syncAtsFile(DRIVE_SCOPE_FILE, cachedScope);
   renderScopePane();
   showToast('ポジションを削除しました', 'success');
+}
+
+// ===== スコープ設定 Import / Export (Markdown) =====
+// フォーマット（単一ポジション）:
+//   # スコープ設定
+//
+//   ## 定量条件
+//   - 条件1
+//
+//   ## 定性条件
+//   - 条件 | シグナル例
+//
+//   ## NG条件
+//   - 条件 | 要確認
+//   - 条件 | 非推奨
+//
+// フォーマット（複数ポジション）:
+//   先頭に位置情報 H1:「# <ポジション名>（<会社名>）」を書き、複数ブロックを連結する。
+//   そのままの H1「# スコープ設定」も許容（パーサは H1 をポジション区切りとして扱うだけ）。
+
+function serializeScopePosition(pos, opts) {
+  opts = opts || {};
+  const quant = pos.quantitative || [];
+  const qual  = pos.qualitative  || [];
+  const ng    = pos.ng           || [];
+  const name = pos.name || '';
+  const companyName = (() => {
+    if (!pos.companyId) return '';
+    try { const c = getCompanyById(pos.companyId); return c ? c.name : ''; } catch (e) { return ''; }
+  })();
+  const h1 = opts.useSettingsHeading
+    ? '# スコープ設定'
+    : '# ' + name + (companyName ? `（${companyName}）` : '');
+  const fmtCond = x => (typeof x === 'string') ? x : x.condition;
+  const out = [];
+  out.push(h1);
+  out.push('');
+  out.push('## 定量条件');
+  if (quant.length) quant.forEach(x => out.push('- ' + fmtCond(x)));
+  else out.push('- （なし）');
+  out.push('');
+  out.push('## 定性条件');
+  if (qual.length) qual.forEach(x => {
+    const c = fmtCond(x);
+    const sig = (x && typeof x === 'object' && x.signal) ? x.signal : '';
+    out.push('- ' + c + (sig ? ' | ' + sig : ''));
+  });
+  else out.push('- （なし）');
+  out.push('');
+  out.push('## NG条件');
+  if (ng.length) ng.forEach(x => {
+    const c = fmtCond(x);
+    const lvl = (x && typeof x === 'object' && x.level) ? x.level : '要確認';
+    out.push('- ' + c + ' | ' + lvl);
+  });
+  else out.push('- （なし）');
+  return out.join('\n');
+}
+
+function serializeAllScopePositions(positions) {
+  if (!positions || positions.length === 0) return '';
+  return positions.map(p => serializeScopePosition(p, { useSettingsHeading: false })).join('\n\n---\n\n');
+}
+
+// Markdown を複数ポジションとしてパース。
+// 戻り値: [{ name, companyName, quantitative, qualitative, ng }]
+function parseScopeMarkdown(text) {
+  if (!text) return [];
+  const lines = String(text).split('\n');
+  const blocks = [];
+  let current = null;
+  let section = '';   // 'quant' | 'qual' | 'ng' | ''
+
+  function startBlock(title) {
+    if (current) blocks.push(current);
+    let name = String(title || '').trim();
+    let companyName = '';
+    // 「ポジション名（会社名）」パターンを分離
+    const m = name.match(/^(.*?)[（(]\s*(.+?)\s*[）)]\s*$/);
+    if (m) { name = m[1].trim(); companyName = m[2].trim(); }
+    current = { name, companyName, quantitative: [], qualitative: [], ng: [] };
+    section = '';
+  }
+
+  for (const rawLine of lines) {
+    const line = rawLine.replace(/\r$/, '');
+    const t = line.trim();
+    if (!t) continue;
+    // 区切り線は無視
+    if (/^-{3,}$/.test(t)) continue;
+    // H1 → 新しいポジションブロック
+    const h1 = t.match(/^#\s+(.+)$/);
+    if (h1) { startBlock(h1[1]); continue; }
+    // H2 → セクション切替
+    const h2 = t.match(/^##\s+(.+)$/);
+    if (h2) {
+      if (!current) startBlock('');
+      const s = h2[1].replace(/[：:]/g, '').trim();
+      if (s.includes('定量')) section = 'quant';
+      else if (s.includes('定性')) section = 'qual';
+      else if (s.includes('NG')) section = 'ng';
+      else section = '';
+      continue;
+    }
+    // 箇条書き行
+    const bullet = t.match(/^[-*・]\s*(.+)$/);
+    if (!bullet) continue;
+    const raw = bullet[1].trim();
+    if (!raw || raw === '（なし）' || raw === '(なし)' || raw === 'なし') continue;
+    if (!current) startBlock('');
+    if (section === 'quant') {
+      current.quantitative.push({ condition: raw });
+    } else if (section === 'qual') {
+      const parts = raw.split('|').map(s => s.trim());
+      const condition = parts[0];
+      const signal = parts[1] || '';
+      if (condition) current.qualitative.push({ condition, signal });
+    } else if (section === 'ng') {
+      const parts = raw.split('|').map(s => s.trim());
+      const condition = parts[0];
+      let level = parts[1] || '要確認';
+      if (level !== '非推奨' && level !== '要確認') level = '要確認';
+      if (condition) current.ng.push({ condition, level });
+    }
+  }
+  if (current) blocks.push(current);
+  return blocks;
+}
+
+// UIハンドラ
+function openScopeIoModal({ title, hint, value, mode }) {
+  document.getElementById('scopeIoModalTitle').textContent = title || 'スコープ設定';
+  document.getElementById('scopeIoModalHint').textContent = hint || '';
+  const ta = document.getElementById('scopeIoModalText');
+  ta.value = value || '';
+  ta.readOnly = (mode === 'export');
+  const btn = document.getElementById('scopeIoModalPrimaryBtn');
+  btn.dataset.mode = mode;
+  if (mode === 'export') {
+    btn.innerHTML = '<i data-lucide="clipboard" class="lucide"></i> コピー';
+  } else if (mode === 'import-current') {
+    btn.innerHTML = '<i data-lucide="upload" class="lucide"></i> このポジションに取り込む';
+  } else if (mode === 'import-all') {
+    btn.innerHTML = '<i data-lucide="upload" class="lucide"></i> 新規ポジションとして追加';
+  }
+  openModal('scopeIoModal');
+  if (mode === 'export') {
+    // すぐ全選択しておく
+    setTimeout(() => { try { ta.focus(); ta.select(); } catch (e) {} }, 50);
+  }
+}
+
+async function onScopeIoModalPrimary() {
+  const btn = document.getElementById('scopeIoModalPrimaryBtn');
+  const mode = btn.dataset.mode || 'export';
+  const ta = document.getElementById('scopeIoModalText');
+  if (mode === 'export') {
+    try {
+      await navigator.clipboard.writeText(ta.value || '');
+      showToast('クリップボードにコピーしました', 'success');
+    } catch (e) {
+      ta.focus(); ta.select();
+      showToast('コピーできない環境です。全選択済みなので手動でコピーしてください', 'error');
+    }
+    return;
+  }
+  const blocks = parseScopeMarkdown(ta.value || '');
+  if (!blocks.length) { showToast('取り込めるスコープブロックが見つかりません', 'error'); return; }
+  if (mode === 'import-current') {
+    const pos = (cachedScope.positions || []).find(p => p.id === editingScopePositionId);
+    if (!pos) { showToast('取り込み先のポジションが選択されていません', 'error'); return; }
+    const first = blocks[0];
+    pos.quantitative = normalizeScopeConditions(first.quantitative, 'q');
+    pos.qualitative  = normalizeScopeConditions(first.qualitative, 'ql');
+    pos.ng           = normalizeScopeConditions(first.ng, 'ng');
+    persistScope();
+    syncAtsFile(DRIVE_SCOPE_FILE, cachedScope);
+    closeModal('scopeIoModal');
+    renderScopePane();
+    showToast(`「${pos.name}」に取り込みました（${blocks.length > 1 ? `先頭1件のみ使用。残り${blocks.length - 1}件は無視` : '1件'}）`, 'success');
+    return;
+  }
+  if (mode === 'import-all') {
+    const companyId = editingScopeCompanyId || null;
+    if (!companyId) { showToast('先に会社を選択してください', 'error'); return; }
+    cachedScope.positions = cachedScope.positions || [];
+    let added = 0;
+    blocks.forEach((b, i) => {
+      const posName = b.name || `インポート ${new Date().toISOString().slice(0, 10)} #${i + 1}`;
+      const newPos = {
+        id: 'pos_' + Date.now() + '_' + i,
+        name: posName,
+        companyId,
+        quantitative: normalizeScopeConditions(b.quantitative, 'q'),
+        qualitative:  normalizeScopeConditions(b.qualitative, 'ql'),
+        ng:           normalizeScopeConditions(b.ng, 'ng')
+      };
+      cachedScope.positions.push(newPos);
+      if (i === blocks.length - 1) editingScopePositionId = newPos.id;
+      added++;
+    });
+    persistScope();
+    syncAtsFile(DRIVE_SCOPE_FILE, cachedScope);
+    closeModal('scopeIoModal');
+    renderScopePane();
+    showToast(`${added}件のポジションを追加しました`, 'success');
+    return;
+  }
+}
+
+function exportCurrentScopePosition() {
+  const pos = (cachedScope.positions || []).find(p => p.id === editingScopePositionId);
+  if (!pos) { showToast('ポジションが選択されていません', 'error'); return; }
+  const md = serializeScopePosition(pos, { useSettingsHeading: true });
+  openScopeIoModal({
+    title: `「${pos.name}」をエクスポート`,
+    hint: '下のテキストをコピーして別の環境・他のポジションへ貼り付けできます。',
+    value: md,
+    mode: 'export'
+  });
+}
+
+function exportAllScopePositions() {
+  const positions = cachedScope.positions || [];
+  if (!positions.length) { showToast('エクスポート対象のポジションがありません', 'error'); return; }
+  const md = serializeAllScopePositions(positions);
+  openScopeIoModal({
+    title: `全${positions.length}ポジションをエクスポート`,
+    hint: 'ポジション区切りは「---」。各ブロック冒頭の「# ポジション名（会社名）」は取り込み時にそのまま使われます。',
+    value: md,
+    mode: 'export'
+  });
+}
+
+function openImportCurrentScopeModal() {
+  const pos = (cachedScope.positions || []).find(p => p.id === editingScopePositionId);
+  if (!pos) { showToast('取り込み先のポジションが選択されていません', 'error'); return; }
+  openScopeIoModal({
+    title: `「${pos.name}」に取り込み`,
+    hint: '貼り付けた内容で、現在選択中のポジションの定量・定性・NG条件を上書きします（複数ポジションが含まれる場合は先頭の1件のみ使用）。',
+    value: '',
+    mode: 'import-current'
+  });
+}
+
+function openImportAllScopeModal() {
+  if (!editingScopeCompanyId) { showToast('先に会社を選択してください', 'error'); return; }
+  openScopeIoModal({
+    title: '新規ポジションとして取り込み',
+    hint: `貼り付けた各「# 見出し」ブロックを、選択中の会社配下の新規ポジションとして追加します。`,
+    value: '',
+    mode: 'import-all'
+  });
 }
 
 // -- Template pane --
