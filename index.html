@@ -1797,7 +1797,12 @@
         </div>
         <div class="settings-field">
           <label class="settings-field-label">ポジション</label>
-          <select class="scout-input" style="max-width: 300px;" id="scopePositionSelect" onchange="onScopePositionChange()"></select>
+          <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            <select class="scout-input" style="max-width: 300px; flex: 1 1 auto;" id="scopePositionSelect" onchange="onScopePositionChange()"></select>
+            <button class="btn btn-small" onclick="addNewScopePosition()"><i data-lucide="plus" class="lucide"></i> 新規ポジション</button>
+            <button class="btn btn-small" onclick="renameCurrentScopePosition()"><i data-lucide="pencil" class="lucide"></i> 名前変更</button>
+            <button class="btn btn-small" onclick="deleteCurrentScopePosition()"><i data-lucide="trash-2" class="lucide"></i> 削除</button>
+          </div>
         </div>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
           <div class="settings-field">
@@ -9148,6 +9153,50 @@ function saveScopeSettings() {
   persistScope();
   syncAtsFile(DRIVE_SCOPE_FILE, cachedScope);
   showToast('スコープ設定を保存しました', 'success');
+}
+
+function addNewScopePosition() {
+  const companyId = editingScopeCompanyId || null;
+  if (!companyId) { showToast('先に会社を選択してください', 'error'); return; }
+  const name = (prompt('新規ポジション名を入力してください', '新規ポジション') || '').trim();
+  if (!name) return;
+  const newPos = {
+    id: 'pos_' + Date.now(),
+    name,
+    companyId,
+    quantitative: [], qualitative: [], ng: []
+  };
+  cachedScope.positions = cachedScope.positions || [];
+  cachedScope.positions.push(newPos);
+  editingScopePositionId = newPos.id;
+  persistScope();
+  syncAtsFile(DRIVE_SCOPE_FILE, cachedScope);
+  renderScopePane();
+  showToast('ポジションを追加しました', 'success');
+}
+
+function renameCurrentScopePosition() {
+  const pos = (cachedScope.positions || []).find(p => p.id === editingScopePositionId);
+  if (!pos) { showToast('ポジションが選択されていません', 'error'); return; }
+  const name = (prompt('新しいポジション名を入力してください', pos.name || '') || '').trim();
+  if (!name || name === pos.name) return;
+  pos.name = name;
+  persistScope();
+  syncAtsFile(DRIVE_SCOPE_FILE, cachedScope);
+  renderScopePane();
+  showToast('ポジション名を変更しました', 'success');
+}
+
+function deleteCurrentScopePosition() {
+  const pos = (cachedScope.positions || []).find(p => p.id === editingScopePositionId);
+  if (!pos) { showToast('ポジションが選択されていません', 'error'); return; }
+  if (!confirm(`ポジション「${pos.name}」を削除しますか？\nこのポジションに紐づく候補者のスコープ判定結果は残りますが、新規判定対象からは外れます。`)) return;
+  cachedScope.positions = (cachedScope.positions || []).filter(p => p.id !== pos.id);
+  editingScopePositionId = null;
+  persistScope();
+  syncAtsFile(DRIVE_SCOPE_FILE, cachedScope);
+  renderScopePane();
+  showToast('ポジションを削除しました', 'success');
 }
 
 // -- Template pane --
