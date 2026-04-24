@@ -1892,6 +1892,19 @@
             <button class="btn btn-small" onclick="deleteCurrentScopePosition()"><i data-lucide="trash-2" class="lucide"></i> 削除</button>
           </div>
         </div>
+        <div class="settings-field" style="background: var(--bg-secondary); padding: 14px 16px; border-radius: 8px; margin-bottom: 16px;">
+          <label class="settings-field-label" style="margin-bottom: 8px;">条件を追加する</label>
+          <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button class="btn btn-small" onclick="openScopeAutoGenerateModal()"><i data-lucide="sparkles" class="lucide"></i> ① プロフィールから生成</button>
+            <button class="btn btn-small" onclick="openImportCurrentScopeModal()"><i data-lucide="upload" class="lucide"></i> ② インポート</button>
+            <button class="btn btn-small" onclick="addScopeItemPrompt()"><i data-lucide="plus" class="lucide"></i> ③ 手動追加</button>
+          </div>
+          <div style="font-size: 11px; color: var(--text-secondary); margin-top: 8px;">
+            ① 既存メンバーのプロフィールを貼るとAIが条件を抽出してマージします。<br>
+            ② このポジションに Markdown を取り込みます。<br>
+            ③ セクションを選んで空の条件行を追加します（各セクションの「条件を追加」ボタンでも可）。
+          </div>
+        </div>
         <div class="settings-field">
           <div class="scope-editor-group">
             <div class="scope-editor-group-header">
@@ -2377,6 +2390,23 @@
     <div class="modal-actions">
       <button class="btn" onclick="closeModal('candidateEditModal')">キャンセル</button>
       <button class="btn btn-primary" onclick="saveCandidateFromEditModal()">保存</button>
+    </div>
+  </div>
+</div>
+
+<!-- スコープ設定：プロフィールから自動生成モーダル -->
+<div class="modal-overlay" id="scopeAutoGenModal">
+  <div class="modal-card" style="max-width: 720px;">
+    <div class="modal-title">プロフィールから条件を自動生成</div>
+    <div style="font-size: 12px; color: var(--text-secondary); margin-bottom: 10px; line-height: 1.6;">
+      既存メンバーのプロフィール（複数名分まとめて可）を貼り付けると、Claudeが共通する採用スコープ条件を抽出します。<br>
+      <strong>既存条件にマージ</strong>され、重複する条件は除外されます（既存条件は削除されません）。
+    </div>
+    <textarea class="form-input" id="scopeAutoGenInput" placeholder="メンバーのプロフィールをここに貼り付けてください（複数名分をまとめて貼付可）..." style="min-height: 320px; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 12px; line-height: 1.6;"></textarea>
+    <div id="scopeAutoGenError" style="color: var(--error); font-size: 12px; margin-top: 6px; display: none;"></div>
+    <div class="modal-actions">
+      <button class="btn" onclick="closeModal('scopeAutoGenModal')">キャンセル</button>
+      <button class="btn btn-primary" id="scopeAutoGenBtn" onclick="runScopeAutoGenerate()"><i data-lucide="sparkles" class="lucide"></i> スコープを自動生成する</button>
     </div>
   </div>
 </div>
@@ -9395,6 +9425,178 @@ function deleteScopeItem(section, id) {
   if (scopeEditingItemKey === section + '::' + id) scopeEditingItemKey = null;
   persistScope();
   renderScopeEditor();
+}
+
+// 手動追加（セクション選択プロンプト経由）
+function addScopeItemPrompt() {
+  if (!editingScopePositionId) { showToast('ポジションを選択してください', 'error'); return; }
+  const choice = prompt('追加するセクションを選んでください：\n1. 定量条件\n2. 定性条件\n3. NG条件\n\n番号を入力してください（1〜3）', '1');
+  if (!choice) return;
+  const map = { '1': 'quantitative', '2': 'qualitative', '3': 'ng' };
+  const section = map[choice.trim()];
+  if (!section) { showToast('1〜3 のいずれかを入力してください', 'error'); return; }
+  addScopeItem(section);
+}
+
+// ========== AI自動生成（メンバープロフィール → 条件抽出） ==========
+function openScopeAutoGenerateModal() {
+  if (!editingScopePositionId) { showToast('先にポジションを選択してください', 'error'); return; }
+  const pos = (cachedScope.positions || []).find(p => p.id === editingScopePositionId);
+  if (!pos) { showToast('ポジションが見つかりません', 'error'); return; }
+  document.getElementById('scopeAutoGenInput').value = '';
+  const errEl = document.getElementById('scopeAutoGenError');
+  if (errEl) { errEl.textContent = ''; errEl.style.display = 'none'; }
+  openModal('scopeAutoGenModal');
+  setTimeout(() => { try { document.getElementById('scopeAutoGenInput').focus(); } catch (e) {} }, 50);
+}
+
+async function runScopeAutoGenerate() {
+  const apiKey = localStorage.getItem(LS_API_KEY);
+  const errEl = document.getElementById('scopeAutoGenError');
+  const showErr = msg => { if (errEl) { errEl.textContent = msg; errEl.style.display = ''; } };
+  if (!apiKey) { showErr('APIキーが未設定です。設定画面でAPIキーを登録してください'); return; }
+  const profiles = (document.getElementById('scopeAutoGenInput').value || '').trim();
+  if (!profiles) { showErr('プロフィールを貼り付けてください'); return; }
+  const pos = (cachedScope.positions || []).find(p => p.id === editingScopePositionId);
+  if (!pos) { showErr('ポジションが見つかりません'); return; }
+
+  // 既存条件のテキスト表現（重複回避のためプロンプトに含める）
+  const fmt = (items, withSignal, withLevel) => {
+    if (!items || items.length === 0) return '- （なし）';
+    return items.map(it => {
+      let line = '- ' + (it.condition || '');
+      if (withSignal && it.signal) line += '（シグナル例：' + it.signal + '）';
+      if (withLevel && it.level) line = '- [' + it.level + '] ' + (it.condition || '');
+      return line;
+    }).join('\n');
+  };
+  const existingQuantText = fmt(pos.quantitative, false, false);
+  const existingQualText  = fmt(pos.qualitative,  true,  false);
+  const existingNgText    = fmt(pos.ng,           false, true);
+
+  const prompt = `以下は採用で入社したメンバーのプロフィールです。
+これらのプロフィールから共通する採用スコープ条件を抽出し、整理したうえで出力してください。
+
+# 条件の抽出ルール
+・定量条件：最大3つまで（最も共通度が高いものを厳選）
+・定性条件：最大5つまで（最も共通度が高いものを厳選）
+・NG条件：最大3つまで（最も重要なものを厳選）
+・1名だけに当てはまる特徴はスコープに含めない
+・複数名に共通するものだけを抽出する
+
+# 条件の整理ルール
+上記で抽出した条件を、以下の観点で整理してから出力してください。
+・重複している条件はまとめる
+・似た条件は統合して1つにする
+・より汎用的・シンプルな表現に整える
+・下記の既存条件と重複するもの（同じ意味・ほぼ同じ表現）は出力に含めない
+
+# 既存条件（これらと重複する条件は出力しないでください）
+
+## 既存の定量条件
+${existingQuantText}
+
+## 既存の定性条件
+${existingQualText}
+
+## 既存のNG条件
+${existingNgText}
+
+# 出力形式
+整理後の最終的な条件のみを、以下のJSON形式で出力してください。
+JSON以外の文字（説明文・コードフェンスなど）は一切出力しないでください。
+
+{
+  "quantitative": [
+    {"id": "q1", "condition": "条件のテキスト"}
+  ],
+  "qualitative": [
+    {"id": "ql1", "condition": "条件のテキスト", "signal": "シグナル例"}
+  ],
+  "ng": [
+    {"id": "ng1", "condition": "条件のテキスト", "level": "非推奨または要確認"}
+  ]
+}
+
+# メンバーのプロフィール
+${profiles}`;
+
+  const btn = document.getElementById('scopeAutoGenBtn');
+  if (btn) btn.disabled = true;
+  showLoading(true);
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-5-20250929',
+        max_tokens: 4000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+    if (!res.ok) {
+      const errJson = await res.json().catch(() => ({}));
+      throw new Error((errJson.error && errJson.error.message) || ('API Error: ' + res.status));
+    }
+    const data = await res.json();
+    let textOut = ((data.content && data.content[0] && data.content[0].text) || '').trim();
+    textOut = textOut.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim();
+    const m = textOut.match(/\{[\s\S]*\}/);
+    if (m) textOut = m[0];
+    const parsed = JSON.parse(textOut);
+
+    const added = mergeScopeGeneratedConditions(pos, parsed);
+    persistScope();
+    closeModal('scopeAutoGenModal');
+    renderScopeEditor();
+    const total = added.quantitative + added.qualitative + added.ng;
+    if (total === 0) {
+      showToast('新しい条件は見つかりませんでした（既存条件と重複）', 'info');
+    } else {
+      showToast(`${total}件の条件を追加しました（定量:${added.quantitative} / 定性:${added.qualitative} / NG:${added.ng}）`, 'success');
+    }
+  } catch (e) {
+    console.warn('[Scope] auto-generate failed', e);
+    showErr('生成に失敗しました: ' + e.message);
+  } finally {
+    if (btn) btn.disabled = false;
+    showLoading(false);
+  }
+}
+
+// AI生成結果を既存ポジションにマージ（重複しないIDを再生成してappend）
+function mergeScopeGeneratedConditions(pos, parsed) {
+  const added = { quantitative: 0, qualitative: 0, ng: 0 };
+  const sections = [
+    { key: 'quantitative', prefix: 'q' },
+    { key: 'qualitative',  prefix: 'ql' },
+    { key: 'ng',           prefix: 'ng' }
+  ];
+  sections.forEach(({ key, prefix }) => {
+    const incoming = Array.isArray(parsed && parsed[key]) ? parsed[key] : [];
+    pos[key] = pos[key] || [];
+    const existingConds = new Set((pos[key] || []).map(x => (x.condition || '').trim().toLowerCase()));
+    incoming.forEach((item, i) => {
+      if (!item || !item.condition) return;
+      const cond = String(item.condition).trim();
+      if (!cond) return;
+      if (existingConds.has(cond.toLowerCase())) return;
+      const newItem = { id: prefix + '_' + Date.now() + '_' + i, condition: cond };
+      if (key === 'qualitative') newItem.signal = item.signal ? String(item.signal) : '';
+      if (key === 'ng') {
+        newItem.level = (item.level === '非推奨' || item.level === '要確認') ? item.level : '要確認';
+      }
+      pos[key].push(newItem);
+      existingConds.add(cond.toLowerCase());
+      added[key]++;
+    });
+  });
+  return added;
 }
 function onScopeCompanyChange() {
   editingScopeCompanyId = document.getElementById('scopeCompanySelect').value;
