@@ -1490,6 +1490,94 @@
   .history-scope-badge.ng   { background: var(--error-bg);   color: var(--error);   border: 1px solid var(--error); }
   .history-scope-badge.none { background: var(--bg);         color: var(--text-secondary); border: 1px solid var(--border); }
 
+  /* ===== スコープ条件エディタ（行ごと編集UI） ===== */
+  .scope-editor-group {
+    margin-bottom: 16px;
+  }
+  .scope-editor-group-header {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 8px; flex-wrap: wrap;
+  }
+  .scope-editor-group-title {
+    font-size: 14px; font-weight: 600; color: var(--primary);
+  }
+  .scope-editor-group-score {
+    font-size: 12px; color: var(--text-secondary);
+  }
+  .scope-editor-help {
+    font-size: 11px; color: var(--text-secondary);
+    background: transparent; border: 1px solid var(--border);
+    border-radius: 50%; width: 18px; height: 18px;
+    display: inline-flex; align-items: center; justify-content: center;
+    cursor: help;
+  }
+  .scope-editor-list {
+    display: flex; flex-direction: column; gap: 6px;
+    margin-bottom: 8px;
+  }
+  .scope-editor-item {
+    display: flex; align-items: center; gap: 10px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 8px 12px;
+    min-height: 40px;
+  }
+  .scope-editor-item.editing {
+    border-color: var(--primary);
+    background: var(--bg-secondary);
+  }
+  .scope-editor-content {
+    flex: 1; min-width: 0;
+  }
+  .scope-editor-text {
+    font-size: 13px; color: var(--text);
+    word-break: break-word; line-height: 1.5;
+  }
+  .scope-editor-sub {
+    font-size: 11px; color: var(--text-secondary);
+    margin-top: 3px; line-height: 1.5;
+  }
+  .scope-editor-level {
+    display: inline-block;
+    font-size: 10px; font-weight: 700;
+    padding: 1px 6px; border-radius: 3px;
+    margin-right: 6px; vertical-align: 1px;
+  }
+  .scope-editor-level.bad  { background: var(--error-bg);   color: var(--error);   border: 1px solid var(--error); }
+  .scope-editor-level.warn { background: #fff5e6;           color: #c47b1a;        border: 1px solid #e89c3d; }
+  .scope-editor-fields {
+    flex: 1; display: flex; flex-direction: column; gap: 6px;
+  }
+  .scope-editor-input, .scope-editor-select {
+    padding: 6px 10px; font-size: 13px;
+    border: 1px solid var(--border); border-radius: 4px;
+    font-family: inherit; background: var(--bg-primary);
+  }
+  .scope-editor-input:focus, .scope-editor-select:focus {
+    outline: none; border-color: var(--primary);
+  }
+  .scope-editor-actions { display: flex; gap: 4px; flex-shrink: 0; }
+  .scope-editor-btn {
+    padding: 4px 10px; font-size: 11px; font-weight: 500;
+    border: 1px solid var(--border); border-radius: 4px;
+    background: var(--bg-primary); color: var(--text);
+    cursor: pointer; font-family: inherit;
+  }
+  .scope-editor-btn:hover { border-color: var(--primary); }
+  .scope-editor-btn.save { background: var(--primary); color: #fff; border-color: var(--primary); }
+  .scope-editor-btn.delete:hover { border-color: var(--error); color: var(--error); }
+  .scope-editor-empty {
+    text-align: center; padding: 16px;
+    color: var(--text-secondary); font-size: 12px;
+    background: var(--bg-secondary); border-radius: 6px;
+    border: 1px dashed var(--border);
+  }
+  .scope-editor-add-row {
+    display: flex; gap: 8px; flex-wrap: wrap;
+    margin-top: 6px;
+  }
+
   /* Lucide icon base */
   .lucide {
     width: 14px; height: 14px;
@@ -1804,23 +1892,43 @@
             <button class="btn btn-small" onclick="deleteCurrentScopePosition()"><i data-lucide="trash-2" class="lucide"></i> 削除</button>
           </div>
         </div>
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-          <div class="settings-field">
-            <label class="settings-field-label">定量条件（1行1項目）</label>
-            <textarea class="settings-textarea" id="scopeQuant" style="min-height: 130px;"></textarea>
-          </div>
-          <div class="settings-field">
-            <label class="settings-field-label">定性条件（1行1項目）</label>
-            <textarea class="settings-textarea" id="scopeQual" style="min-height: 130px;"></textarea>
-          </div>
-        </div>
         <div class="settings-field">
-          <label class="settings-field-label">NG条件（任意、1行1項目）</label>
-          <textarea class="settings-textarea" id="scopeNG"></textarea>
+          <div class="scope-editor-group">
+            <div class="scope-editor-group-header">
+              <span class="scope-editor-group-title">■ 定量条件</span>
+              <span class="scope-editor-group-score">（✅ 1件 = 3点）</span>
+              <span class="scope-editor-help" title="満たすと推奨スコアが加算される、客観的に判定可能な条件">?</span>
+            </div>
+            <div class="scope-editor-list" id="scopeEditorQuant"></div>
+            <div class="scope-editor-add-row">
+              <button class="btn btn-small" onclick="addScopeItem('quantitative')"><i data-lucide="plus" class="lucide"></i> 条件を追加</button>
+            </div>
+          </div>
+          <div class="scope-editor-group">
+            <div class="scope-editor-group-header">
+              <span class="scope-editor-group-title">■ 定性条件</span>
+              <span class="scope-editor-group-score">（✅ 1件 = 2点）</span>
+              <span class="scope-editor-help" title="シグナル例を添えて、プロフィールから読み取れる傾向を判定">?</span>
+            </div>
+            <div class="scope-editor-list" id="scopeEditorQual"></div>
+            <div class="scope-editor-add-row">
+              <button class="btn btn-small" onclick="addScopeItem('qualitative')"><i data-lucide="plus" class="lucide"></i> 条件を追加</button>
+            </div>
+          </div>
+          <div class="scope-editor-group">
+            <div class="scope-editor-group-header">
+              <span class="scope-editor-group-title">■ NG条件</span>
+              <span class="scope-editor-group-score">（非推奨 = -5点 / 要確認 = -2点）</span>
+              <span class="scope-editor-help" title="非推奨は見送り判定の根拠になる強い条件、要確認は確認ポイント">?</span>
+            </div>
+            <div class="scope-editor-list" id="scopeEditorNg"></div>
+            <div class="scope-editor-add-row">
+              <button class="btn btn-small" onclick="addScopeItem('ng')"><i data-lucide="plus" class="lucide"></i> 条件を追加</button>
+            </div>
+          </div>
         </div>
         <div class="settings-actions">
-          <button class="btn" onclick="renderScopePane()">キャンセル</button>
-          <button class="btn btn-primary" onclick="saveScopeSettings()"><i data-lucide="save" class="lucide"></i> 保存</button>
+          <button class="btn btn-primary" onclick="saveScopeSettings()"><i data-lucide="save" class="lucide"></i> クラウドに保存</button>
         </div>
 
         <div class="settings-field" style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border);">
@@ -9141,23 +9249,152 @@ function renderScopePane() {
   if (!editingScopePositionId && positions.length) editingScopePositionId = positions[0].id;
   if (editingScopePositionId) posSel.value = editingScopePositionId;
 
+  renderScopeEditor();
+}
+
+// ========== 行ごと編集UI ==========
+// scopeEditingItemKey: 'section::itemId' 形式で、現在インライン編集中のアイテムを指す
+let scopeEditingItemKey = null;
+
+function renderScopeEditor() {
+  renderScopeEditorSection('quantitative', 'scopeEditorQuant');
+  renderScopeEditorSection('qualitative',  'scopeEditorQual');
+  renderScopeEditorSection('ng',           'scopeEditorNg');
+}
+
+function renderScopeEditorSection(section, containerId) {
+  const container = document.getElementById(containerId);
+  if (!container) return;
   const pos = (cachedScope.positions || []).find(p => p.id === editingScopePositionId);
-  // 定量: 条件だけ。定性: 「条件 | シグナル」、NG: 「条件 | 要確認/非推奨」形式で表示・編集できる。
-  const quantLines = arr => (arr || []).map(x => (typeof x === 'string') ? x : x.condition).filter(Boolean).join('\n');
-  const qualLines  = arr => (arr || []).map(x => {
-    if (typeof x === 'string') return x;
-    if (!x.condition) return '';
-    return x.signal ? `${x.condition} | ${x.signal}` : x.condition;
-  }).filter(Boolean).join('\n');
-  const ngLines    = arr => (arr || []).map(x => {
-    if (typeof x === 'string') return `${x} | 要確認`;
-    if (!x.condition) return '';
-    const lvl = (x.level === '非推奨' || x.level === '要確認') ? x.level : '要確認';
-    return `${x.condition} | ${lvl}`;
-  }).filter(Boolean).join('\n');
-  document.getElementById('scopeQuant').value = pos ? quantLines(pos.quantitative) : '';
-  document.getElementById('scopeQual').value  = pos ? qualLines(pos.qualitative)   : '';
-  document.getElementById('scopeNG').value    = pos ? ngLines(pos.ng)              : '';
+  const items = (pos && pos[section]) || [];
+  if (items.length === 0) {
+    container.innerHTML = '<div class="scope-editor-empty">条件がありません。下の「条件を追加」から追加できます。</div>';
+    return;
+  }
+  container.innerHTML = items.map(item => {
+    const editingKey = section + '::' + item.id;
+    const isEditing = scopeEditingItemKey === editingKey;
+    if (isEditing) {
+      let fields = `<input type="text" class="scope-editor-input" id="editInput_${escapeHtml(section)}_${escapeHtml(item.id)}_cond" value="${escapeHtml(item.condition || '')}" placeholder="条件">`;
+      if (section === 'qualitative') {
+        fields += `<input type="text" class="scope-editor-input" id="editInput_${escapeHtml(section)}_${escapeHtml(item.id)}_signal" value="${escapeHtml(item.signal || '')}" placeholder="シグナル例（プロフィール上の手がかり）">`;
+      } else if (section === 'ng') {
+        fields += `<select class="scope-editor-select" id="editInput_${escapeHtml(section)}_${escapeHtml(item.id)}_level">
+          <option value="非推奨" ${item.level === '非推奨' ? 'selected' : ''}>非推奨（−5点）</option>
+          <option value="要確認" ${item.level !== '非推奨' ? 'selected' : ''}>要確認（−2点）</option>
+        </select>`;
+      }
+      return `<div class="scope-editor-item editing">
+        <div class="scope-editor-fields">${fields}</div>
+        <div class="scope-editor-actions">
+          <button class="scope-editor-btn save" onclick="saveScopeItemEdit('${escapeHtml(section)}','${escapeHtml(item.id)}')">保存</button>
+          <button class="scope-editor-btn" onclick="cancelScopeItemEdit()">キャンセル</button>
+        </div>
+      </div>`;
+    }
+    let displayHtml = '';
+    if (section === 'qualitative') {
+      displayHtml = `<div class="scope-editor-text">${escapeHtml(item.condition || '')}</div>`;
+      if (item.signal) displayHtml += `<div class="scope-editor-sub">シグナル例：${escapeHtml(item.signal)}</div>`;
+    } else if (section === 'ng') {
+      const levelCls = item.level === '非推奨' ? 'bad' : 'warn';
+      displayHtml = `<div class="scope-editor-text"><span class="scope-editor-level ${levelCls}">${escapeHtml(item.level || '要確認')}</span>${escapeHtml(item.condition || '')}</div>`;
+    } else {
+      displayHtml = `<div class="scope-editor-text">${escapeHtml(item.condition || '')}</div>`;
+    }
+    return `<div class="scope-editor-item">
+      <div class="scope-editor-content">${displayHtml}</div>
+      <div class="scope-editor-actions">
+        <button class="scope-editor-btn" onclick="editScopeItem('${escapeHtml(section)}','${escapeHtml(item.id)}')"><i data-lucide="pencil" class="lucide"></i> 編集</button>
+        <button class="scope-editor-btn delete" onclick="deleteScopeItem('${escapeHtml(section)}','${escapeHtml(item.id)}')"><i data-lucide="trash-2" class="lucide"></i> 削除</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function addScopeItem(section) {
+  if (!editingScopePositionId) { showToast('ポジションが選択されていません', 'error'); return; }
+  const pos = (cachedScope.positions || []).find(p => p.id === editingScopePositionId);
+  if (!pos) return;
+  const prefix = section === 'quantitative' ? 'q' : (section === 'qualitative' ? 'ql' : 'ng');
+  const newId = prefix + '_' + Date.now();
+  const base = { id: newId, condition: '' };
+  if (section === 'qualitative') base.signal = '';
+  if (section === 'ng') base.level = '要確認';
+  pos[section] = pos[section] || [];
+  pos[section].push(base);
+  scopeEditingItemKey = section + '::' + newId;
+  persistScope();
+  renderScopeEditor();
+  // フォーカスして即入力できるように
+  setTimeout(() => {
+    const el = document.getElementById(`editInput_${section}_${newId}_cond`);
+    if (el) el.focus();
+  }, 50);
+}
+
+function editScopeItem(section, id) {
+  scopeEditingItemKey = section + '::' + id;
+  renderScopeEditor();
+  setTimeout(() => {
+    const el = document.getElementById(`editInput_${section}_${id}_cond`);
+    if (el) { el.focus(); el.select(); }
+  }, 50);
+}
+
+function cancelScopeItemEdit() {
+  // 新規追加直後に空のままキャンセルされた場合は、自動で行を削除する
+  if (scopeEditingItemKey) {
+    const [section, id] = scopeEditingItemKey.split('::');
+    const pos = (cachedScope.positions || []).find(p => p.id === editingScopePositionId);
+    if (pos && pos[section]) {
+      const item = pos[section].find(x => x.id === id);
+      if (item && !item.condition) {
+        pos[section] = pos[section].filter(x => x.id !== id);
+        persistScope();
+      }
+    }
+  }
+  scopeEditingItemKey = null;
+  renderScopeEditor();
+}
+
+function saveScopeItemEdit(section, id) {
+  const pos = (cachedScope.positions || []).find(p => p.id === editingScopePositionId);
+  if (!pos) return;
+  const item = (pos[section] || []).find(x => x.id === id);
+  if (!item) return;
+  const condEl = document.getElementById(`editInput_${section}_${id}_cond`);
+  const cond = condEl ? condEl.value.trim() : '';
+  if (!cond) { showToast('条件を入力してください', 'error'); return; }
+  item.condition = cond;
+  if (section === 'qualitative') {
+    const sigEl = document.getElementById(`editInput_${section}_${id}_signal`);
+    if (sigEl) item.signal = sigEl.value.trim();
+  } else if (section === 'ng') {
+    const levelEl = document.getElementById(`editInput_${section}_${id}_level`);
+    if (levelEl && (levelEl.value === '非推奨' || levelEl.value === '要確認')) {
+      item.level = levelEl.value;
+    } else {
+      item.level = '要確認';
+    }
+  }
+  scopeEditingItemKey = null;
+  persistScope();
+  renderScopeEditor();
+}
+
+function deleteScopeItem(section, id) {
+  const pos = (cachedScope.positions || []).find(p => p.id === editingScopePositionId);
+  if (!pos || !pos[section]) return;
+  const item = pos[section].find(x => x.id === id);
+  if (!item) return;
+  const label = item.condition ? `「${item.condition}」` : '（空の条件）';
+  if (!confirm(`${label} を削除しますか？`)) return;
+  pos[section] = pos[section].filter(x => x.id !== id);
+  if (scopeEditingItemKey === section + '::' + id) scopeEditingItemKey = null;
+  persistScope();
+  renderScopeEditor();
 }
 function onScopeCompanyChange() {
   editingScopeCompanyId = document.getElementById('scopeCompanySelect').value;
@@ -9169,37 +9406,11 @@ function onScopePositionChange() {
   renderScopePane();
 }
 function saveScopeSettings() {
-  const posId = editingScopePositionId;
-  if (!posId) {
-    // Create new default position for this company
-    const newPos = {
-      id: 'pos_' + Date.now(),
-      name: 'デフォルトポジション',
-      companyId: editingScopeCompanyId || null,
-      quantitative: [], qualitative: [], ng: []
-    };
-    cachedScope.positions = cachedScope.positions || [];
-    cachedScope.positions.push(newPos);
-    editingScopePositionId = newPos.id;
-  }
-  const pos = cachedScope.positions.find(p => p.id === editingScopePositionId);
-  if (!pos) return;
-  const lines = id => document.getElementById(id).value.split('\n').map(s => s.trim()).filter(Boolean);
-  const parseQual = lines('scopeQual').map(raw => {
-    const p = raw.split('|').map(s => s.trim());
-    return { condition: p[0], signal: p[1] || '' };
-  });
-  const parseNg = lines('scopeNG').map(raw => {
-    const p = raw.split('|').map(s => s.trim());
-    const lvl = (p[1] === '非推奨' || p[1] === '要確認') ? p[1] : '要確認';
-    return { condition: p[0], level: lvl };
-  });
-  pos.quantitative = normalizeScopeConditions(lines('scopeQuant').map(c => ({ condition: c })), 'q');
-  pos.qualitative  = normalizeScopeConditions(parseQual, 'ql');
-  pos.ng           = normalizeScopeConditions(parseNg, 'ng');
+  // 行エディタ方式では add/edit/delete 時点で既に persistScope 済み。
+  // このボタンは Drive への同期をトリガーする。
   persistScope();
   syncAtsFile(DRIVE_SCOPE_FILE, cachedScope);
-  showToast('スコープ設定を保存しました', 'success');
+  showToast('スコープ設定をクラウドに保存しました', 'success');
 }
 
 function addNewScopePosition() {
