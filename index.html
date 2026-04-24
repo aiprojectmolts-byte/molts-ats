@@ -3301,6 +3301,20 @@ async function loadAllFromDrive() {
       if (dash.thresholds) cachedDashboard.thresholds = { ...cachedDashboard.thresholds, ...dash.thresholds };
       persistDashboard();
     }
+
+    // candidates/ サブフォルダから各候補者の詳細JSONをプリフェッチして localStorage に保存。
+    // 詳細画面 (openCandidateDetail) や一覧描画内の loadCandidate() は localStorage のみを参照するため、
+    // 別 origin（例: GitHub Pages）でログインしたときに localStorage が空だと詳細が開けなくなる。
+    if (idx && Array.isArray(idx.candidates) && idx.candidates.length > 0) {
+      const entries = idx.candidates;
+      const results = await Promise.allSettled(entries.map(e => DriveStorage.readCandidate(e.id)));
+      let loaded = 0;
+      results.forEach((r, i) => {
+        if (r.status === 'fulfilled' && r.value) { persistCandidate(r.value); loaded++; }
+        else if (r.status === 'rejected') console.warn('[Drive] readCandidate failed ->', entries[i].id, r.reason);
+      });
+      console.log('[Drive] prefetched candidate details:', loaded + '/' + entries.length);
+    }
   } catch (e) {
     console.warn('[Drive] load failed', e);
   }
