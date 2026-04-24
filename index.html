@@ -2961,11 +2961,16 @@ const DriveStorage = {
   },
   async readJSONFromFolder(folderId, filename, cache) {
     const fileId = await this.findFileInFolder(folderId, filename, cache);
-    if (!fileId) return null;
+    if (!fileId) {
+      console.log('[Drive] readJSONFromFolder: file not found ->', filename, '(folder:', folderId + ')');
+      return null;
+    }
     const res = await this.apiRequest(
       'https://www.googleapis.com/drive/v3/files/' + fileId + '?alt=media'
     );
-    return await res.json();
+    const json = await res.json();
+    console.log('[Drive] readJSONFromFolder: loaded ->', filename, '(id:', fileId + ')');
+    return json;
   },
 
   async writeAts(filename, data)  { const f = await this.ensureAtsFolder();      return this.writeJSONToFolder(f, filename, data, this.fileIds); },
@@ -3259,19 +3264,22 @@ document.addEventListener('click', (e) => {
 async function loadAllFromDrive() {
   if (!DriveStorage.isAuthenticated()) return;
   try {
-    const [idx, companies, interviewers, users, scope, templates, slack, gcal, gmail, gmailPending, dash] = await Promise.all([
-      DriveStorage.readAts(DRIVE_INDEX_FILE),
-      DriveStorage.readAts(DRIVE_COMPANIES_FILE),
-      DriveStorage.readAts(DRIVE_INTERVIEWERS_FILE),
-      DriveStorage.readAts(DRIVE_USERS_FILE),
-      DriveStorage.readAts(DRIVE_SCOPE_FILE),
-      DriveStorage.readAts(DRIVE_TEMPLATES_FILE),
-      DriveStorage.readAts(DRIVE_SLACK_FILE),
-      DriveStorage.readAts(DRIVE_GCAL_FILE),
-      DriveStorage.readAts(DRIVE_GMAIL_FILE),
-      DriveStorage.readAts(DRIVE_GMAIL_PENDING_FILE),
-      DriveStorage.readAts(DRIVE_DASHBOARD_FILE)
-    ]);
+    const files = [
+      DRIVE_INDEX_FILE, DRIVE_COMPANIES_FILE, DRIVE_INTERVIEWERS_FILE, DRIVE_USERS_FILE,
+      DRIVE_SCOPE_FILE, DRIVE_TEMPLATES_FILE, DRIVE_SLACK_FILE, DRIVE_GCAL_FILE,
+      DRIVE_GMAIL_FILE, DRIVE_GMAIL_PENDING_FILE, DRIVE_DASHBOARD_FILE
+    ];
+    const results = await Promise.allSettled(files.map(f => DriveStorage.readAts(f)));
+    const values = results.map((r, i) => {
+      if (r.status === 'fulfilled') return r.value;
+      console.warn('[Drive] loadAllFromDrive: failed ->', files[i], r.reason);
+      return null;
+    });
+    const [idx, companies, interviewers, users, scope, templates, slack, gcal, gmail, gmailPending, dash] = values;
+    console.log('[Drive] loadAllFromDrive summary:',
+      'idx=', idx && Array.isArray(idx.candidates) ? idx.candidates.length + ' candidates' : 'none',
+      '| users=', users && Array.isArray(users.users) ? users.users.length : 'none',
+      '| companies=', companies && Array.isArray(companies.companies) ? companies.companies.length : 'none');
     if (idx && Array.isArray(idx.candidates)) { cachedIndex = idx; persistIndex(); }
     if (companies && Array.isArray(companies.companies)) { cachedCompanies = companies; persistCompanies(); }
     if (interviewers && Array.isArray(interviewers.interviewers)) { cachedInterviewers = interviewers; persistInterviewers(); }
