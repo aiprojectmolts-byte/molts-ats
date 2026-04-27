@@ -30,3 +30,7 @@ git commit -m "機能名：説明"
 git checkout main
 git merge feature/機能名
 ```
+
+## マニュアル
+- [管理者マニュアル](docs/manual-admin.docx)
+- [メンバーマニュアル](docs/manual-member.docx)
