@@ -3813,11 +3813,6 @@ function renderCandidateList() {
   const onlyMine    = document.getElementById('filterMine').checked;
 
   let list = (cachedIndex.candidates || []).slice();
-  // 面接官ロールは常に自分担当のみに絞り込む
-  const roleId = currentRoleId();
-  if (roleId === 'interviewer' && currentUserEmail) {
-    list = list.filter(c => c.assignee === currentUserEmail);
-  }
   if (query) list = list.filter(c => (c.name || '').toLowerCase().includes(query));
   if (statusFilter) list = list.filter(c => c.status === statusFilter);
   if (onlyOverdue) list = list.filter(c => {
@@ -7938,9 +7933,9 @@ function renderDashboard() {
   if (mainView !== 'home') { el.style.display = 'none'; return; }
   if (!cachedDashboard.enabled) { el.style.display = 'none'; el.innerHTML = ''; return; }
 
-  // 面接官ロールは自分担当の候補者のみを対象にする
+  // 面接官ロールも全候補者をダッシュボードで見られるようにする（編集権限は別途 can() で制御）
   const roleId = currentRoleId();
-  const restrictToMine = roleId === 'interviewer';
+  const restrictToMine = false;
 
   const todayInts   = getTodayInterviews(restrictToMine);
   const myTasks     = getMyTasks();
