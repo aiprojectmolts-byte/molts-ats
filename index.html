@@ -768,6 +768,61 @@
     font-size: 12px; color: var(--text-tertiary);
     padding: 16px 0; text-align: center;
   }
+  /* 分析タブ */
+  .analytics-tabs {
+    display: flex; gap: 0;
+    border-bottom: 2px solid var(--border);
+    margin-bottom: 20px;
+  }
+  .analytics-tab {
+    padding: 10px 20px; font-size: 13px;
+    border: none; background: none; cursor: pointer;
+    color: var(--text-secondary);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    font-family: inherit;
+  }
+  .analytics-tab.active {
+    color: var(--primary); font-weight: 500;
+    border-bottom-color: var(--primary);
+  }
+  .analytics-tab-pane { display: none; }
+  .analytics-tab-pane.active { display: block; }
+  /* 担当者別テーブル */
+  .member-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .member-table th {
+    text-align: left; padding: 10px 14px;
+    font-size: 11px; font-weight: 600; color: var(--text-secondary);
+    background: var(--bg-secondary); border-bottom: 1px solid var(--border);
+    letter-spacing: 0.05em; white-space: nowrap;
+  }
+  .member-table th.r { text-align: right; }
+  .member-table td { padding: 12px 14px; border-bottom: 1px solid var(--border-light); }
+  .member-table td.r { text-align: right; font-variant-numeric: tabular-nums; }
+  .member-table tr:last-child td { border-bottom: none; }
+  .member-table tr.my-row td { background: #FFFBF0; }
+  .member-table tr.total-row td {
+    background: var(--bg-secondary); font-weight: 600;
+    border-top: 2px solid var(--border);
+  }
+  .member-table tr:not(.total-row):not(.my-row):hover td { background: var(--bg-secondary); }
+  .member-bar-wrap { display: flex; align-items: center; gap: 8px; }
+  .member-bar-track {
+    flex: 1; height: 6px; background: var(--bg-secondary);
+    border-radius: 3px; overflow: hidden; min-width: 50px;
+  }
+  .member-bar-fill { height: 100%; border-radius: 3px; }
+  .member-bar-val { font-size: 11px; color: var(--text-secondary); min-width: 24px; text-align: right; }
+  .member-my-badge {
+    font-size: 10px; color: var(--accent); font-weight: 600; margin-left: 6px;
+  }
+  /* 媒体別ポジションフィルタ */
+  .media-pos-filter {
+    display: flex; align-items: center; gap: 10px;
+    padding: 12px 16px; border-bottom: 1px solid var(--border);
+    background: var(--bg-secondary); font-size: 12px;
+  }
+  .media-pos-filter label { color: var(--text-secondary); font-weight: 500; }
   .funnel-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
   .funnel-label { flex: 0 0 120px; font-size: 12px; color: var(--text-secondary); }
   .funnel-bar-wrap { flex: 1; background: var(--bg-secondary); border-radius: 4px; height: 26px; overflow: hidden; }
@@ -2636,6 +2691,8 @@ let activityLogOpen = false;
 
 // 分析タブの状態
 let analyticsPeriod = 'this_month';  // this_week / this_month / last_month / 3_months / all
+let analyticsTab = 'overview';  // 'overview' | 'media' | 'member'
+let analyticsMediaPositionId = 'all';
 const ANALYTICS_PERIODS = [
   { id: 'this_week',  label: '今週' },
   { id: 'this_month', label: '今月' },
@@ -8241,22 +8298,47 @@ function renderAnalytics() {
     `<button class="${analyticsPeriod === p.id ? 'active' : ''}" onclick="setAnalyticsPeriod('${p.id}')">${escapeHtml(p.label)}</button>`
   ).join('');
   const periodLabel = (ANALYTICS_PERIODS.find(p => p.id === analyticsPeriod) || {}).label || '';
+
+  const tabs = [
+    { id: 'overview', label: '概要' },
+    { id: 'media',    label: '媒体別' },
+    { id: 'member',   label: '担当者別' }
+  ];
+  const tabsHtml = `<div class="analytics-tabs">
+    ${tabs.map(t => `<button class="analytics-tab${analyticsTab === t.id ? ' active' : ''}" onclick="switchAnalyticsTab('${t.id}')">${escapeHtml(t.label)}</button>`).join('')}
+  </div>`;
+
   const header = `
     <div class="analytics-period">${periodBtns}</div>
     <div style="font-size:12px; color:var(--text-tertiary); margin-bottom:14px;">
       ${escapeHtml(periodLabel)}の対象候補者：${candidates.length}件
-    </div>`;
+    </div>
+    ${tabsHtml}`;
+
   if (candidates.length === 0) {
     el.innerHTML = header + '<div class="analytics-empty">この期間にはデータがありません</div>';
     return;
   }
+
   el.innerHTML = header + `
-    <div class="analytics-grid">
-      ${renderFunnelSection(candidates)}
-      ${renderMediaSection(candidates)}
-      ${renderStatusBreakdownSection(candidates)}
+    <div class="analytics-tab-pane${analyticsTab === 'overview' ? ' active' : ''}" id="atab-overview">
+      <div class="analytics-grid">
+        ${renderFunnelSection(candidates)}
+        ${renderStatusBreakdownSection(candidates)}
+      </div>
       ${renderWeeklyTrendSection()}
+    </div>
+    <div class="analytics-tab-pane${analyticsTab === 'media' ? ' active' : ''}" id="atab-media">
+      ${renderMediaTabSection(candidates)}
+    </div>
+    <div class="analytics-tab-pane${analyticsTab === 'member' ? ' active' : ''}" id="atab-member">
+      ${renderMemberSection(candidates)}
     </div>`;
+}
+
+function switchAnalyticsTab(tab) {
+  analyticsTab = tab;
+  renderAnalytics();
 }
 
 function setAnalyticsPeriod(p) {
@@ -8335,6 +8417,201 @@ function renderMediaSection(candidates) {
       <tbody>${tableRows}</tbody>
     </table>
     ${summary}
+  </div>`;
+}
+
+// 媒体別タブ（ポジションフィルタ付き）
+function renderMediaTabSection(candidates) {
+  const positions = cachedScope.positions || [];
+  const posOptions = `<option value="all">全ポジション</option>` +
+    positions.map(p => `<option value="${escapeHtml(p.id)}"${analyticsMediaPositionId === p.id ? ' selected' : ''}>${escapeHtml(p.name)}${p.companyId ? '（' + escapeHtml(getCompanyName(p.companyId)) + '）' : ''}</option>`).join('');
+
+  let filtered = candidates;
+  if (analyticsMediaPositionId !== 'all') {
+    filtered = candidates.filter(c => c.positionId === analyticsMediaPositionId);
+  }
+
+  const byPlat = {};
+  const replyTest = FUNNEL_STAGES[1].test;
+  const intTest   = FUNNEL_STAGES[2].test;
+  filtered.forEach(c => {
+    const full = loadCandidate(c.id) || c;
+    const plat = full.sourcePlatform || (getMainSourceProfile(full) || {}).platform || full.sourceType || 'その他';
+    if (!byPlat[plat]) byPlat[plat] = { sent: 0, replied: 0, interview: 0, joined: 0 };
+    byPlat[plat].sent++;
+    if (replyTest(full)) byPlat[plat].replied++;
+    if (intTest(full))   byPlat[plat].interview++;
+    if (full.status === 'joined') byPlat[plat].joined++;
+  });
+
+  const rows = Object.entries(byPlat).sort((a, b) => b[1].sent - a[1].sent);
+
+  let best = null;
+  rows.forEach(([plat, d]) => {
+    if (d.sent < 3) return;
+    const rate = d.replied / d.sent;
+    if (!best || rate > best.rate) best = { plat, rate };
+  });
+
+  const tableRows = rows.length === 0
+    ? `<tr><td colspan="8" style="text-align:center; color:var(--text-tertiary); padding:24px;">データがありません</td></tr>`
+    : rows.map(([plat, d]) => {
+        const rr = d.sent ? Math.round(d.replied / d.sent * 100) : 0;
+        const ir = d.sent ? Math.round(d.interview / d.sent * 100) : 0;
+        const jr = d.sent ? Math.round(d.joined / d.sent * 100) : 0;
+        const rrCls = rr >= 40 ? 'rate-high' : rr < 20 && d.sent >= 3 ? 'rate-low' : '';
+        const isBest = best && plat === best.plat;
+        return `<tr>
+          <td>${escapeHtml(plat)}${isBest ? ' <span style="font-size:10px;padding:2px 7px;border-radius:10px;background:var(--success-bg);color:var(--success);border:1px solid var(--success-bg-strong);font-weight:600;">最効果</span>' : ''}</td>
+          <td style="text-align:right;">${d.sent}</td>
+          <td style="text-align:right;">${d.replied}</td>
+          <td style="text-align:right;" class="${rrCls}">${rr}%</td>
+          <td style="text-align:right;">${d.interview}</td>
+          <td style="text-align:right;">${ir}%</td>
+          <td style="text-align:right;">${d.joined}</td>
+          <td style="text-align:right;">${d.joined > 0 ? jr + '%' : '—'}</td>
+        </tr>`;
+      }).join('');
+
+  return `<div class="analytics-section full">
+    <div class="media-pos-filter">
+      <label>ポジション：</label>
+      <select class="select" onchange="analyticsMediaPositionId=this.value; renderAnalytics();">${posOptions}</select>
+      <span style="margin-left:auto; font-size:11px; color:var(--text-tertiary);">対象：${filtered.length}件</span>
+    </div>
+    <table class="media-table">
+      <thead><tr>
+        <th>媒体</th>
+        <th style="text-align:right;">送付</th>
+        <th style="text-align:right;">返信</th>
+        <th style="text-align:right;">返信率</th>
+        <th style="text-align:right;">面談</th>
+        <th style="text-align:right;">面談率</th>
+        <th style="text-align:right;">入社</th>
+        <th style="text-align:right;">入社率</th>
+      </tr></thead>
+      <tbody>${tableRows}</tbody>
+    </table>
+    <div style="font-size:11px; color:var(--text-tertiary); padding:10px 16px;">
+      返信率 = 返信数 ÷ 送付数 / 入社率 = 入社数 ÷ 送付数
+    </div>
+  </div>`;
+}
+
+// 担当者別成果タブ
+function renderMemberSection(candidates) {
+  const roleId = currentRoleId();
+  const isAdmin = roleId === 'admin';
+
+  const members = (cachedUsers.users || []).filter(u => u && u.status === 'active');
+
+  const replyTest = FUNNEL_STAGES[1].test;
+  const intTest   = FUNNEL_STAGES[2].test;
+
+  const stats = members.map(u => {
+    const myCandidates = candidates.filter(c => {
+      const full = loadCandidate(c.id) || c;
+      return full.createdBy === u.email || full.assignee === u.email;
+    });
+    const sent      = myCandidates.filter(c => (loadCandidate(c.id) || c).sendHistory?.length > 0).length;
+    const replied   = myCandidates.filter(c => replyTest(loadCandidate(c.id) || c)).length;
+    const interview = myCandidates.filter(c => intTest(loadCandidate(c.id) || c)).length;
+    const joined    = myCandidates.filter(c => (loadCandidate(c.id) || c).status === 'joined').length;
+    return { user: u, sent, replied, interview, joined, total: myCandidates.length };
+  }).filter(s => s.total > 0 || s.user.email === currentUserEmail);
+
+  const displayStats = isAdmin ? stats : stats.filter(s => s.user.email === currentUserEmail);
+
+  const maxJoined = Math.max(...displayStats.map(s => s.joined), 1);
+
+  const rows = displayStats.map(s => {
+    const isMe = s.user.email === currentUserEmail;
+    const rr = s.sent > 0 ? Math.round(s.replied / s.sent * 100) : null;
+    const ir = s.sent > 0 ? Math.round(s.interview / s.sent * 100) : null;
+    const jr = s.sent > 0 ? Math.round(s.joined / s.sent * 100) : null;
+    const rrCls = rr !== null ? (rr >= 40 ? 'rate-high' : rr < 20 ? 'rate-low' : '') : '';
+    const initial = (s.user.name || '?').substring(0, 1);
+    const barW = maxJoined > 0 ? Math.round(s.joined / maxJoined * 100) : 0;
+    const isScout = s.user.roleId === 'admin' || s.user.roleId === 'member';
+    return `<tr class="${isMe ? 'my-row' : ''}">
+      <td>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div class="assignee-avatar">${escapeHtml(initial)}</div>
+          <div>
+            <div style="font-weight:500;">${escapeHtml(s.user.name)}${isMe ? '<span class="member-my-badge">← 自分</span>' : ''}</div>
+            <div style="font-size:11px;color:var(--text-tertiary);">${escapeHtml(getRoleLabel(s.user.roleId))}</div>
+          </div>
+        </div>
+      </td>
+      <td style="text-align:right;">${isScout ? s.sent : '—'}</td>
+      <td style="text-align:right;">${isScout ? s.replied : '—'}</td>
+      <td style="text-align:right;" class="${rrCls}">${isScout && rr !== null ? rr + '%' : '—'}</td>
+      <td style="text-align:right;">${s.interview}</td>
+      <td style="text-align:right;">${isScout && ir !== null ? ir + '%' : '—'}</td>
+      <td style="text-align:right;"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--success);margin-right:4px;"></span><strong>${s.joined}</strong></td>
+      <td style="text-align:right;">${isScout && jr !== null ? jr + '%' : '—'}</td>
+      <td>
+        <div class="member-bar-wrap">
+          <div class="member-bar-track"><div class="member-bar-fill" style="width:${barW}%;background:var(--success);"></div></div>
+          <div class="member-bar-val">${s.joined}件</div>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  const totalRow = isAdmin ? (() => {
+    const total = displayStats.reduce((acc, s) => ({
+      sent: acc.sent + s.sent,
+      replied: acc.replied + s.replied,
+      interview: acc.interview + s.interview,
+      joined: acc.joined + s.joined
+    }), { sent: 0, replied: 0, interview: 0, joined: 0 });
+    const rr = total.sent > 0 ? Math.round(total.replied / total.sent * 100) : 0;
+    const ir = total.sent > 0 ? Math.round(total.interview / total.sent * 100) : 0;
+    const jr = total.sent > 0 ? Math.round(total.joined / total.sent * 100) : 0;
+    return `<tr class="total-row">
+      <td>チーム合計</td>
+      <td style="text-align:right;">${total.sent}</td>
+      <td style="text-align:right;">${total.replied}</td>
+      <td style="text-align:right;" class="${rr >= 40 ? 'rate-high' : ''}">${rr}%</td>
+      <td style="text-align:right;">${total.interview}</td>
+      <td style="text-align:right;">${ir}%</td>
+      <td style="text-align:right;"><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--success);margin-right:4px;"></span><strong>${total.joined}</strong></td>
+      <td style="text-align:right;">${jr}%</td>
+      <td>
+        <div class="member-bar-wrap">
+          <div class="member-bar-track"><div class="member-bar-fill" style="width:100%;background:var(--primary);"></div></div>
+          <div class="member-bar-val">${total.joined}件</div>
+        </div>
+      </td>
+    </tr>`;
+  })() : '';
+
+  const adminBadge = isAdmin
+    ? `<div style="margin-bottom:12px;display:flex;align-items:center;gap:8px;">
+        <div style="font-size:11px;padding:3px 9px;border-radius:10px;background:var(--info-bg);color:var(--info-text);border:1px solid var(--info-bg);">管理者ビュー：チーム全員を表示</div>
+        <div style="font-size:11px;color:var(--text-tertiary);">メンバーには自分の行のみ表示されます</div>
+      </div>`
+    : '';
+
+  return `${adminBadge}<div class="analytics-section full">
+    <table class="member-table">
+      <thead><tr>
+        <th>担当者</th>
+        <th class="r">スカウト</th>
+        <th class="r">返信</th>
+        <th class="r">返信率</th>
+        <th class="r">面談</th>
+        <th class="r">面談率</th>
+        <th class="r">入社</th>
+        <th class="r">入社率</th>
+        <th>スカウト → 入社</th>
+      </tr></thead>
+      <tbody>${rows}${totalRow}</tbody>
+    </table>
+    <div style="font-size:11px;color:var(--text-tertiary);padding:10px 16px;">
+      入社率 = 入社数 ÷ スカウト送付数 / 面接官はスカウト非担当のため — 表示 / ハイライト行が自分の成果
+    </div>
   </div>`;
 }
 
