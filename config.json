@@ -107,13 +107,13 @@
     "webhookUrl": "",
     "defaultChannel": "#recruit-notifications",
     "events": [
-      { "id": "new_candidate",     "label": "新規候補者の登録",                    "target": "#recruit-notifications",          "enabled": true  },
-      { "id": "reply_received",    "label": "候補者からの返信（Gmail連携）",       "target": "担当者DM + #recruit-notifications", "enabled": true  },
-      { "id": "interview_scheduled", "label": "面談予定の登録（Googleカレンダー連携）", "target": "担当者DM",                     "enabled": true  },
-      { "id": "interview_review",  "label": "面談結果の入力依頼（面談後24h経過）",  "target": "担当者DM",                         "enabled": true  },
-      { "id": "due_overdue",       "label": "期日超過のリマインド（毎朝9時）",      "target": "担当者DM",                         "enabled": true  },
-      { "id": "status_changed",    "label": "ステータス変更",                     "target": "#recruit-notifications",          "enabled": false },
-      { "id": "offer_accepted",    "label": "オファー承諾",                       "target": "#recruit-notifications + 人事チャンネル", "enabled": true }
+      { "id": "new_candidate",       "label": "新規候補者の登録",                      "enabled": true  },
+      { "id": "reply_received",      "label": "候補者からの返信（Gmail連携）",         "enabled": true  },
+      { "id": "interview_scheduled", "label": "面談予定の登録（Googleカレンダー連携）", "enabled": true  },
+      { "id": "interview_review",    "label": "面談結果の入力依頼（面談後24h経過）",   "enabled": true  },
+      { "id": "due_overdue",         "label": "期日超過のリマインド（毎朝9時）",       "enabled": true  },
+      { "id": "status_changed",      "label": "ステータス変更",                        "enabled": false },
+      { "id": "offer_accepted",      "label": "オファー承諾",                          "enabled": true  }
     ]
   }
 }

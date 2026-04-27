@@ -2243,7 +2243,7 @@
           <label class="settings-field-label">通知イベント</label>
           <table class="slack-notif-table">
             <thead>
-              <tr><th>イベント</th><th>通知先</th><th style="width:60px;">ON/OFF</th></tr>
+              <tr><th>イベント</th><th style="width:60px;">ON/OFF</th></tr>
             </thead>
             <tbody id="slackEventsTbody"></tbody>
           </table>
@@ -11069,7 +11069,6 @@ function renderSlackPane() {
   const events = cachedSlack.events || [];
   tbody.innerHTML = events.map((e, i) => `<tr>
     <td>${escapeHtml(e.label)}</td>
-    <td style="font-size:12px; color: var(--text-secondary);">${escapeHtml(e.target || '')}</td>
     <td><div class="switch-toggle${e.enabled ? '' : ' off'}" onclick="toggleSlackEvent(${i})"></div></td>
   </tr>`).join('');
 }
