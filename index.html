@@ -3054,6 +3054,17 @@ async function handleAuthResponse(response) {
   // Drive から users.json を含む全データを読み込んでからユーザー判定する
   try { await loadAllFromDrive(); } catch (e) { console.warn('Drive load failed', e); }
 
+  // 旧 viewer ロールを interviewer に自動昇格（ロール統廃合の後方互換）
+  let migrated = 0;
+  (cachedUsers.users || []).forEach(u => {
+    if (u && u.roleId === 'viewer') { u.roleId = 'interviewer'; migrated++; }
+  });
+  if (migrated > 0) {
+    persistUsers();
+    syncAtsFile(DRIVE_USERS_FILE, cachedUsers);
+    console.log('[Migration] viewer→interviewer:', migrated, 'users');
+  }
+
   // 初回ログインユーザを「承認待ち」として自動登録 / 既存ユーザは最終ログイン日時を更新
   if (currentUserEmail) {
     const existing = findUserByEmail(currentUserEmail);
@@ -3065,7 +3076,7 @@ async function handleAuthResponse(response) {
         id: 'user_' + String(seq).padStart(3, '0'),
         name: currentUserEmail.split('@')[0],
         email: currentUserEmail,
-        roleId: 'viewer',
+        roleId: 'interviewer',
         companyId: null,
         status: 'pending',
         createdAt: nowIso,
@@ -3541,7 +3552,6 @@ function isPendingUser() { const u = currentUser(); return !!(u && u.status === 
 //   admin       : 全操作
 //   member      : 候補者CRUD・スカウト生成・一部設定
 //   interviewer : 自分担当の候補者のみ閲覧・編集
-//   viewer      : 全候補者の閲覧のみ（編集不可）
 // 承認待ちユーザは閲覧のみ。
 function can(action, ctx) {
   if (!currentUserEmail) return false;
@@ -3586,7 +3596,7 @@ function getRoleLabel(id) {
 function getRoleCls(id) {
   const roles = (CONFIG && CONFIG.roles) || [];
   const r = roles.find(x => x.id === id);
-  return r ? r.cls : 'role-viewer';
+  return r ? r.cls : 'role-interviewer';
 }
 function nextCandidateId() {
   const today = todayDateStr();
@@ -10989,7 +10999,7 @@ function approveUser(id) {
   const u = (cachedUsers.users || []).find(x => x.id === id);
   if (!u) return;
   u.status = 'active';
-  u.roleId = u.roleId === 'viewer' ? 'member' : u.roleId;  // viewerのままだった場合のみ昇格
+  if (u.roleId === 'viewer') u.roleId = 'interviewer';  // 旧 viewer ロールの自動昇格
   persistUsers();
   syncAtsFile(DRIVE_USERS_FILE, cachedUsers);
   renderUserList();
@@ -11022,7 +11032,7 @@ function saveUserFromModal() {
   const data = {
     name, email,
     companyId:   document.getElementById('userModalCompany').value || null,
-    roleId:      document.getElementById('userModalRole').value || 'viewer',
+    roleId:      document.getElementById('userModalRole').value || 'interviewer',
     status:      document.getElementById('userModalStatus').value || 'active',
     slackUserId: (document.getElementById('userModalSlackId').value || '').trim()
   };
