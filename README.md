@@ -31,6 +31,7 @@ git checkout main
 git merge feature/機能名
 ```
 
-## マニュアル
+## ドキュメント
 - [管理者マニュアル](docs/manual-admin.docx)
 - [メンバーマニュアル](docs/manual-member.docx)
+- [機能リファレンス](docs/ats-reference.docx)
