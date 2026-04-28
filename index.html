@@ -1644,6 +1644,35 @@
   }
   .lucide-sm { width: 12px; height: 12px; }
   .lucide-lg { width: 16px; height: 16px; }
+
+  /* スコープ一括判定 進捗モーダル */
+  .scope-batch-modal {
+    display: none; position: fixed; inset: 0;
+    background: rgba(0,0,0,0.4); z-index: 500;
+    align-items: center; justify-content: center;
+  }
+  .scope-batch-modal.show { display: flex; }
+  .scope-batch-card {
+    background: var(--bg-primary); border-radius: 12px;
+    padding: 28px 32px; width: 520px; max-width: 92vw;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  }
+  .scope-batch-title { font-size: 15px; font-weight: 600; margin-bottom: 14px; }
+  .scope-batch-bar-wrap {
+    height: 8px; background: var(--bg-secondary);
+    border-radius: 4px; overflow: hidden; margin-bottom: 8px;
+  }
+  .scope-batch-bar {
+    height: 100%; background: var(--primary);
+    width: 0%; transition: width 0.25s;
+  }
+  .scope-batch-status { font-size: 12px; color: var(--text-secondary); margin-bottom: 12px; min-height: 16px; }
+  .scope-batch-counts {
+    display: flex; gap: 18px; font-size: 12px;
+    color: var(--text-secondary); margin-bottom: 16px;
+  }
+  .scope-batch-counts strong { color: var(--text); }
+  .scope-batch-actions { display: flex; justify-content: flex-end; }
 </style>
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
 </head>
@@ -2000,6 +2029,14 @@
         </div>
         <div class="settings-actions">
           <button class="btn btn-primary" onclick="saveScopeSettings()"><i data-lucide="save" class="lucide"></i> クラウドに保存</button>
+        </div>
+
+        <div class="settings-field" style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border);">
+          <label class="settings-field-label">既存候補者の再判定</label>
+          <div style="font-size:11px; color:var(--text-tertiary); margin-bottom:8px;">
+            すべての候補者をすべてのポジションで判定し直し、各候補者の最高スコアのポジションを「メイン判定」として更新します。判定済みの組み合わせはキャッシュ再利用されます。
+          </div>
+          <button class="btn" onclick="judgeAllCandidatesAllPositions()"><i data-lucide="refresh-cw" class="lucide"></i> 全候補者 × 全ポジションで再判定</button>
         </div>
 
         <div class="settings-field" style="margin-top: 24px; padding-top: 20px; border-top: 1px solid var(--border);">
@@ -9272,6 +9309,180 @@ async function runSingleScopeJudgementForCandidate(candidateId, positionId) {
   }
 }
 
+// ============ スコープ一括判定（バッチ処理） ==========================
+// 1000名規模の候補者に対して再判定を実行する。Anthropic API のレート制限と
+// Drive API の書き込みスパイクを避けるため、N人ずつチャンクで並列実行し、
+// インデックスは最後に1回だけ Drive へ同期する。
+const SCOPE_BATCH_CONCURRENCY = 3;
+let scopeBatchCancel = false;
+let scopeBatchActive = false;
+
+function showScopeBatchProgress(label) {
+  const m = document.getElementById('scopeBatchModal');
+  if (!m) return;
+  scopeBatchCancel = false;
+  scopeBatchActive = true;
+  document.getElementById('scopeBatchLabel').textContent = label || '判定中...';
+  document.getElementById('scopeBatchBar').style.width = '0%';
+  document.getElementById('scopeBatchStatus').textContent = '0 / 0';
+  document.getElementById('scopeBatchOk').textContent = '0';
+  document.getElementById('scopeBatchNg').textContent = '0';
+  document.getElementById('scopeBatchSkip').textContent = '0';
+  document.getElementById('scopeBatchCancelBtn').disabled = false;
+  document.getElementById('scopeBatchCancelBtn').textContent = 'キャンセル';
+  m.classList.add('show');
+}
+function updateScopeBatchProgress(done, total, ok, ng, skip, currentName) {
+  const bar = document.getElementById('scopeBatchBar');
+  if (bar) bar.style.width = (total > 0 ? (done / total * 100).toFixed(1) : 0) + '%';
+  const st = document.getElementById('scopeBatchStatus');
+  if (st) st.textContent = `${done} / ${total}` + (currentName ? ` — ${currentName}` : '');
+  const okEl = document.getElementById('scopeBatchOk'); if (okEl) okEl.textContent = ok;
+  const ngEl = document.getElementById('scopeBatchNg'); if (ngEl) ngEl.textContent = ng;
+  const skEl = document.getElementById('scopeBatchSkip'); if (skEl) skEl.textContent = skip;
+}
+function hideScopeBatchProgress() {
+  scopeBatchActive = false;
+  const m = document.getElementById('scopeBatchModal');
+  if (m) m.classList.remove('show');
+}
+function cancelScopeBatch() {
+  if (!scopeBatchActive) return;
+  scopeBatchCancel = true;
+  const lbl = document.getElementById('scopeBatchLabel');
+  if (lbl) lbl.textContent = 'キャンセル中…（実行中のリクエストの完了を待っています）';
+  const btn = document.getElementById('scopeBatchCancelBtn');
+  if (btn) { btn.disabled = true; btn.textContent = '停止待機中...'; }
+}
+
+// 1人の候補者に対して targetPositions 全てを並列判定し、結果をマージ。
+// メインポジションは scopeResults 全体から最高スコアを再選定する。
+// force=false の場合、c.scopeResults[posId] に既存結果があればスキップしてAPI呼び出しを節約する。
+async function judgeOneCandidate(c, targetPositions, apiKey, force) {
+  const toJudge = force
+    ? targetPositions
+    : targetPositions.filter(p => !(c.scopeResults && c.scopeResults[p.id]));
+  if (toJudge.length === 0) return 'cached';  // 既判定のみ。何もしない（成功扱い）
+  const judgements = await Promise.allSettled(toJudge.map(pos =>
+    runScopeJudgement(apiKey, c.profile, { position: pos, force, silentUI: true })
+  ));
+  const results = {};
+  judgements.forEach((j, idx) => {
+    if (j.status === 'fulfilled' && j.value) results[toJudge[idx].id] = j.value;
+  });
+  if (Object.keys(results).length === 0) return false;
+  c.scopeResults = c.scopeResults || {};
+  Object.assign(c.scopeResults, results);
+  // 全 scopeResults から最高スコアを mainScopePositionId として再選定
+  let bestId = null, bestScore = -Infinity;
+  Object.keys(c.scopeResults).forEach(pid => {
+    const s = (c.scopeResults[pid] && typeof c.scopeResults[pid].score === 'number') ? c.scopeResults[pid].score : 0;
+    if (s > bestScore) { bestScore = s; bestId = pid; }
+  });
+  if (bestId) {
+    c.mainScopePositionId = bestId;
+    c.scopeResult = c.scopeResults[bestId];
+  }
+  c.updatedAt = new Date().toISOString();
+  persistCandidate(c);
+  syncIndexFromCandidate(c);
+  // Drive 同期は fire-and-forget。失敗しても続行（localStorage は確実に更新済み）
+  syncCandidateFile(c).catch(e => console.warn('[ScopeBatch] drive sync failed', c.id, e));
+  return true;
+}
+
+// 候補者リスト × 指定ポジション群 でバッチ判定する本体
+async function runScopeBatch(candidatesList, positionIds, opts) {
+  opts = opts || {};
+  const apiKey = localStorage.getItem(LS_API_KEY);
+  if (!apiKey) { showToast('APIキーが未設定です', 'error'); return null; }
+
+  const positions = (cachedScope.positions || []).filter(p => p && p.id);
+  const targetPositions = (positionIds && positionIds.length)
+    ? positions.filter(p => positionIds.includes(p.id))
+    : positions;
+  if (targetPositions.length === 0) { showToast('判定対象のポジションがありません', 'error'); return null; }
+
+  // プロフィール未登録の候補者はスキップ（API呼び出しのコストを浪費しない）
+  const eligible = candidatesList.filter(c => c && (c.profile || '').trim());
+  const total = eligible.length;
+  const skipped = candidatesList.length - total;
+  if (total === 0) { showToast('判定対象の候補者がいません（プロフィール未登録）', 'info'); return null; }
+
+  showScopeBatchProgress(opts.label || `${total}名を判定中...`);
+
+  let done = 0, ok = 0, ng = 0, cachedHit = 0;
+  for (let i = 0; i < total; i += SCOPE_BATCH_CONCURRENCY) {
+    if (scopeBatchCancel) break;
+    const chunk = eligible.slice(i, i + SCOPE_BATCH_CONCURRENCY);
+    await Promise.allSettled(chunk.map(async c => {
+      try {
+        const r = await judgeOneCandidate(c, targetPositions, apiKey, !!opts.force);
+        if (r === 'cached') cachedHit++;
+        else if (r) ok++;
+        else ng++;
+      } catch (e) {
+        console.warn('[ScopeBatch] judge failed', c && c.id, e);
+        ng++;
+      } finally {
+        done++;
+        updateScopeBatchProgress(done, total, ok, ng, skipped + cachedHit, c.name || c.id);
+      }
+    }));
+    // チャンク間に短い間隔。APIレート制限とブラウザの応答性確保
+    if (i + SCOPE_BATCH_CONCURRENCY < total && !scopeBatchCancel) {
+      await new Promise(r => setTimeout(r, 250));
+    }
+  }
+
+  // インデックスは最後に1回だけ Drive へ同期（per-candidate sync で大量PATCHを避ける）
+  try { await DriveStorage.writeAts(DRIVE_INDEX_FILE, cachedIndex); }
+  catch (e) { console.warn('[ScopeBatch] index drive sync failed', e); }
+
+  const cancelled = scopeBatchCancel;
+  scopeBatchCancel = false;
+  hideScopeBatchProgress();
+
+  if (cancelled) {
+    showToast(`キャンセルしました（新規判定 ${ok} / キャッシュ流用 ${cachedHit} / 失敗 ${ng} / 残り ${total - done}名）`, 'info');
+  } else {
+    const parts = [`新規判定 ${ok}名`];
+    if (cachedHit > 0) parts.push(`キャッシュ流用 ${cachedHit}名`);
+    if (ng > 0)        parts.push(`失敗 ${ng}名`);
+    if (skipped > 0)   parts.push(`スキップ ${skipped}名（プロフィール未登録）`);
+    showToast('判定完了: ' + parts.join(' / '), 'success');
+  }
+  // UI更新
+  renderCandidateList();
+  if (currentCandidateId) {
+    const fresh = loadCandidate(currentCandidateId);
+    if (fresh) renderCandidateDetail(fresh);
+  }
+  return { ok, ng, skipped, cancelled };
+}
+
+// 新規ポジション追加直後: そのポジションだけで全候補者を判定
+async function judgeAllCandidatesForPosition(positionId) {
+  const pos = (cachedScope.positions || []).find(p => p.id === positionId);
+  if (!pos) return;
+  const all = (cachedIndex.candidates || []).map(e => loadCandidate(e.id)).filter(Boolean);
+  if (all.length === 0) return;
+  const ok = confirm(`新規ポジション「${pos.name}」を作成しました。\n\n既存の候補者 ${all.length} 名をこのポジションで判定しますか？\n（API呼び出し: 最大 ${all.length} 回 / 所要時間の目安: ${Math.ceil(all.length / 3)}〜${Math.ceil(all.length / 2)}秒）\n\n[OK] 今すぐ判定する\n[キャンセル] あとで実行する（スコープ設定ペイン下部のボタンから実行可）`);
+  if (!ok) return;
+  await runScopeBatch(all, [positionId], { label: `「${pos.name}」で${all.length}名を判定中...`, force: false });
+}
+
+// 全候補者 × 全ポジション の総当たり再判定（手動トリガー）
+async function judgeAllCandidatesAllPositions() {
+  const all = (cachedIndex.candidates || []).map(e => loadCandidate(e.id)).filter(Boolean);
+  if (all.length === 0) { showToast('候補者がいません', 'info'); return; }
+  const positions = (cachedScope.positions || []).filter(p => p && p.id);
+  if (positions.length === 0) { showToast('ポジションが登録されていません', 'error'); return; }
+  const maxCalls = all.length * positions.length;
+  if (!confirm(`全候補者 ${all.length} 名 × 全ポジション ${positions.length} 件 を対象に未判定の組み合わせを埋めます。\n\n既に scopeResults に判定結果がある組み合わせはスキップされます（API呼び出しなし）。本当に未判定のみ実行: 最大 ${maxCalls} 回。\n\n実行しますか？`)) return;
+  await runScopeBatch(all, null, { label: `全候補者 × 全ポジションで判定中...`, force: false });
+}
+
 function setMainScopePosition(candidateId, positionId) {
   const c = loadCandidate(candidateId);
   if (!c || !c.scopeResults || !c.scopeResults[positionId]) return;
@@ -9955,6 +10166,8 @@ function addNewScopePosition() {
   syncAtsFile(DRIVE_SCOPE_FILE, cachedScope);
   renderScopePane();
   showToast('ポジションを追加しました', 'success');
+  // 既存候補者をこのポジションで自動判定するか確認
+  judgeAllCandidatesForPosition(newPos.id);
 }
 
 function renameCurrentScopePosition() {
@@ -11466,6 +11679,22 @@ function deleteUser(id) {
     mo.observe(document.body, { childList: true, subtree: true });
   });
 </script>
+
+<div class="scope-batch-modal" id="scopeBatchModal">
+  <div class="scope-batch-card">
+    <div class="scope-batch-title" id="scopeBatchLabel">判定中...</div>
+    <div class="scope-batch-bar-wrap"><div class="scope-batch-bar" id="scopeBatchBar"></div></div>
+    <div class="scope-batch-status" id="scopeBatchStatus">0 / 0</div>
+    <div class="scope-batch-counts">
+      <span>成功: <strong id="scopeBatchOk">0</strong></span>
+      <span>失敗: <strong id="scopeBatchNg">0</strong></span>
+      <span>スキップ: <strong id="scopeBatchSkip">0</strong></span>
+    </div>
+    <div class="scope-batch-actions">
+      <button class="btn" id="scopeBatchCancelBtn" onclick="cancelScopeBatch()">キャンセル</button>
+    </div>
+  </div>
+</div>
 
 </body>
 </html>
