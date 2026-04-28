@@ -1699,8 +1699,8 @@
       <div class="header-count" id="headerCount">候補者 0名</div>
     </div>
     <div class="header-right">
-      <button class="btn" onclick="window.open('https://github.com/aiprojectmolts-byte/molts-ats/tree/main/docs', '_blank', 'noopener')"><i data-lucide="book-open" class="lucide"></i> マニュアル</button>
-      <button class="btn" onclick="showScreen('settings')"><i data-lucide="settings" class="lucide"></i> 設定</button>
+      <button class="btn" id="headerManualBtn" onclick="window.open('https://github.com/aiprojectmolts-byte/molts-ats/tree/main/docs', '_blank', 'noopener')"><i data-lucide="book-open" class="lucide"></i> マニュアル</button>
+      <button class="btn" id="headerSettingsBtn" onclick="console.log('[click] settings inline-onclick fired, mainView=', mainView); showScreen('settings')"><i data-lucide="settings" class="lucide"></i> 設定</button>
       <div class="user-badge" onclick="toggleUserMenu(event)">
         <div class="user-avatar" id="userAvatarInitial">?</div>
         <div class="user-name-role">
@@ -11402,6 +11402,22 @@ function deleteUser(id) {
   if (profileEl) {
     profileEl.addEventListener('paste', onProfilePaste);
     profileEl.addEventListener('input', onProfileInput);
+  }
+
+  // ヘッダの「設定」ボタン: インラインonclickが何らかの理由で発火しないケースに備えて
+  // 直接 addEventListener でも紐付ける（インラインで動いた場合は念のためログだけ出す）。
+  const settingsBtn = document.getElementById('headerSettingsBtn');
+  if (settingsBtn) {
+    settingsBtn.addEventListener('click', (e) => {
+      console.log('[click] settings addEventListener fired, mainView=', mainView, 'target=', e.target.tagName);
+      showScreen('settings');
+    });
+  }
+  const manualBtn = document.getElementById('headerManualBtn');
+  if (manualBtn) {
+    manualBtn.addEventListener('click', () => {
+      window.open('https://github.com/aiprojectmolts-byte/molts-ats/tree/main/docs', '_blank', 'noopener');
+    });
   }
 
   // Poll for Google Identity Services to load
