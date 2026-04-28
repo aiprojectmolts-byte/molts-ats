@@ -6841,13 +6841,28 @@ ${qualOutputLines}
 }
 
 // rawText（Markdown）から 3階層 HTML を生成
+// **テキスト** のMarkdown太字を <strong> に変換しつつ HTMLエスケープ
+function formatScopeText(s) {
+  if (!s) return '';
+  return escapeHtml(s).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+}
+// 判定クラスから対応するLucideアイコンHTMLを返す
+function scopeIconLucide(cls) {
+  if (cls === 'ok')   return '<i data-lucide="check-circle" class="lucide"></i>';
+  if (cls === 'warn') return '<i data-lucide="alert-triangle" class="lucide"></i>';
+  if (cls === 'ng')   return '<i data-lucide="x-circle" class="lucide"></i>';
+  return '';
+}
 function buildScopeResultHtml(rawText) {
   const sections = parseScopeResult(rawText || '');
   let html = '';
   if (sections.overall) {
-    const cls = sections.overall.includes('✅') ? 'ok'
-              : sections.overall.includes('⚠') ? 'warn' : 'ng';
-    html += `<div class="scope-overall ${cls}">${escapeHtml(sections.overall.trim())}</div>`;
+    const overall = sections.overall.trim();
+    const cls = overall.includes('✅') ? 'ok'
+              : overall.includes('⚠') ? 'warn' : 'ng';
+    // 絵文字を取り除き、テキスト部分の前にLucideアイコンを差し込む
+    const text = overall.replace(/[✅❌]|⚠️|⚠/g, '').trim();
+    html += `<div class="scope-overall ${cls}">${scopeIconLucide(cls)} ${formatScopeText(text)}</div>`;
   }
   const order = [
     { key: '定量条件', title: '定量条件' },
@@ -6863,16 +6878,16 @@ function buildScopeResultHtml(rawText) {
       const iconCls = item.icon === '✅' ? 'ok'
                     : (item.icon === '⚠️' || item.icon === '⚠') ? 'warn'
                     : item.icon === '❌' ? 'ng' : '';
-      const iconChar = item.icon || '・';
+      const iconHtml = iconCls ? scopeIconLucide(iconCls) : '・';
       html += `<div class="scope-item">`;
-      html += `<span class="scope-icon ${iconCls}">${iconChar}</span>`;
+      html += `<span class="scope-icon ${iconCls}">${iconHtml}</span>`;
       html += `<div class="scope-item-body">`;
-      if (item.label)  html += `<span class="scope-item-label">${escapeHtml(item.label)}</span>`;
-      if (item.reason) html += `<div class="scope-item-reason">${escapeHtml(item.reason)}</div>`;
+      if (item.label)  html += `<span class="scope-item-label">${formatScopeText(item.label)}</span>`;
+      if (item.reason) html += `<div class="scope-item-reason">${formatScopeText(item.reason)}</div>`;
       if (item.subInfo) {
         html += `<div class="scope-item-sub"><span class="scope-item-sub-mark">└</span><div class="scope-item-sub-body">`;
-        if (item.subInfo.label)  html += `<span class="scope-item-sub-label">${escapeHtml(item.subInfo.label)}</span>`;
-        if (item.subInfo.reason) html += `<span class="scope-item-sub-reason">${escapeHtml(item.subInfo.reason)}</span>`;
+        if (item.subInfo.label)  html += `<span class="scope-item-sub-label">${formatScopeText(item.subInfo.label)}</span>`;
+        if (item.subInfo.reason) html += `<span class="scope-item-sub-reason">${formatScopeText(item.subInfo.reason)}</span>`;
         html += `</div></div>`;
       }
       html += `</div></div>`;
