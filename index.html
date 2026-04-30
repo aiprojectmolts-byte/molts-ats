@@ -1158,6 +1158,22 @@
   .pending-banner.show { display: block; }
   .pending-banner strong { font-weight: 500; }
 
+  /* --- APIキー未設定バナー --- */
+  .api-key-banner {
+    display: none; padding: 10px 24px; font-size: 13px;
+    background: #FFF8E1; color: #856404;
+    border-bottom: 1px solid #FFD54F;
+    align-items: center; gap: 12px;
+  }
+  .api-key-banner.show { display: flex; }
+  .api-key-banner strong { font-weight: 500; }
+  .api-key-banner button {
+    margin-left: auto; background: #856404; color: white;
+    border: none; padding: 5px 12px; font-size: 12px;
+    border-radius: 4px; cursor: pointer; font-family: inherit; font-weight: 500;
+  }
+  .api-key-banner button:hover { background: #6d5003; }
+
   .role-badge.role-pending { background: var(--warning-bg); color: var(--warning-text); }
   .user-status-dot { font-size: 10px; color: var(--text-tertiary); margin-left: 6px; }
 
@@ -1695,6 +1711,14 @@
   現在は閲覧のみ可能です。管理者（aiprojectmolts@gmail.com）にロール設定を依頼してください。
 </div>
 
+<!-- APIキー未設定バナー -->
+<div class="api-key-banner" id="apiKeyBanner">
+  <span><i data-lucide="alert-triangle" class="lucide"></i> <strong>Anthropic APIキーが未設定です。</strong> スカウト生成・AI要約・スコープ判定が利用できません。</span>
+  <button onclick="showScreen('settings'); showSettingsPane('apikey'); document.getElementById('apiKeyBanner').classList.remove('show');">
+    今すぐ設定する →
+  </button>
+</div>
+
 <!-- Overdue candidates banner (shown when nextActionDue has passed for any) -->
 <div class="overdue-banner" id="overdueBanner" onclick="jumpToOverdueList()">
   <span><i data-lucide="alert-triangle" class="lucide"></i> <strong>期日超過の候補者が<span id="overdueBannerCount">0</span>件あります</strong></span>
@@ -1728,6 +1752,7 @@
       <div class="header-count" id="headerCount">候補者 0名</div>
     </div>
     <div class="header-right">
+      <button class="btn btn-primary" data-perm="candidates.create" onclick="startNewCandidateWizard()" style="display:none;"><i data-lucide="plus" class="lucide"></i> 新規候補者</button>
       <button class="btn" id="headerManualBtn" onclick="window.open('https://github.com/aiprojectmolts-byte/molts-ats/tree/main/docs', '_blank', 'noopener')"><i data-lucide="book-open" class="lucide"></i> マニュアル</button>
       <button class="btn" id="headerSettingsBtn" onclick="console.log('[click] settings inline-onclick fired, mainView=', mainView); showScreen('settings')"><i data-lucide="settings" class="lucide"></i> 設定</button>
       <div class="user-badge" onclick="toggleUserMenu(event)">
@@ -3235,18 +3260,24 @@ function updateDriveStatus(connected, opts) {
   if (!el || !txt || !btn) return;
   if (connected) {
     el.classList.add('connected');
+    el.style.background = '';
+    el.style.border = '';
     txt.textContent = 'Drive接続中';
     btn.textContent = 'ログアウト';
     btn.onclick = signOutGoogle;
   } else if (opts.needsReauth) {
     // スコープ不足での切断。ボタンを再認証用に切り替える。
     el.classList.remove('connected');
+    el.style.background = 'rgba(183, 28, 28, 0.2)';
+    el.style.border = '1px solid rgba(183, 28, 28, 0.4)';
     txt.textContent = 'Drive再認証が必要';
     btn.textContent = 'Drive接続を更新';
     btn.onclick = reconnectGoogle;
   } else {
     el.classList.remove('connected');
-    txt.textContent = 'Drive未接続';
+    el.style.background = 'rgba(183, 28, 28, 0.2)';
+    el.style.border = '1px solid rgba(183, 28, 28, 0.4)';
+    txt.textContent = 'Drive未接続（ログインが必要）';
     btn.textContent = 'Googleログイン';
     btn.onclick = signInGoogle;
   }
@@ -3343,6 +3374,12 @@ function applyAuthState() {
   // Gmail 再認証バナー: プール内で期限切れ/未認証のアカウントが1つでもあれば表示
   const gmailBanner = document.getElementById('gmailReauthBanner');
   if (gmailBanner) updateGmailReauthBanner(gmailBanner);
+  // APIキー未設定バナー: ログイン済みでAPIキーがlocalStorageに無いとき表示
+  const apiKeyBanner = document.getElementById('apiKeyBanner');
+  if (apiKeyBanner) {
+    const hasKey = !!(LS_API_KEY && localStorage.getItem(LS_API_KEY));
+    apiKeyBanner.classList.toggle('show', loggedIn && !hasKey);
+  }
 }
 
 function updateGmailReauthBanner(banner) {
@@ -4084,13 +4121,12 @@ function renderSourceGrid() {
   const sources = (CONFIG && CONFIG.sources) || [];
   const grid = document.getElementById('sourceGrid');
   if (!grid) return;
-  grid.innerHTML = sources.map((s, i) => `<div class="source-card${i === 0 && !wizardSelectedSource ? ' selected' : ''}" data-source="${escapeHtml(s.id)}" onclick="selectSource(this)">
+  grid.innerHTML = sources.map(s => `<div class="source-card${wizardSelectedSource === s.id ? ' selected' : ''}" data-source="${escapeHtml(s.id)}" onclick="selectSource(this)">
     <div class="source-icon">${s.icon || '<i data-lucide="file" class="lucide"></i>'}</div>
     <div class="source-title">${escapeHtml(s.title)}</div>
     <div class="source-subtitle">${escapeHtml(s.subtitle || '')}</div>
     <div class="source-hint">${escapeHtml(s.hint || '')}</div>
   </div>`).join('');
-  if (!wizardSelectedSource && sources.length) wizardSelectedSource = sources[0].id;
 }
 function selectSource(card) {
   document.querySelectorAll('.source-card').forEach(c => c.classList.remove('selected'));
