@@ -4314,36 +4314,14 @@ function renderCandidateList() {
     });
   }
 
-  // 「要対応のみ」または「期日超過のみ」フィルタONの場合は自分の担当を上に + 同グループは期日順（列ヘッダーソートに優先）
-  // 「自分の担当」判定 = 候補者の assignee === 自分、または 未完了タスクの assignee === 自分
-  if ((onlyAction || onlyOverdue) && currentUserEmail) {
-    const myEmail = currentUserEmail.toLowerCase();
-    const isMineFor = (entry) => {
-      const candAssignee = (entry.assignee || '').toLowerCase();
-      if (candAssignee === myEmail) return { mine: true, reason: 'candidate.assignee' };
-      const full = loadCandidate(entry.id);
-      if (full && Array.isArray(full.tasks)) {
-        const hasMyTask = full.tasks.some(t => !t.completedAt && (t.assignee || '').toLowerCase() === myEmail);
-        if (hasMyTask) return { mine: true, reason: 'task.assignee' };
-      }
-      return { mine: false, reason: '' };
-    };
+  // 「要対応のみ」または「期日超過のみ」フィルタONの場合は期日昇順（期日なしは末尾）
+  if (onlyAction || onlyOverdue) {
     list.sort((a, b) => {
-      const aMine = isMineFor(a);
-      const bMine = isMineFor(b);
-      const aIsMine = aMine.mine ? 0 : 1;
-      const bIsMine = bMine.mine ? 0 : 1;
-      if (aIsMine !== bIsMine) return aIsMine - bIsMine;
-      const aDue = a.nextActionDue || '9999';
-      const bDue = b.nextActionDue || '9999';
-      return aDue.localeCompare(bDue);
+      const aHas = !!a.nextActionDue, bHas = !!b.nextActionDue;
+      if (aHas !== bHas) return aHas ? -1 : 1;  // 期日ありを先に
+      if (!aHas && !bHas) return 0;
+      return String(a.nextActionDue).localeCompare(String(b.nextActionDue));
     });
-    console.log('[CandidateList] priority sort: myEmail=', myEmail, 'onlyAction=', onlyAction, 'onlyOverdue=', onlyOverdue);
-    console.log('[CandidateList] priority sort breakdown:',
-      list.map(c => {
-        const r = isMineFor(c);
-        return { name: c.name, candAssignee: c.assignee, isMine: r.mine, matchedBy: r.reason, due: c.nextActionDue };
-      }));
   } else {
     const dir = listSortDir === 'asc' ? 1 : -1;
     list.sort((a, b) => {
