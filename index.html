@@ -1910,7 +1910,8 @@
           <div id="scoutEmphasisBanner" style="display:none; background:var(--info-bg); border:1px solid var(--info); border-radius:7px; padding:10px 14px; margin-top:8px; font-size:12px; color:var(--info-text); align-items:center; gap:10px;">
             <span style="background:var(--info-text); color:#fff; font-size:10px; font-weight:700; padding:2px 8px; border-radius:10px; white-space:nowrap; flex-shrink:0;"><i data-lucide="pin" class="lucide"></i> 強調ポイント指定</span>
             <span id="scoutEmphasisText" style="flex:1; font-style:italic; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></span>
-            <button onclick="clearScoutEmphasis()" style="background:none; border:none; color:var(--text-tertiary); cursor:pointer; font-size:14px; padding:2px 6px; flex-shrink:0;">×</button>
+            <button class="btn btn-small btn-primary" onclick="generateScoutMessage()" style="font-size:11px; padding:4px 10px; flex-shrink:0;"><i data-lucide="refresh-cw" class="lucide"></i> この内容で再生成</button>
+            <button onclick="clearScoutEmphasis()" style="background:none; border:none; color:var(--text-tertiary); cursor:pointer; font-size:14px; padding:2px 6px; flex-shrink:0;" title="強調ポイントを解除">×</button>
           </div>
           <div class="hint" id="scoutEmphasisHint" style="font-size:11px; color:var(--text-tertiary); margin-top:4px;">再生成時に強調したい箇所をテキスト選択して指定できます</div>
 
