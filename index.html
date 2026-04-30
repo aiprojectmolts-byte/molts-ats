@@ -1335,6 +1335,15 @@
     color: var(--text-secondary); font-family: inherit;
   }
   .flow-edit-btn:hover { background: var(--bg-secondary); color: var(--primary); }
+  .flow-msg-btn {
+    display: inline-flex; align-items: center; gap: 4px;
+    margin-top: 6px; margin-left: 6px; padding: 3px 12px;
+    font-size: 11px; font-family: inherit; font-weight: 500;
+    color: var(--primary); background: var(--bg-primary);
+    border: 1px solid var(--primary); border-radius: 4px;
+    cursor: pointer;
+  }
+  .flow-msg-btn:hover { background: var(--info-bg); }
   .flow-edit-form {
     margin-top: 8px; padding: 12px;
     background: var(--bg-secondary); border-radius: 8px;
@@ -5171,6 +5180,27 @@ function renderFlowPhaseHtml(c, def, canEdit) {
   const chips = [];
   if (d.calendarEventId) chips.push('<span class="integration-chip gcal"><i data-lucide="calendar" class="lucide"></i> カレンダー登録済み</span>');
 
+  // フェーズ・状態に応じたメッセージ送付ボタン
+  let msgBtn = '';
+  if (canEdit) {
+    const INTERVIEW_PHASES = ['casual','first_interview','second_interview','offer_meeting'];
+    if (def.id === 'scout_sent' && stat === 'completed') {
+      const repliedDef = FLOW_PHASES.find(p => p.id === 'replied');
+      const repliedStat = repliedDef ? flowPhaseStatus(c, repliedDef) : 'pending';
+      if (repliedStat !== 'completed') {
+        msgBtn = `<button class="flow-msg-btn" onclick="openFlowMessage('${escapeHtml(c.id)}', 'second')"><i data-lucide="mail" class="lucide"></i> SNS補助メッセージを送る</button>`;
+      }
+    } else if (def.id === 'replied' && stat === 'pending') {
+      msgBtn = `<button class="flow-msg-btn" onclick="openFlowMessage('${escapeHtml(c.id)}', 'interview_ask')"><i data-lucide="mail" class="lucide"></i> 面談設定メッセージを送る</button>`;
+    } else if (INTERVIEW_PHASES.includes(def.id)) {
+      if (stat === 'pending') {
+        msgBtn = `<button class="flow-msg-btn" onclick="openFlowMessage('${escapeHtml(c.id)}', 'interview_ask')"><i data-lucide="mail" class="lucide"></i> 面談設定メッセージを送る</button>`;
+      } else if (stat === 'scheduled') {
+        msgBtn = `<button class="flow-msg-btn" onclick="openFlowMessage('${escapeHtml(c.id)}', 'interview_url')"><i data-lucide="mail" class="lucide"></i> 面談URLを送る</button>`;
+      }
+    }
+  }
+
   return `<div class="flow-node" data-phase="${escapeHtml(def.id)}">
     <div class="flow-bullet ${stat}">${bullet}</div>
     <div class="flow-connector"></div>
@@ -5185,9 +5215,20 @@ function renderFlowPhaseHtml(c, def, canEdit) {
       ${chips.length ? `<div class="flow-integrations">${chips.join('')}</div>` : ''}
       ${d.memo ? `<div class="flow-memo">${escapeHtml(d.memo)}</div>` : ''}
       ${canEdit && !def.autoComplete ? `<button class="flow-edit-btn" onclick="openFlowEdit('${escapeHtml(def.id)}')"><i data-lucide="pencil" class="lucide"></i> 編集</button>` : ''}
+      ${msgBtn}
       <div class="flow-edit-form" id="flowEdit_${escapeHtml(def.id)}" style="display:none;"></div>
     </div>
   </div>`;
+}
+
+// フローのメッセージ送付ボタンから既存モードのスカウト生成画面へ遷移
+function openFlowMessage(candidateId, msgType) {
+  const c = loadCandidate(candidateId);
+  if (!c) { showToast('候補者データが見つかりません', 'error'); return; }
+  currentCandidateId = candidateId;
+  // SNS補助メッセージは main 以外の sourceProfile を使う（既存仕様に合わせる）
+  const useSupp = msgType === 'second';
+  openScoutForExistingCandidate({ msgType, useSupplementarySp: useSupp });
 }
 
 function openFlowEdit(phaseId) {
