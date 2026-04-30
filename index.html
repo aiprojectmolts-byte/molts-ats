@@ -3150,18 +3150,10 @@ const DriveStorage = {
     return res;
   },
 
-  // 共有運用時に DRIVE_OWNER_EMAIL が指定されていればそのアカウント所有のフォルダ/ファイルを優先する
-  // （drive.file スコープでは、共有先ユーザーがDriveピッカー等でアクセスを得たもののみ可視）
-  // Drive API は corpora=allDrives と "in owners" の組み合わせで 400 を返すため、
-  // owners 句は使わずファイル名 + 親フォルダ ID でのみ絞り込む。
-  // 共有運用では 共有設定 + supportsAllDrives で正しいファイルにヒットする。
-  ownerClause() {
-    return '';
-  },
-
   async ensureSubFolder(parentId, name) {
-    let q = "name='" + name + "' and mimeType='application/vnd.google-apps.folder' and '" + parentId + "' in parents and trashed=false";
-    q += this.ownerClause();
+    // 共有運用では corpora=allDrives + supportsAllDrives で正しいファイルにヒットする。
+    // owners 句は Drive API の allDrives 検索で 400 を返すため使用しない。
+    const q = "name='" + name + "' and mimeType='application/vnd.google-apps.folder' and '" + parentId + "' in parents and trashed=false";
     const url = 'https://www.googleapis.com/drive/v3/files?q=' + encodeURIComponent(q)
       + '&fields=files(id,name,owners,createdTime)&spaces=drive,allDrives&orderBy=createdTime&pageSize=50'
       + '&includeItemsFromAllDrives=true&supportsAllDrives=true';
@@ -3191,8 +3183,7 @@ const DriveStorage = {
     if (this._rootPromise) return this._rootPromise;
     this._rootPromise = (async () => {
       try {
-        let q = "name='" + DRIVE_FOLDER_NAME + "' and mimeType='application/vnd.google-apps.folder' and trashed=false";
-        q += this.ownerClause();
+        const q = "name='" + DRIVE_FOLDER_NAME + "' and mimeType='application/vnd.google-apps.folder' and trashed=false";
         const url = 'https://www.googleapis.com/drive/v3/files?q=' + encodeURIComponent(q)
           + '&fields=files(id,name,owners,createdTime)&spaces=drive,allDrives&orderBy=createdTime&pageSize=50'
           + '&includeItemsFromAllDrives=true&supportsAllDrives=true&corpora=allDrives';
@@ -3243,8 +3234,7 @@ const DriveStorage = {
 
   async findFileInFolder(folderId, filename, cache) {
     if (cache && cache[filename]) return cache[filename];
-    let q = "name='" + filename + "' and '" + folderId + "' in parents and trashed=false";
-    q += this.ownerClause();
+    const q = "name='" + filename + "' and '" + folderId + "' in parents and trashed=false";
     const res = await this.apiRequest(
       'https://www.googleapis.com/drive/v3/files?q=' + encodeURIComponent(q)
         + '&fields=files(id,owners)&includeItemsFromAllDrives=true&supportsAllDrives=true'
