@@ -1919,13 +1919,14 @@
       </div>
       <div id="scoutScopeMultiCard" class="scope-card" style="display:none; margin-bottom: 12px;"></div>
       <div class="scout-generated placeholder" id="scoutGenerated">ここに生成されたメッセージが表示されます。</div>
+      <button class="btn btn-primary" id="scoutCopyRegisterBtn" onclick="copyAndRegisterCandidate()" style="width:100%; margin-bottom:8px;"><i data-lucide="clipboard" class="lucide"></i> コピーして登録</button>
       <div class="button-row">
         <button class="btn" onclick="copyScoutMessage()"><i data-lucide="clipboard" class="lucide"></i> コピー</button>
         <button class="btn" onclick="generateScoutMessage()"><i data-lucide="refresh-cw" class="lucide"></i> 再生成</button>
       </div>
-      <div class="hint-box"><i data-lucide="lightbulb" class="lucide"></i> 「候補者として登録」で一覧に追加されます。送付履歴に自動記録されます。</div>
-      <button class="btn btn-success" id="scoutRegisterMain" style="width: 100%; margin-bottom: 8px;" onclick="registerCandidateFromScout(true)"><i data-lucide="check" class="lucide"></i> 候補者として登録して一覧に戻る</button>
-      <button class="btn" id="scoutRegisterContinue" style="width: 100%; margin-bottom: 8px;" onclick="registerCandidateFromScout(false)">続けて新規候補者を追加</button>
+      <div class="hint-box"><i data-lucide="lightbulb" class="lucide"></i> 「コピーして登録」でクリップボードにコピーされ、候補者が自動登録されます。</div>
+      <button class="btn btn-success" id="scoutRegisterMain" style="display:none;" onclick="registerCandidateFromScout(true)"></button>
+      <button class="btn" id="scoutRegisterContinue" style="display:none;" onclick="registerCandidateFromScout(false)"></button>
       <button class="btn btn-success" id="scoutSendOnly" style="width: 100%; display: none;" onclick="registerCandidateFromScout(false)"><i data-lucide="mail" class="lucide"></i> 送付して候補者詳細に戻る</button>
     </div>
   </div>
@@ -2540,6 +2541,23 @@
     <div class="modal-actions">
       <button class="btn" onclick="closeModal('scopeIoModal')">閉じる</button>
       <button class="btn btn-primary" id="scopeIoModalPrimaryBtn" onclick="onScopeIoModalPrimary()"><i data-lucide="clipboard" class="lucide"></i> コピー</button>
+    </div>
+  </div>
+</div>
+
+<!-- 候補者登録完了モーダル -->
+<div class="modal-overlay" id="registerCompleteModal">
+  <div class="modal-card" style="text-align:center; max-width:420px;">
+    <div style="margin-bottom:12px;"><i data-lucide="check-circle" class="lucide" style="width:40px; height:40px; color: var(--success);"></i></div>
+    <div class="modal-title" style="justify-content:center;">候補者を登録しました</div>
+    <div id="registerCompleteName" style="font-size:15px; font-weight:600; color:var(--primary); margin:8px 0 4px;"></div>
+    <div style="font-size:12px; color:var(--text-secondary); margin-bottom:20px;">
+      メッセージをクリップボードにコピーしました。<br>
+      送付後にやり取りログを記録してください。
+    </div>
+    <div class="modal-actions" style="justify-content:center; gap:10px;">
+      <button class="btn" onclick="registerCompleteAddAnother()">続けて追加</button>
+      <button class="btn btn-primary" onclick="registerCompleteGoToList()">候補者一覧へ</button>
     </div>
   </div>
 </div>
@@ -4224,10 +4242,13 @@ function prepareScoutScreen() {
   const regMain  = document.getElementById('scoutRegisterMain');
   const regCont  = document.getElementById('scoutRegisterContinue');
   const sendOnly = document.getElementById('scoutSendOnly');
-  // 既存モードでは「登録」系ボタンすべて非表示。送付はコピーで自動記録する。
-  if (regMain)  regMain.style.display  = isExisting ? 'none' : '';
-  if (regCont)  regCont.style.display  = isExisting ? 'none' : '';
-  if (sendOnly) sendOnly.style.display = 'none';
+  const copyReg  = document.getElementById('scoutCopyRegisterBtn');
+  // 旧「登録」系ボタンは廃止のためどちらのモードでも非表示。DOM のみ残す。
+  if (regMain) regMain.style.display = 'none';
+  if (regCont) regCont.style.display = 'none';
+  // 新規モード: 「コピーして登録」を表示。既存モード: 旧「送付して候補者詳細に戻る」を表示。
+  if (copyReg)  copyReg.style.display  = isExisting ? 'none' : '';
+  if (sendOnly) sendOnly.style.display = isExisting ? '' : 'none';
 
   // シンプルUI: プロフィール入力欄・URL入力欄・スコープ判定・APIキーヒントは非表示
   const newOnlyGroup = document.getElementById('scoutNewOnlyGroup');
@@ -4258,7 +4279,7 @@ function prepareScoutScreen() {
   if (hintBox) {
     hintBox.innerHTML = isExisting
       ? '<i data-lucide="lightbulb" class="lucide"></i> 「<i data-lucide="clipboard" class="lucide"></i> コピー」を押すと自動でクリップボードにコピー＆送付履歴に記録されます。'
-      : '<i data-lucide="lightbulb" class="lucide"></i> コピー後、「候補者として登録」で一覧に追加されます。送付履歴に自動記録。';
+      : '<i data-lucide="lightbulb" class="lucide"></i> 「コピーして登録」でクリップボードにコピーされ、候補者が自動登録されます。';
   }
 
   // 既存モードで sourceProfiles が2件以上なら「送信媒体」プルダウンを表示
@@ -7267,6 +7288,58 @@ async function copyScoutMessage() {
   } else {
     showToast('クリップボードにコピーしました', 'success');
   }
+}
+
+// 新規モード用: クリップボードへコピー → 候補者を登録 → 完了モーダルを表示
+async function copyAndRegisterCandidate() {
+  if (!scoutCurrentMessage) {
+    showToast('先にメッセージを生成してください', 'error');
+    return;
+  }
+  const name = (document.getElementById('scoutCandidateName').value || '').trim();
+  if (!name) {
+    showToast('候補者名を入力してください', 'error');
+    return;
+  }
+  if (wizardSelectedSource === 'scout') {
+    const urlEl = document.getElementById('scoutUrl');
+    if (!urlEl || !urlEl.value.trim()) {
+      showToast('候補者URLは必須です', 'error');
+      return;
+    }
+  }
+  const btn = document.getElementById('scoutCopyRegisterBtn');
+  if (btn) btn.disabled = true;
+  try {
+    try {
+      await navigator.clipboard.writeText(scoutCurrentMessage);
+    } catch (e) {
+      showToast('クリップボードへのコピーに失敗しました', 'error');
+      return;
+    }
+    // goBackToList=false で画面遷移させずに登録のみ実行
+    await registerCandidateFromScout(false);
+    const nameEl = document.getElementById('registerCompleteName');
+    if (nameEl) nameEl.textContent = name;
+    openModal('registerCompleteModal');
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+}
+
+function registerCompleteGoToList() {
+  closeModal('registerCompleteModal');
+  showScreen('list');
+}
+
+function registerCompleteAddAnother() {
+  closeModal('registerCompleteModal');
+  wizardSelectedSource = null;
+  wizardPrefill = null;
+  currentCandidateId = null;
+  scoutMode = 'new';
+  scoutActiveSpId = null;
+  showScreen('add');
 }
 
 // 既存候補者モードで、選択中のsourceProfileに紐づけて送付履歴に記録する
