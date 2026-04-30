@@ -8863,7 +8863,7 @@ function clearDashFilter() {
 
 function onDashboardCardClick(kind) {
   if (listViewMode !== 'candidates') setListView('candidates');
-  // フィルタを設定
+  // listExtraFilter / listStatusFilter は setMainView に消されないので先に設定可
   if (kind === 'weekly_registered') {
     listExtraFilter = (listExtraFilter === 'weekly_registered') ? null : 'weekly_registered';
   } else if (kind === 'weekly_interview') {
@@ -8871,13 +8871,16 @@ function onDashboardCardClick(kind) {
   } else if (kind === 'weekly_replied') {
     const sel = document.getElementById('listStatusFilter');
     if (sel) sel.value = (sel.value === 'replied') ? '' : 'replied';
-  } else if (kind === 'requires_action') {
-    const cb = document.getElementById('filterRequiresAction');
-    if (cb) cb.checked = !cb.checked;
   }
   // 候補者一覧画面に遷移してからリストを描画（mainView=home のままだとダッシュボードが見え続けるため setMainView を使う）
   setMainView('candidates');
+  // setMainView → applyMainView がチェックボックスを強制OFFにリセットするため、
+  // チェックボックス系のフィルタ（filterRequiresAction）はリセット後に適用する。
   setTimeout(() => {
+    if (kind === 'requires_action') {
+      const cb = document.getElementById('filterRequiresAction');
+      if (cb) cb.checked = true;  // ダッシュボードからの遷移は常にON（トグルではなく明示有効化）
+    }
     renderCandidateList();
     const wrap = document.querySelector('.candidate-table-wrap');
     if (wrap) wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
