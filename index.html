@@ -4290,27 +4290,13 @@ function renderCandidateList() {
     });
   }
 
-  // 「要対応のみ」または「期日超過のみ」フィルタONの場合、自分の担当を上に + 同じグループは期日順（列ヘッダーソートに優先）
-  const priorityMineSort = (onlyAction || onlyOverdue) && currentUserEmail;
-  if (priorityMineSort) {
-    const myEmail = currentUserEmail.toLowerCase();
-    list.sort((a, b) => {
-      const aIsMine = (a.assignee || '').toLowerCase() === myEmail ? 0 : 1;
-      const bIsMine = (b.assignee || '').toLowerCase() === myEmail ? 0 : 1;
-      if (aIsMine !== bIsMine) return aIsMine - bIsMine;
-      const aDue = a.nextActionDue || '9999';
-      const bDue = b.nextActionDue || '9999';
-      return aDue.localeCompare(bDue);
-    });
-  } else {
-    const dir = listSortDir === 'asc' ? 1 : -1;
-    list.sort((a, b) => {
-      const av = a[listSortKey] || ''; const bv = b[listSortKey] || '';
-      if (av < bv) return -1 * dir;
-      if (av > bv) return 1 * dir;
-      return 0;
-    });
-  }
+  const dir = listSortDir === 'asc' ? 1 : -1;
+  list.sort((a, b) => {
+    const av = a[listSortKey] || ''; const bv = b[listSortKey] || '';
+    if (av < bv) return -1 * dir;
+    if (av > bv) return 1 * dir;
+    return 0;
+  });
 
   document.getElementById('headerCount').textContent = '候補者 ' + (cachedIndex.candidates || []).length + '名';
   document.getElementById('candidateCount').textContent = '総数: ' + (cachedIndex.candidates || []).length + '件 / 表示中: ' + list.length + '件';
@@ -8654,8 +8640,6 @@ function computeWeeklySummary() {
 
   const interviews = [];  // { at, done }
   let openTasks = 0, overdueTasks = 0;
-  let myOpenTasks = 0, teamOpenTasks = 0;
-  const myEmail = (currentUserEmail || '').toLowerCase();
 
   (cachedIndex.candidates || []).forEach(entry => {
     const c = loadCandidate(entry.id);
@@ -8693,9 +8677,6 @@ function computeWeeklySummary() {
     (c.tasks || []).forEach(t => {
       if (t.completedAt) return;
       openTasks++;
-      const asg = (t.assignee || '').toLowerCase();
-      if (myEmail && asg === myEmail) myOpenTasks++;
-      else teamOpenTasks++;
       const d = daysUntil(t.dueAt);
       if (d !== null && d < 0) overdueTasks++;
     });
@@ -8716,8 +8697,7 @@ function computeWeeklySummary() {
     interviewsTotal: interviews.length,
     interviewsDone,
     interviewsRemaining: interviews.length - interviewsDone,
-    openTasks, overdueTasks,
-    myOpenTasks, teamOpenTasks
+    openTasks, overdueTasks
   };
 }
 
@@ -8747,7 +8727,6 @@ function renderWeeklySummaryHtml() {
     ? `うち期限超過: ${s.overdueTasks}件`
     : '期限超過なし';
   const overdueColor = s.overdueTasks > 0 ? 'var(--error)' : 'var(--text-tertiary)';
-  const taskFooter = `自分: ${s.myOpenTasks}件 / チーム: ${s.teamOpenTasks}件`;
 
   const interviewsText = s.interviewsTotal > 0
     ? `済み: ${s.interviewsDone}件 / 残り: ${s.interviewsRemaining}件`
@@ -8759,7 +8738,7 @@ function renderWeeklySummaryHtml() {
     ${summaryCardHtml('<i data-lucide="upload" class="lucide"></i>', '今週の送付', s.thisWeekSent, '件', platformText, 'weekly_registered')}
     ${summaryCardHtml('<i data-lucide="mail-open" class="lucide"></i>', '返信率', s.replyRate, '%', replyFooter, 'weekly_replied', replyDiffColor)}
     ${summaryCardHtml('<i data-lucide="calendar" class="lucide"></i>', '今週の面談', s.interviewsTotal, '件', interviewsText, 'weekly_interview')}
-    ${summaryCardHtml('<i data-lucide="zap" class="lucide"></i>', '要対応', s.openTasks, '件', taskFooter, 'requires_action', overdueColor)}
+    ${summaryCardHtml('<i data-lucide="zap" class="lucide"></i>', '要対応', s.openTasks, '件', overdueText, 'requires_action', overdueColor)}
   </div>`;
 }
 
