@@ -1984,9 +1984,6 @@
           <i data-lucide="alert-triangle" class="lucide"></i> 設定画面でAnthropic APIキーを登録するとAIによる生成が可能になります。
         </div>
         <div class="scout-generated placeholder" id="scoutGenerated">ここに生成されたメッセージが表示されます。</div>
-        <div class="button-row" id="scoutCopyRow" style="margin-top:10px;">
-          <button class="btn" onclick="copyScoutMessage()"><i data-lucide="clipboard" class="lucide"></i> コピー</button>
-        </div>
         <!-- 既存モードの送付ボタン（既存モード時のみ JS で表示） -->
         <button class="btn btn-success" id="scoutSendOnly" style="width: 100%; display: none; margin-top:14px;" onclick="registerCandidateFromScout(false)"><i data-lucide="mail" class="lucide"></i> 送付して候補者詳細に戻る</button>
       </div>
@@ -4406,9 +4403,6 @@ function prepareScoutScreen() {
   }
   if (regenBtn)  regenBtn.style.display  = 'none';
   if (msgTypeRow) msgTypeRow.style.display = isExisting ? '' : 'none';
-  // 新規モードでは下部バーの「コピーして候補者を保存」が主導線なので「コピー」単体ボタンは隠す
-  const copyRow = document.getElementById('scoutCopyRow');
-  if (copyRow) copyRow.style.display = isExisting ? '' : 'none';
 
   // シンプルUI: 既存モードではプロフィール/URL/媒体/スカウト先など新規モード固有のフォームを非表示
   const newOnlyGroup = document.getElementById('scoutNewOnlyGroup');
@@ -7506,22 +7500,6 @@ function renderScoutScopeMultiCard(ranked) {
   card.style.display = '';
 }
 
-async function copyScoutMessage() {
-  if (!scoutCurrentMessage) { showToast('先にメッセージを生成してください', 'error'); return; }
-  try {
-    await navigator.clipboard.writeText(scoutCurrentMessage);
-  } catch (e) {
-    showToast('クリップボードへのコピーに失敗しました', 'error');
-    return;
-  }
-  // 既存モード: 送付履歴に自動記録
-  if (scoutMode === 'existing' && currentCandidateId) {
-    await recordSendForCurrentCandidate();
-  } else {
-    showToast('クリップボードにコピーしました', 'success');
-  }
-}
-
 // 新規モード用: クリップボードへコピー → 候補者を登録 → 完了モーダルを表示
 async function copyAndRegisterCandidate() {
   if (!scoutCurrentMessage) {
@@ -7697,42 +7675,6 @@ function scoutCompleteGoToList() {
 function scoutCompleteAddAnother() {
   closeModal('scoutCompleteModal');
   startNewCandidateWizard();
-}
-
-// 既存候補者モードで、選択中のsourceProfileに紐づけて送付履歴に記録する
-async function recordSendForCurrentCandidate() {
-  const c = loadCandidate(currentCandidateId);
-  if (!c) return;
-  if (!scoutCurrentMessage) return;
-  const msgType = document.getElementById('scoutMsgType').value;
-  const platform = getScoutPlatform();
-  const nowIso = new Date().toISOString();
-  c.sendHistory = c.sendHistory || [];
-  c.sendHistory.push({
-    id: 'send_' + String(c.sendHistory.length + 1).padStart(3, '0'),
-    date: nowIso,
-    platform,
-    msgType,
-    message: scoutCurrentMessage
-  });
-  c.nextActionDue = calculateNextActionDue(nowIso);
-  const prev = c.status;
-  if (msgType === 'first'  && c.status === 'not_sent') c.status = 'sent_first';
-  else if (msgType === 'first')  c.status = 'sent_first';
-  else if (msgType === 'second') c.status = 'sent_second';
-  const typeLabel = { first: '初回メッセージ', second: '2回目（SNS補助連絡）', interview_url: '面談設定（URL）', interview_ask: '面談設定（日時確認）' }[msgType] || msgType;
-  pushActivity(c, 'sent', typeLabel + (platform ? ' / ' + platform : '') + (prev !== c.status ? `（ステータス: ${getStatusMeta(prev).label} → ${getStatusMeta(c.status).label}）` : ''));
-  c.updatedAt = nowIso;
-  persistCandidate(c);
-  syncIndexFromCandidate(c);
-  await runDriveSave([
-    () => DriveStorage.writeCandidate(c.id, c),
-    () => DriveStorage.writeAts(DRIVE_INDEX_FILE, cachedIndex)
-  ], {
-    success: '<i data-lucide="clipboard" class="lucide"></i> コピー＆送付を記録しました <i data-lucide="check" class="lucide"></i>',
-    fail:    'コピー済み。Drive保存失敗（ローカルには保存）',
-    local:   '<i data-lucide="clipboard" class="lucide"></i> コピー＆送付を記録しました <i data-lucide="check" class="lucide"></i>（ローカル保存のみ）'
-  });
 }
 
 async function registerCandidateFromScout(goBackToList) {
