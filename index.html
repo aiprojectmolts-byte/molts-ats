@@ -3449,10 +3449,32 @@ function setLoginLoadingPhase(phase) {
     msg.innerHTML = '<strong>ログイン中...</strong><br><span style="font-size:11px; color:var(--text-tertiary);">認証ウィンドウで操作を続けてください</span>';
   }
 }
-function signInGoogle() {
+// tokenClient が初期化済みになるまで最大5秒待つ。Google Identity Services の
+// スクリプトロードと bootstrap の tryInit ポーリングのタイミング差を吸収する。
+async function waitForTokenClient(timeoutMs = 5000) {
+  const start = Date.now();
+  while (!tokenClient && Date.now() - start < timeoutMs) {
+    // GIS が読み込まれていれば即座に初期化を試みる
+    if (typeof google !== 'undefined' && google.accounts && GOOGLE_CLIENT_ID) {
+      try { initGoogleAuth(); } catch (e) { console.warn('[Auth] initGoogleAuth retry failed', e); }
+      if (tokenClient) return true;
+    }
+    await new Promise(r => setTimeout(r, 200));
+  }
+  return !!tokenClient;
+}
+
+async function signInGoogle() {
+  // 初期化未完了なら少し待つ（リロード直後に押された場合のレース対策）
   if (!tokenClient) {
-    showToast('Google認証が未初期化です。clientIdをconfig.jsonに設定してください。', 'error');
-    return;
+    setLoginBtnLoading(true);
+    const ok = await waitForTokenClient();
+    if (!ok) {
+      setLoginBtnLoading(false);
+      const reason = !GOOGLE_CLIENT_ID ? 'clientIdが未設定です' : 'Google Identity Servicesの読み込みが完了していません';
+      showToast('Google認証が未初期化です（' + reason + '）。ページを再読み込みしてください。', 'error');
+      return;
+    }
   }
   // ログイン開始時にグレースピリオドを再起動（OAuth処理中の「未接続」誤表示を防ぐ）
   resetDriveGracePeriod();
