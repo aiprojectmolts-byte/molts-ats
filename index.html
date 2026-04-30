@@ -388,6 +388,58 @@
   .detail-body {
     display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
   }
+  /* ===== 候補者詳細 タイムラインゾーン ===== */
+  .timeline-status-bar {
+    display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+    background: var(--bg-primary); border: 1px solid var(--border);
+    border-radius: 9px; padding: 12px 16px; margin-bottom: 14px;
+  }
+  .tsb-item { display: flex; flex-direction: column; gap: 2px; }
+  .tsb-label { font-size: 10px; color: var(--text-tertiary); font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
+  .tsb-val { font-size: 13px; font-weight: 500; }
+  .tsb-div { width: 1px; height: 32px; background: var(--border); }
+  .timeline-tasks-zone {
+    background: var(--warning-bg); border: 1px solid #FFD54F;
+    border-radius: 9px; padding: 12px 16px; margin-bottom: 14px;
+  }
+  .tl-timeline { position: relative; padding-left: 32px; }
+  .tl-timeline::before {
+    content: ''; position: absolute; left: 11px; top: 10px; bottom: 10px;
+    width: 2px; background: var(--border);
+  }
+  .tl-entry { position: relative; margin-bottom: 16px; }
+  .tl-entry:last-child { margin-bottom: 0; }
+  .tl-dot {
+    position: absolute; left: -32px; width: 24px; height: 24px;
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 12px; flex-shrink: 0; z-index: 1; border: 2px solid var(--bg-primary);
+  }
+  .tl-icon-send { background: var(--primary); color: #fff; }
+  .tl-icon-reply { background: var(--info); color: #fff; }
+  .tl-icon-flow { background: #7C3AED; color: #fff; }
+  .tl-icon-decline { background: var(--error); color: #fff; }
+  .tl-date { font-size: 10px; color: var(--text-tertiary); font-weight: 600; margin-bottom: 3px; }
+  .tl-card { border-radius: 7px; padding: 10px 12px; border: 1px solid var(--border); }
+  .tl-card-send { background: var(--bg-secondary); }
+  .tl-card-reply { background: var(--info-bg); border-color: var(--info); }
+  .tl-card-flow { background: #F5F3FF; border-color: #DDD6FE; }
+  .tl-card-decline { background: var(--error-bg); border-color: var(--error); }
+  .tl-type-label { font-size: 10px; font-weight: 700; color: var(--text-tertiary); letter-spacing: .04em; text-transform: uppercase; margin-bottom: 3px; }
+  .tl-main { font-size: 13px; font-weight: 500; margin-bottom: 3px; }
+  .tl-sub { font-size: 12px; color: var(--text-secondary); line-height: 1.6; }
+  .tl-ball { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 10px; margin-top: 5px; }
+  .tl-ball-waiting { background: var(--info-bg); color: var(--info); border: 1px solid var(--info); }
+  .tl-ball-action { background: var(--warning-bg); color: var(--warning-text); border: 1px solid #FFD54F; }
+  .tl-ball-done { background: var(--success-bg); color: var(--success); border: 1px solid var(--success); }
+  .tl-task-ref { display: inline-flex; align-items: center; gap: 4px; font-size: 10px; padding: 2px 7px; border-radius: 4px; margin-top: 5px; margin-left: 4px; }
+  .tl-task-ref.open { background: var(--warning-bg); color: var(--warning-text); border: 1px solid #FFD54F; }
+  .tl-task-ref.done { background: var(--success-bg); color: var(--success); border: 1px solid var(--success); }
+  .tl-expand-btn {
+    display: flex; align-items: center; justify-content: center;
+    padding: 10px; cursor: pointer; font-size: 12px; color: var(--text-secondary);
+    border-top: 1px solid var(--border); margin-top: 8px; user-select: none;
+  }
+  .tl-expand-btn:hover { background: var(--bg-secondary); }
   .detail-section {
     background: var(--bg-primary); border: 1px solid var(--border);
     border-radius: 12px; padding: 20px;
@@ -9575,6 +9627,141 @@ function openCandidateDetail(id) {
   renderCandidateDetail(c);
   showScreen('detail');
 }
+// 候補者詳細のタイムラインセクション（送付履歴・やり取りログ・フロー変化を時系列統合）
+function renderTimelineSectionHtml(c) {
+  const entries = [];
+
+  // 1) 送付履歴
+  (c.sendHistory || []).forEach(sh => {
+    entries.push({
+      at: sh.sentAt || sh.date || sh.at || '',
+      type: 'send',
+      icon: '<i data-lucide="send" class="lucide" style="width:12px;height:12px;"></i>',
+      typeLabel: 'スカウト送付',
+      main: `${escapeHtml(sh.platform || sh.spPlatform || '媒体不明')} からメッセージを送付`,
+      sub: sh.msgType ? `種別：${escapeHtml(sh.msgType)}` : ''
+    });
+  });
+
+  // 2) やり取りログ
+  (c.logs || []).forEach(l => {
+    const meta = (typeof logLabelMeta === 'function') ? logLabelMeta(l.label || 'shitsumon') : { label: l.label || '' };
+    const ballFromLabel = (typeof BALL_FROM_LABEL !== 'undefined') ? BALL_FROM_LABEL[l.label] : null;
+    let ballHtml = '';
+    if (ballFromLabel === 'candidate')   ballHtml = '<span class="tl-ball tl-ball-waiting"><i data-lucide="hourglass" class="lucide" style="width:10px;height:10px;"></i> 返信待ち</span>';
+    else if (ballFromLabel === 'us')      ballHtml = '<span class="tl-ball tl-ball-action"><i data-lucide="zap" class="lucide" style="width:10px;height:10px;"></i> 要対応</span>';
+    else if (ballFromLabel === 'closed') ballHtml = '<span class="tl-ball tl-ball-done"><i data-lucide="check-circle" class="lucide" style="width:10px;height:10px;"></i> クローズ</span>';
+
+    const relatedTasks = (c.tasks || []).filter(t => t.sourceLogId === l.id);
+    const taskRefsHtml = relatedTasks.map(t => {
+      const taskMeta = (typeof TASK_TYPES !== 'undefined' && TASK_TYPES[t.type]) || { label: t.type };
+      const isDone = !!t.completedAt;
+      const tIcon = isDone ? '<i data-lucide="check" class="lucide" style="width:10px;height:10px;"></i>' : '<i data-lucide="zap" class="lucide" style="width:10px;height:10px;"></i>';
+      return `<span class="tl-task-ref ${isDone ? 'done' : 'open'}">${tIcon} ${escapeHtml(taskMeta.label)}${t.dueDate && !isDone ? `（${escapeHtml(t.dueDate)}）` : ''}</span>`;
+    }).join('');
+
+    entries.push({
+      at: l.at || l.date || '',
+      type: l.label === 'jitai' ? 'decline' : 'reply',
+      icon: '<i data-lucide="message-circle" class="lucide" style="width:12px;height:12px;"></i>',
+      typeLabel: escapeHtml(meta.label || ''),
+      main: escapeHtml(l.summary || ''),
+      sub: l.reply ? escapeHtml(l.reply.substring(0, 100)) + (l.reply.length > 100 ? '...' : '') : '',
+      ballHtml,
+      taskRefsHtml
+    });
+  });
+
+  // 3) 採用フロー変化
+  FLOW_PHASES.forEach(def => {
+    const d = getFlowPhase(c, def.id);
+    if (!d.scheduledAt && !d.conductedAt) return;
+    const at = d.conductedAt || d.scheduledAt || '';
+    const sched = d.scheduledAt ? new Date(d.scheduledAt).toLocaleString('ja-JP', {
+      year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
+    }) : '';
+    const interviewers = getPhaseInterviewers(d);
+    entries.push({
+      at,
+      type: 'flow',
+      icon: '<i data-lucide="calendar" class="lucide" style="width:12px;height:12px;"></i>',
+      typeLabel: `採用フロー：${escapeHtml(def.label)}`,
+      main: sched ? escapeHtml(sched) : escapeHtml(def.label + '設定'),
+      sub: interviewers.length ? `面接官：${escapeHtml(interviewers.map(i => i.name).join('、'))}` : ''
+    });
+  });
+
+  entries.sort((a, b) => String(b.at || '').localeCompare(String(a.at || '')));
+
+  if (entries.length === 0) {
+    return `<div class="detail-section" style="margin-bottom:16px;">
+      <div class="detail-section-title"><span>タイムライン</span></div>
+      <div style="padding:14px 16px; font-size:12px; color:var(--text-tertiary);">まだやり取りはありません。スカウトを送付するとここに表示されます。</div>
+    </div>`;
+  }
+
+  const renderEntry = (e) => {
+    const cardCls = e.type === 'reply' ? 'tl-card-reply'
+                  : e.type === 'flow' ? 'tl-card-flow'
+                  : e.type === 'decline' ? 'tl-card-decline'
+                  : 'tl-card-send';
+    const iconCls = e.type === 'reply' ? 'tl-icon-reply'
+                  : e.type === 'flow' ? 'tl-icon-flow'
+                  : e.type === 'decline' ? 'tl-icon-decline'
+                  : 'tl-icon-send';
+    const atText = e.at ? new Date(e.at).toLocaleString('ja-JP', {
+      year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit'
+    }) : '—';
+    return `<div class="tl-entry">
+      <div class="tl-dot ${iconCls}">${e.icon}</div>
+      <div class="tl-content">
+        <div class="tl-date">${escapeHtml(atText)}</div>
+        <div class="tl-card ${cardCls}">
+          <div class="tl-type-label">${e.typeLabel}</div>
+          ${e.main ? `<div class="tl-main">${e.main}</div>` : ''}
+          ${e.sub ? `<div class="tl-sub">${e.sub}</div>` : ''}
+          ${e.ballHtml || ''}
+          ${e.taskRefsHtml || ''}
+        </div>
+      </div>
+    </div>`;
+  };
+
+  const latest = entries[0];
+  const older = entries.slice(1);
+  const olderHtml = older.length > 0
+    ? `<div id="tlOlderEntries" style="display:none;">${older.map(renderEntry).join('')}</div>
+       <div class="tl-expand-btn" onclick="toggleTimelineEntries(${older.length})">
+         <span id="tlExpandText">過去のやり取りをすべて見る（${older.length}件）▼</span>
+       </div>`
+    : '';
+
+  return `<div class="detail-section" style="margin-bottom:16px;">
+    <div class="detail-section-title">
+      <span>タイムライン</span>
+      <span style="font-size:10px; background:var(--info-bg); color:var(--info); border:1px solid var(--info); padding:1px 7px; border-radius:8px; font-weight:600; margin-left:6px; text-transform:none; letter-spacing:normal;">最新: ${latest.typeLabel}</span>
+    </div>
+    <div style="padding:14px 16px;">
+      <div class="tl-timeline">
+        ${renderEntry(latest)}
+        ${olderHtml}
+      </div>
+    </div>
+  </div>`;
+}
+
+function toggleTimelineEntries(olderCount) {
+  const older = document.getElementById('tlOlderEntries');
+  const text = document.getElementById('tlExpandText');
+  if (!older) return;
+  const isOpen = older.style.display !== 'none';
+  older.style.display = isOpen ? 'none' : '';
+  if (text) text.textContent = isOpen
+    ? `過去のやり取りをすべて見る（${olderCount}件）▼`
+    : '折りたたむ ▲';
+  if (!isOpen && window.lucide) lucide.createIcons();
+}
+
 function renderCandidateDetail(c) {
   document.getElementById('detailName').textContent = c.name || '—';
   const upd = c.updatedAt ? new Date(c.updatedAt) : null;
@@ -9627,7 +9814,47 @@ function renderCandidateDetail(c) {
         ? `<span class="source-label" title="${escapeHtml(slackHint)}"><i data-lucide="megaphone" class="lucide"></i> Slackスレッド作成済み</span>
            <button class="btn btn-small" onclick="recreateSlackThread()"><i data-lucide="refresh-cw" class="lucide"></i> Slackスレッドを再作成</button>`
         : '');
+  // 上部ゾーン: ステータスバー
+  const statusBarHtml = `
+    <div class="timeline-status-bar">
+      <div class="tsb-item">
+        <div class="tsb-label">ステータス</div>
+        <div class="tsb-val"><span class="status-badge ${escapeHtml(meta.cls)}">${escapeHtml(meta.label)}</span></div>
+      </div>
+      <div class="tsb-div"></div>
+      <div class="tsb-item">
+        <div class="tsb-label">応募先</div>
+        <div class="tsb-val">${escapeHtml(companyName || '—')}</div>
+      </div>
+      <div class="tsb-div"></div>
+      <div class="tsb-item">
+        <div class="tsb-label">次回期日</div>
+        <div class="tsb-val ${dueCls}">${due ? (due + dueSuffix) : '—'}</div>
+      </div>
+      <div class="tsb-div"></div>
+      <div class="tsb-item">
+        <div class="tsb-label">主担当</div>
+        <div class="tsb-val">${assigneeUser ? escapeHtml(assigneeUser.name) : (c.assignee ? escapeHtml(c.assignee) : '—')}</div>
+      </div>
+      <div class="tsb-div"></div>
+      <div class="tsb-item">
+        <div class="tsb-label">ボール</div>
+        <div class="tsb-val">${ballState ? ballChipHtml(ballState) : '<span style="color:var(--text-tertiary);">—</span>'}</div>
+      </div>
+    </div>`;
+
+  // 上部ゾーン: 要対応タスクがある時のみ表示
+  const openTasksList = (typeof getOpenTasks === 'function') ? getOpenTasks(c) : [];
+  const tasksZoneHtml = openTasksList.length > 0
+    ? `<div class="timeline-tasks-zone">${renderTasksSectionHtml(c)}</div>`
+    : '';
+
   body.innerHTML = `
+    <div style="grid-column: 1 / -1;">
+      ${statusBarHtml}
+      ${tasksZoneHtml}
+      ${renderTimelineSectionHtml(c)}
+    </div>
     <div>
       <!-- 1. 基本情報 -->
       <div class="detail-section" style="margin-bottom: 16px;">
@@ -9650,9 +9877,6 @@ function renderCandidateDetail(c) {
         <div class="detail-row"><span class="detail-row-label">メモ</span>
           <span class="detail-row-value">${c.memo ? escapeHtml(c.memo) : '<span class="source-label">—</span>'}</span></div>
       </div>
-
-      <!-- 2. タスク -->
-      ${renderTasksSectionHtml(c)}
 
       <!-- 3. やり取りログ -->
       <div class="detail-section" style="margin-bottom: 16px;">
