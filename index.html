@@ -1145,6 +1145,18 @@
     font-size: 14px; font-weight: 500; cursor: pointer; font-family: inherit;
   }
   .login-btn:hover { background: var(--primary-hover); }
+  .login-btn:disabled { background: var(--primary); opacity: 0.6; cursor: not-allowed; }
+  .login-loading {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    margin-top: 16px; padding: 12px 16px;
+    background: var(--info-bg); border: 1px solid var(--info-bg);
+    border-radius: 8px; color: var(--info); font-size: 13px; font-weight: 500;
+    line-height: 1.5;
+  }
+  .login-loading .mini-spinner {
+    width: 16px; height: 16px; border-width: 2.5px;
+    border-color: rgba(24,95,165,0.2); border-top-color: var(--info);
+  }
   .login-note {
     font-size: 11px; color: var(--text-tertiary); margin-top: 24px; line-height: 1.7;
   }
@@ -2573,6 +2585,10 @@
     <div class="login-brand"><span class="accent">THE MOLTS</span> 採用管理 ATS</div>
     <div class="login-subtitle">社内のGoogleアカウントでログインしてください</div>
     <button class="login-btn" id="loginBtn" onclick="signInGoogle()"><i data-lucide="lock" class="lucide"></i> Googleでログイン</button>
+    <div class="login-loading" id="loginLoadingNote" style="display:none;">
+      <span class="mini-spinner"></span>
+      <span>ログイン中...<br><span style="font-size:11px; color:var(--text-tertiary);">認証ウィンドウで操作を続けてください</span></span>
+    </div>
     <div class="login-note">
       ログインすると、ScoutData/ats/ 配下にデータが保存されます。<br>
       初回ログイン時は管理者の承認が必要です。
@@ -3241,17 +3257,23 @@ async function handleAuthResponse(response) {
 }
 function setLoginBtnLoading(loading) {
   const btn = document.getElementById('loginBtn');
-  if (!btn) return;
+  const note = document.getElementById('loginLoadingNote');
   if (loading) {
-    btn.dataset.origHtml = btn.innerHTML;
-    btn.disabled = true;
-    btn.innerHTML = '<span class="mini-spinner"></span>ログイン中...';
-  } else {
-    btn.disabled = false;
-    if (btn.dataset.origHtml) {
-      btn.innerHTML = btn.dataset.origHtml;
-      delete btn.dataset.origHtml;
+    if (btn) {
+      btn.dataset.origHtml = btn.innerHTML;
+      btn.disabled = true;
+      btn.innerHTML = '<span class="mini-spinner"></span>ログイン中...';
     }
+    if (note) note.style.display = 'flex';
+  } else {
+    if (btn) {
+      btn.disabled = false;
+      if (btn.dataset.origHtml) {
+        btn.innerHTML = btn.dataset.origHtml;
+        delete btn.dataset.origHtml;
+      }
+    }
+    if (note) note.style.display = 'none';
   }
 }
 function signInGoogle() {
