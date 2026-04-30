@@ -1965,6 +1965,7 @@
       <div class="scout-panel-body" id="scoutScopePanelBody">
         <span class="scope-badge" id="scoutScopeBadge" style="display:none;"><i data-lucide="check" class="lucide"></i> スコープ判定: 推奨</span>
         <div id="scoutScopeReason" style="display:none; background: var(--info-bg); color: var(--info-text); padding: 8px 12px; border-radius: 6px; font-size: 12px; margin: 10px 0; border-left: 3px solid var(--info); white-space: pre-wrap; line-height:1.6;"></div>
+        <div id="scoutScopeMainCard"></div>
         <div id="scoutScopeMultiCard" class="scope-card" style="display:none; margin-top: 12px;"></div>
         <div id="scoutScopePlaceholder" style="font-size:12px; color:var(--text-tertiary); font-style:italic;">プロフィールを貼り付けると自動で判定されます</div>
       </div>
@@ -7656,22 +7657,63 @@ function renderProfileSummaryHtml(summary) {
 
 // 縦1カラムUI: スコープ判定結果と AI要約 をパネルに反映
 function updateScoutScopePanels(result) {
-  const scopeBody = document.getElementById('scoutScopePanelBody');
+  const mainCard = document.getElementById('scoutScopeMainCard');
+  const placeholder = document.getElementById('scoutScopePlaceholder');
   const summaryPanel = document.getElementById('scoutSummaryPanel');
   const summaryBody = document.getElementById('scoutSummaryPanelBody');
-  if (!scopeBody) return;
-  // プレースホルダ・既存の badge/reason/multiCard 等は新ビュー用のカードに置き換える
-  if (!result) return;
+  // 旧UI由来のバッジ/Reason は新カードに統合済みのため常時非表示にする（冗長表示の解消）
+  const legacyBadge  = document.getElementById('scoutScopeBadge');
+  const legacyReason = document.getElementById('scoutScopeReason');
+  if (legacyBadge)  legacyBadge.style.display  = 'none';
+  if (legacyReason) legacyReason.style.display = 'none';
+  if (!mainCard) return;
+  if (!result) {
+    mainCard.innerHTML = '';
+    if (placeholder) placeholder.style.display = '';
+    return;
+  }
+  if (placeholder) placeholder.style.display = 'none';
+
   const verdictMap = {
     recommend:     { cls: 'ok',   icon: scopeIconLucide('ok'),   label: 'スカウト推奨', bg: 'var(--success-bg)', bd: 'var(--success)' },
     caution:       { cls: 'warn', icon: scopeIconLucide('warn'), label: '要注意',       bg: '#fff5e6',           bd: '#e89c3d' },
     not_recommend: { cls: 'ng',   icon: scopeIconLucide('ng'),   label: '見送り',       bg: 'var(--error-bg)',   bd: 'var(--error)' }
   };
   const vm = verdictMap[result.verdict] || { cls: '', icon: '', label: result.verdict || '—', bg: 'var(--bg-secondary)', bd: 'var(--border)' };
-  scopeBody.innerHTML = `
-    <div style="border-radius:8px; padding:12px 14px; background:${vm.bg}; border:1px solid ${vm.bd};">
-      <div style="font-size:13px; font-weight:700; margin-bottom:6px; display:flex; align-items:center; gap:6px;">${vm.icon} ${escapeHtml(vm.label)}</div>
-      ${result.detail ? `<div style="font-size:12px; color:var(--text-secondary); line-height:1.7; margin-top:4px;">${markdownToScopeHtml(result.detail)}</div>` : ''}
+
+  const posName  = result.positionName || '';
+  const compName = result.companyName  || '';
+  const score    = (typeof result.score === 'number') ? result.score : null;
+
+  // 条件別ブレークダウン: rawText から buildScopeResultHtml で再構築
+  let breakdownHtml = '';
+  if (result.rawText) {
+    breakdownHtml = `<div style="margin-top:10px; padding-top:10px; border-top:1px dashed var(--border);">${buildScopeResultHtml(result.rawText)}</div>`;
+  } else if (result.detail) {
+    breakdownHtml = `<div style="font-size:12px; color:var(--text-secondary); line-height:1.7; margin-top:8px;">${markdownToScopeHtml(result.detail)}</div>`;
+  }
+
+  // スコア詳細（quantOk / qualOk / ngBad / ngWarn の内訳）
+  let scoreDetailHtml = '';
+  const d = result.scoreDetail;
+  if (d) {
+    scoreDetailHtml = `<div style="margin-top:8px; padding:10px 12px; background:var(--bg-secondary); border-radius:6px; font-size:11px; line-height:1.9; color:var(--text-secondary); white-space:pre-wrap;"><span style="font-weight:600; color:var(--text);">マッチスコア：${d.total}点</span>
+定量条件　${scopeIconLucide('ok')} ${d.quantOk}件 × 3点 = ${d.quantPoints}点
+定性条件　${scopeIconLucide('ok')} ${d.qualOk}件 × 2点 = ${d.qualPoints}点
+NG非推奨　${scopeIconLucide('ng')} ${d.ngBad}件 × -5点 = <span class="${d.ngBadPoints < 0 ? 'scope-score-minus' : ''}">${d.ngBadPoints}点</span>
+NG要確認　${scopeIconLucide('warn')} ${d.ngWarn}件 × -2点 = <span class="${d.ngWarnPoints < 0 ? 'scope-score-minus' : ''}">${d.ngWarnPoints}点</span></div>`;
+  }
+
+  mainCard.innerHTML = `
+    <div style="border-radius:8px; padding:14px 16px; background:${vm.bg}; border:1px solid ${vm.bd};">
+      <div style="display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-bottom:8px;">
+        <span style="font-size:14px; font-weight:700; display:inline-flex; align-items:center; gap:6px;">${vm.icon} ${escapeHtml(vm.label)}</span>
+        ${posName ? `<span style="font-size:12px; font-weight:600; color:var(--text); padding:2px 8px; background:rgba(255,255,255,0.5); border-radius:10px;">${escapeHtml(posName)}</span>` : ''}
+        ${compName ? `<span style="font-size:11px; color:var(--text-secondary);">（${escapeHtml(compName)}）</span>` : ''}
+        ${score !== null ? `<span style="margin-left:auto; font-size:11px; color:var(--text-secondary);">マッチスコア <strong style="color:var(--text); font-size:13px;">${score}</strong>点</span>` : ''}
+      </div>
+      ${breakdownHtml}
+      ${scoreDetailHtml}
     </div>`;
   if (window.lucide) lucide.createIcons();
 
