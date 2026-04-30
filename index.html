@@ -2040,7 +2040,7 @@
         </div>
       </div>
       <div class="scout-panel-body">
-        <button class="btn btn-primary" style="width:100%; margin-bottom:14px; padding:11px;" id="scoutGenerateBtn" onclick="generateScoutMessage()">メッセージを生成する</button>
+        <button class="btn btn-primary" title="" style="width:100%; margin-bottom:14px; padding:11px;" id="scoutGenerateBtn" onclick="generateScoutMessage()">メッセージを生成する</button>
         <div id="scoutApiKeyHint" style="display:none; margin-bottom:10px; font-size:12px; color:var(--warning-text); background:var(--warning-bg); padding:8px 12px; border-radius:6px;">
           <i data-lucide="alert-triangle" class="lucide"></i> 設定画面でAnthropic APIキーを登録するとAIによる生成が可能になります。
         </div>
@@ -2055,7 +2055,7 @@
   <!-- 固定下部バー（新規モードのみ） -->
   <div id="scoutSaveBar" style="display:none; position:sticky; bottom:0; background:var(--bg-primary); border-top:1px solid var(--border); padding:14px 20px; align-items:center; justify-content:center; gap:16px; box-shadow:0 -2px 12px rgba(0,0,0,.06);">
     <div id="scoutSaveHint" style="font-size:12px; color:var(--text-tertiary);">メッセージを生成してください</div>
-    <button id="scoutCopyRegisterBtn" class="btn btn-success" style="font-size:14px; font-weight:700; padding:12px 32px; border-radius:8px;" disabled onclick="copyAndRegisterCandidate()"><i data-lucide="clipboard" class="lucide"></i> コピーして候補者を保存</button>
+    <button id="scoutCopyRegisterBtn" class="btn btn-success" title="" style="font-size:14px; font-weight:700; padding:12px 32px; border-radius:8px;" disabled onclick="copyAndRegisterCandidate()"><i data-lucide="clipboard" class="lucide"></i> コピーして候補者を保存</button>
   </div>
 
   <!-- レガシー登録ボタン（DOM維持のため） -->
@@ -4475,9 +4475,10 @@ function prepareScoutScreen() {
   if (wizardSelectedSource === 'scout') {
     // 媒体は URL/プロフィールから自動判別し、下の媒体バッジで表示する。
     // #scoutPlatform は既存ロジックとの互換のため hidden input として残す。
+    // title="" を明示してブラウザ拡張・自動翻訳由来のツールチップを抑制する。
     box.innerHTML = `
       <input type="hidden" id="scoutPlatform" value="">
-      <input type="text" class="scout-input" id="scoutUrl" placeholder="例：https://youtrust.jp/users/..." oninput="validateScoutUrl()" style="margin-bottom:0;">
+      <input type="text" class="scout-input" id="scoutUrl" title="" placeholder="例：https://youtrust.jp/users/..." oninput="validateScoutUrl()" style="margin-bottom:0;">
       <div id="scoutUrlError" style="display:none; font-size:11px; color:var(--error); margin-top:4px;">候補者URLは必須です</div>`;
   } else if (wizardSelectedSource === 'referral') {
     box.innerHTML = `
