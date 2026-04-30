@@ -8574,6 +8574,7 @@ function clearDashFilter() {
 
 function onDashboardCardClick(kind) {
   if (listViewMode !== 'candidates') setListView('candidates');
+  // フィルタを設定
   if (kind === 'weekly_registered') {
     listExtraFilter = (listExtraFilter === 'weekly_registered') ? null : 'weekly_registered';
   } else if (kind === 'weekly_interview') {
@@ -8585,9 +8586,10 @@ function onDashboardCardClick(kind) {
     const cb = document.getElementById('filterRequiresAction');
     if (cb) cb.checked = !cb.checked;
   }
-  renderCandidateList();
-  // テーブルエリアへスクロール
+  // 候補者一覧画面に遷移してからリストを描画（mainView=home のままだとダッシュボードが見え続けるため setMainView を使う）
+  setMainView('candidates');
   setTimeout(() => {
+    renderCandidateList();
     const wrap = document.querySelector('.candidate-table-wrap');
     if (wrap) wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, 50);
@@ -9632,7 +9634,10 @@ function renderCandidateDetail(c) {
       <div class="detail-section" style="margin-bottom: 16px;">
         <div class="detail-section-title">
           <span>基本情報</span>
-          ${slackBtn}
+          <div style="display:flex; align-items:center; gap:6px;">
+            ${can('candidates.edit', { candidate: c }) ? `<button class="btn btn-small" onclick="openCandidateEditModal()"><i data-lucide="pencil" class="lucide"></i> 編集</button>` : ''}
+            ${slackBtn}
+          </div>
         </div>
         ${ballState ? `<div class="detail-row"><span class="detail-row-label">次のアクション</span><span class="detail-row-value">${ballChipHtml(ballState)}</span></div>` : ''}
         <div class="detail-row"><span class="detail-row-label">ステータス</span>
