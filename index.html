@@ -5679,6 +5679,28 @@ function slackEventEnabled(eventId) {
   });
 }
 
+// HTMLタグを Slack mrkdwn 形式に変換し、HTML エンティティもデコードする
+function htmlToSlackMrkdwn(text) {
+  if (!text) return '';
+  let s = String(text);
+  // <a href="URL">TEXT</a> → <URL|TEXT>
+  s = s.replace(/<a\s+[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi, (_, url, t) => `<${url}|${t.trim()}>`);
+  // <b>...</b> / <strong>...</strong> → *...*
+  s = s.replace(/<\/?(b|strong)[^>]*>/gi, '*');
+  // <br>, <br/>, <br /> → \n
+  s = s.replace(/<br\s*\/?>/gi, '\n');
+  // <i data-lucide="...">...</i> や その他 <i>, <span> 等のインラインタグは丸ごと除去
+  s = s.replace(/<i\b[^>]*\/?>(?:[\s\S]*?<\/i>)?/gi, '');
+  // 残りのタグも除去
+  s = s.replace(/<[^>]+>/g, '');
+  // HTMLエンティティのデコード
+  const ent = { '&amp;': '&', '&lt;': '<', '&gt;': '>', '&quot;': '"', '&#39;': "'", '&nbsp;': ' ' };
+  s = s.replace(/&(amp|lt|gt|quot|#39|nbsp);/g, m => ent[m] || m);
+  // 数値文字参照 &#65; なども一応
+  s = s.replace(/&#(\d+);/g, (_, n) => String.fromCharCode(parseInt(n, 10)));
+  return s;
+}
+
 function buildSlackText(eventId, data) {
   data = data || {};
   switch (eventId) {
@@ -5757,6 +5779,8 @@ async function sendSlackNotification(eventId, data) {
     if (prefix) text = prefix + text;
     // 「対応期限」情報がdataに含まれていれば付加
     if (data.taskInfo) text += '\n' + data.taskInfo;
+    // Slack mrkdwn 形式へ変換（<i data-lucide=...> 等のHTMLタグ・エンティティを除去）
+    text = htmlToSlackMrkdwn(text);
 
     const payload = { text };
     if (cachedSlack.defaultChannel) payload.channel = cachedSlack.defaultChannel;
@@ -5802,6 +5826,93 @@ function bufferSlackEvent(type, data) {
   cachedSlackBuffer.items.push({ at: new Date().toISOString(), type, data: data || {} });
   persistSlackBuffer();
 }
+// 分析画面のドロップダウン開閉
+function toggleSlackSummaryMenu(ev) {
+  if (ev) ev.stopPropagation();
+  const m = document.getElementById('slackSummaryMenu');
+  if (!m) return;
+  const open = m.style.display !== 'none';
+  m.style.display = open ? 'none' : 'block';
+  if (!open) {
+    const closer = (e) => {
+      if (m.contains(e.target)) return;
+      m.style.display = 'none';
+      document.removeEventListener('click', closer);
+    };
+    setTimeout(() => document.addEventListener('click', closer), 0);
+  }
+}
+
+// 「Slackに送信」メニューから手動でサマリーを送る（daily/weekly/monthly）
+async function sendManualSlackSummary(rangeType) {
+  const menu = document.getElementById('slackSummaryMenu');
+  if (menu) menu.style.display = 'none';
+  if (!cachedSlack || !cachedSlack.webhookUrl) {
+    showToast('Slack連携が設定されていません', 'error');
+    return;
+  }
+
+  // 期間の開始時刻を計算
+  const now = new Date();
+  let start, label;
+  if (rangeType === 'monthly') {
+    start = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0);
+    label = '今月';
+  } else if (rangeType === 'weekly') {
+    const dow = now.getDay(); // 0=Sun
+    start = new Date(now);
+    start.setDate(start.getDate() - dow);
+    start.setHours(0, 0, 0, 0);
+    label = '今週';
+  } else {
+    start = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+    label = '本日';
+  }
+  const startMs = start.getTime();
+
+  // 対象候補者（period 内に活動があったもの）を集計
+  const candidates = (cachedIndex.candidates || []).map(e => loadCandidate(e.id)).filter(Boolean);
+  const sections = [];
+
+  // 新規登録
+  const registered = candidates.filter(c => c.createdAt && new Date(c.createdAt).getTime() >= startMs);
+  if (registered.length) sections.push({ label: '新規登録', count: registered.length, samples: registered.map(c => c.name).filter(Boolean) });
+
+  // 返信あり
+  const REPLY_LABELS = ['mendan','jouken','kentou','kakutei','reschedule_them','reschedule_us','shitsumon','jitai'];
+  const repliedNames = [];
+  candidates.forEach(c => {
+    const has = (c.logs || []).some(l => REPLY_LABELS.includes(l.label) && l.at && new Date(l.at).getTime() >= startMs);
+    if (has) repliedNames.push(c.name);
+  });
+  if (repliedNames.length) sections.push({ label: '返信あり', count: repliedNames.length, samples: repliedNames });
+
+  // 面談予定
+  const interviewNames = [];
+  candidates.forEach(c => {
+    const has = Object.values(c.flow || {}).some(p => p && p.scheduledAt && new Date(p.scheduledAt).getTime() >= startMs);
+    if (has) interviewNames.push(c.name);
+  });
+  if (interviewNames.length) sections.push({ label: '面談予定', count: interviewNames.length, samples: interviewNames });
+
+  // 期日超過（現時点ベース）
+  const overdue = (typeof getOverdueCandidates === 'function') ? getOverdueCandidates() : [];
+  if (overdue.length) sections.push({ label: '期日超過', count: overdue.length, samples: overdue.map(c => c.name).filter(Boolean) });
+
+  if (sections.length === 0) {
+    showToast(`${label}の活動はありません（送信スキップ）`, 'info');
+    return;
+  }
+
+  showToast('Slackに送信中...', 'info');
+  const ok = await sendSlackNotificationImmediate('summary_report', { rangeLabel: label, sections });
+  if (ok) {
+    showToast(`${label}サマリーをSlackに送信しました`, 'success');
+  } else {
+    showToast('Slack送信に失敗しました', 'error');
+  }
+}
+
 async function runSlackSummary() {
   const items = cachedSlackBuffer.items || [];
   const overdue = getOverdueCandidates();
@@ -5833,7 +5944,7 @@ async function sendSlackNotificationImmediate(eventId, data) {
   try {
     const webhook = cachedSlack && cachedSlack.webhookUrl;
     if (!webhook) return false;
-    const text = buildSlackText(eventId, data);
+    const text = htmlToSlackMrkdwn(buildSlackText(eventId, data));
     const payload = { text };
     if (cachedSlack.defaultChannel) payload.channel = cachedSlack.defaultChannel;
     await fetch(webhook, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
@@ -9036,7 +9147,17 @@ function renderAnalytics() {
   </div>`;
 
   const header = `
-    <div class="analytics-period">${periodBtns}</div>
+    <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:14px;">
+      <div class="analytics-period" style="margin-bottom:0;">${periodBtns}</div>
+      <div style="margin-left:auto; position:relative;">
+        <button class="btn btn-small" onclick="toggleSlackSummaryMenu(event)"><i data-lucide="megaphone" class="lucide"></i> Slackに送信 ▾</button>
+        <div id="slackSummaryMenu" style="display:none; position:absolute; right:0; top:calc(100% + 6px); background:var(--bg-primary); border:1px solid var(--border); border-radius:8px; box-shadow:0 4px 14px rgba(0,0,0,0.12); min-width:200px; z-index:50; padding:6px 0;">
+          <div style="padding:8px 14px; cursor:pointer; font-size:13px;" onmouseover="this.style.background='var(--bg-secondary)'" onmouseout="this.style.background=''" onclick="sendManualSlackSummary('daily')">日次サマリー（今日の活動）</div>
+          <div style="padding:8px 14px; cursor:pointer; font-size:13px;" onmouseover="this.style.background='var(--bg-secondary)'" onmouseout="this.style.background=''" onclick="sendManualSlackSummary('weekly')">週次サマリー（今週の活動）</div>
+          <div style="padding:8px 14px; cursor:pointer; font-size:13px;" onmouseover="this.style.background='var(--bg-secondary)'" onmouseout="this.style.background=''" onclick="sendManualSlackSummary('monthly')">月次サマリー（今月の活動）</div>
+        </div>
+      </div>
+    </div>
     <div style="font-size:12px; color:var(--text-tertiary); margin-bottom:14px;">
       ${escapeHtml(periodLabel)}の対象候補者：${candidates.length}件
     </div>
