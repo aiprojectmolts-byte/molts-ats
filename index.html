@@ -1943,7 +1943,7 @@
 
         <div id="scoutMsgTypeRow" style="display:none; margin-top:12px;">
           <label class="scout-label">メッセージ種別</label>
-          <select class="scout-input" id="scoutMsgType" style="margin-bottom:0;">
+          <select class="scout-input" id="scoutMsgType" onchange="updateScoutMsgTypeLabel()" style="margin-bottom:0;">
             <option value="first">初回メッセージ</option>
             <option value="second">2回目（SNS補助連絡）</option>
             <option value="interview_url">面談設定（URL送付）</option>
@@ -4348,6 +4348,7 @@ function prepareScoutScreen() {
   document.getElementById('scoutCandidateName').value = '';
   document.getElementById('scoutProfile').value = '';
   document.getElementById('scoutMsgType').value = 'first';
+  if (typeof updateScoutMsgTypeLabel === 'function') updateScoutMsgTypeLabel();
   // 媒体バッジの初期化
   if (typeof updatePlatBadge === 'function') updatePlatBadge('');
   scoutCurrentMessage = '';
@@ -4497,6 +4498,8 @@ function onScoutExistingSpChange() {
 
 // スカウト画面のURL必須バリデーション（scout媒体ソース時のみ）
 function validateScoutUrl() {
+  // 既存モード（候補者詳細→メッセージ生成）では候補者は既に登録済みなので URL 必須判定をスキップ
+  const isExisting = scoutMode === 'existing';
   const isScoutSource = wizardSelectedSource === 'scout';
   const urlEl = document.getElementById('scoutUrl');
   const errorEl = document.getElementById('scoutUrlError');
@@ -4504,7 +4507,7 @@ function validateScoutUrl() {
   const regMain = document.getElementById('scoutRegisterMain');
   const regCont = document.getElementById('scoutRegisterContinue');
   const urlValue = urlEl ? urlEl.value.trim() : '';
-  const invalid = isScoutSource && !urlValue;
+  const invalid = !isExisting && isScoutSource && !urlValue;
   if (errorEl) errorEl.style.display = invalid ? '' : 'none';
   if (genBtn)  genBtn.disabled  = invalid;
   if (regMain) regMain.disabled = invalid;
@@ -7603,6 +7606,15 @@ function rerunScopeJudgement() {
   }
 }
 
+// メッセージ種別ラベル（パネルヘッダ右）を select の現在値に同期
+function updateScoutMsgTypeLabel() {
+  const sel = document.getElementById('scoutMsgType');
+  const label = document.getElementById('scoutMsgTypeLabel');
+  if (!sel || !label) return;
+  const opt = sel.options[sel.selectedIndex];
+  label.textContent = opt ? opt.textContent : '';
+}
+
 // プロフィール貼り付け / URL から判別した媒体名をパネル1のバッジに反映
 function updatePlatBadge(platform) {
   const badge = document.getElementById('scoutPlatBadge');
@@ -7955,6 +7967,7 @@ function openScoutForExistingCandidate(opts) {
     } else {
       msgTypeEl.value = (c.sendHistory || []).length === 0 ? 'first' : 'second';
     }
+    if (typeof updateScoutMsgTypeLabel === 'function') updateScoutMsgTypeLabel();
   }
 
   if (c.targetCompanyId) document.getElementById('scoutTargetCompany').value = c.targetCompanyId;
@@ -12086,6 +12099,12 @@ function deleteUser(id) {
 
   renderStatusFilter();
   renderRolesLegend();
+  // ブラウザの form-state 自動復元で「自分の担当のみ」など各種フィルタチェックが
+  // ON のまま残ることがあるので、起動時に明示的に未チェックへ戻す
+  ['filterMine', 'filterOverdue', 'filterRequiresAction'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.checked = false;
+  });
   renderCandidateList();
   applyMainView();  // 初期ビュー = home（ダッシュボードのみ表示、他は非表示）
   updateDriveStatus(false);
