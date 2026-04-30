@@ -7677,7 +7677,10 @@ NG要確認　${scopeIconLucide('warn')} ${d.ngWarn}件 × -2点 = <span class="
 
 function scoutCompleteGoToList() {
   closeModal('scoutCompleteModal');
-  showScreen('list');
+  // mainView を 'candidates' に切り替えてからリスト画面に遷移
+  // （showScreen('list') 単体だと screen-list の中で mainView='home' のまま applyMainView され
+  //  ダッシュボードが表示されてしまう）
+  setMainView('candidates');
 }
 function scoutCompleteAddAnother() {
   closeModal('scoutCompleteModal');
