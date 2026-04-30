@@ -323,14 +323,21 @@
   .wizard-actions { display: flex; justify-content: flex-end; gap: 12px; }
 
   /* --- Scout generator --- */
-  .scout-layout {
-    padding: 24px 32px; max-width: 1400px; margin: 0 auto;
-    display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
+  .scout-panels {
+    padding: 24px 32px; max-width: 720px; margin: 0 auto;
+    display: flex; flex-direction: column; gap: 16px;
   }
   .scout-panel {
     background: var(--bg-primary); border: 1px solid var(--border);
-    border-radius: 12px; padding: 20px;
+    border-radius: 10px; overflow: hidden;
   }
+  .scout-panel-hd {
+    padding: 11px 16px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    font-size: 11px; font-weight: 700; color: var(--text-secondary);
+    letter-spacing: .07em; text-transform: uppercase;
+  }
+  .scout-panel-body { padding: 16px; }
   .scout-label {
     font-size: 12px; font-weight: 500;
     color: var(--text-secondary); margin-bottom: 8px;
@@ -1454,7 +1461,6 @@
   /* --- Responsive --- */
   @media (max-width: 900px) {
     .detail-body { grid-template-columns: 1fr; }
-    .scout-layout { grid-template-columns: 1fr; }
     .settings-layout { grid-template-columns: 1fr; }
     .header, .wizard-header { padding: 14px 16px; }
     .main-content, .detail-layout { padding: 16px; }
@@ -1883,64 +1889,134 @@
     <span class="step-circle todo">3</span>
     <span class="step-label-todo">候補者登録</span>
   </div>
-  <div class="scout-layout">
-    <div class="scout-panel">
-      <div id="scoutNewOnlyGroup">
-        <label class="scout-label">ソース情報</label>
-        <div class="scout-source-box" id="scoutSourceBox">
-          <!-- Source-dependent inputs are injected here -->
+  <div class="scout-panels">
+
+    <!-- パネル1: プロフィール -->
+    <div class="scout-panel" id="scoutProfilePanel">
+      <div class="scout-panel-hd">
+        <span>プロフィール</span>
+        <span id="profileAnalyzingIndicator" style="display:none; font-size:11px; color:var(--info); align-items:center; gap:6px;">
+          <span class="mini-spinner"></span><span id="profileAnalyzingText">AI解析中...</span>
+        </span>
+      </div>
+      <div class="scout-panel-body">
+        <div id="scoutNewOnlyGroup">
+          <label class="scout-label">プロフィール <span class="required">*</span></label>
+          <textarea class="scout-textarea" id="scoutProfile" placeholder="プロフィールページのテキストをそのままコピーして貼り付けてください&#10;&#10;貼り付けると自動で以下が実行されます：&#10;・候補者名・媒体を自動判別&#10;・スコープ判定（推奨 / 要注意 / 見送り）"></textarea>
+
+          <div id="scoutEmphasisBanner" style="display:none; background:var(--info-bg); border:1px solid var(--info); border-radius:7px; padding:10px 14px; margin-top:8px; font-size:12px; color:var(--info-text); align-items:center; gap:10px;">
+            <span style="background:var(--info-text); color:#fff; font-size:10px; font-weight:700; padding:2px 8px; border-radius:10px; white-space:nowrap; flex-shrink:0;"><i data-lucide="pin" class="lucide"></i> 強調ポイント指定</span>
+            <span id="scoutEmphasisText" style="flex:1; font-style:italic; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></span>
+            <button onclick="clearScoutEmphasis()" style="background:none; border:none; color:var(--text-tertiary); cursor:pointer; font-size:14px; padding:2px 6px; flex-shrink:0;">×</button>
+          </div>
+          <div class="hint" id="scoutEmphasisHint" style="font-size:11px; color:var(--text-tertiary); margin-top:4px;">再生成時に強調したい箇所をテキスト選択して指定できます</div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:14px;">
+            <div>
+              <label class="scout-label">候補者URL <span class="required">*</span></label>
+              <div class="scout-source-box" id="scoutSourceBox"></div>
+            </div>
+            <div>
+              <label class="scout-label">候補者名 <span class="required">*</span></label>
+              <input type="text" class="scout-input" id="scoutCandidateName" placeholder="例：山田 太郎" style="margin-bottom:0;">
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:12px;">
+            <div>
+              <label class="scout-label">媒体</label>
+              <div id="scoutPlatBadge" style="font-size:12px; color:var(--text-secondary); padding:8px 0;"></div>
+            </div>
+            <div>
+              <label class="scout-label">スカウト先</label>
+              <select class="scout-input" id="scoutTargetCompany" style="margin-bottom:0;"></select>
+            </div>
+          </div>
         </div>
-        <label class="scout-label">候補者名<span class="required">*</span></label>
-        <input type="text" class="scout-input" id="scoutCandidateName" placeholder="例：山田 太郎">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-          <label class="scout-label" style="margin-bottom:0;">候補者プロフィール</label>
-          <span id="profileAnalyzingIndicator" style="display:none; font-size:11px; color:var(--info); align-items:center; gap:6px;">
-            <span class="mini-spinner"></span><span id="profileAnalyzingText">解析中...</span>
-          </span>
+
+        <div id="scoutExistingSpRow" style="display:none; margin-bottom:12px; margin-top:12px;">
+          <label class="scout-label">送信媒体</label>
+          <select class="scout-input" id="scoutExistingSpSelect" onchange="onScoutExistingSpChange()" style="margin-bottom:0;"></select>
         </div>
-        <textarea class="scout-textarea" id="scoutProfile" placeholder="プロフィールを貼り付けると、媒体・名前・URLを自動入力します"></textarea>
-      </div>
-      <div id="scoutExistingSpRow" style="display:none; margin-bottom:12px;">
-        <label class="scout-label">送信媒体</label>
-        <select class="scout-input" id="scoutExistingSpSelect" onchange="onScoutExistingSpChange()" style="margin-bottom:0;"></select>
-      </div>
-      <div style="display: flex; gap: 8px; margin-bottom: 12px;">
-        <select class="scout-input" id="scoutMsgType" style="margin-bottom: 0; flex: 1;">
-          <option value="first">初回メッセージ</option>
-          <option value="second">2回目（SNS補助連絡）</option>
-          <option value="interview_url">面談設定（URL送付）</option>
-          <option value="interview_ask">面談設定（候補日時確認）</option>
-          <option value="reschedule_apology">リスケ謝罪</option>
-          <option value="decline_reply">辞退返信</option>
-        </select>
-        <select class="scout-input" id="scoutTargetCompany" style="margin-bottom: 0; flex: 1;"></select>
-      </div>
-      <button class="btn btn-primary" style="width: 100%;" id="scoutGenerateBtn" onclick="generateScoutMessage()">メッセージを生成する</button>
-      <div id="scoutApiKeyHint" style="display:none; margin-top:10px; font-size:12px; color:var(--warning-text); background:var(--warning-bg); padding:8px 12px; border-radius:6px;">
-        <i data-lucide="alert-triangle" class="lucide"></i> 設定画面でAnthropic APIキーを登録するとAIによる生成が可能になります。
+
+        <div id="scoutMsgTypeRow" style="display:none; margin-top:12px;">
+          <label class="scout-label">メッセージ種別</label>
+          <select class="scout-input" id="scoutMsgType" style="margin-bottom:0;">
+            <option value="first">初回メッセージ</option>
+            <option value="second">2回目（SNS補助連絡）</option>
+            <option value="interview_url">面談設定（URL送付）</option>
+            <option value="interview_ask">面談設定（候補日時確認）</option>
+            <option value="reschedule_apology">リスケ謝罪</option>
+            <option value="decline_reply">辞退返信</option>
+          </select>
+        </div>
       </div>
     </div>
-    <div class="scout-panel">
-      <div class="scope-indicator">
-        <label class="scout-label" style="margin-bottom: 0;">生成されたメッセージ</label>
+
+    <!-- パネル2: スコープ判定（新規モードのみ） -->
+    <div class="scout-panel" id="scoutScopePanel" style="display:none;">
+      <div class="scout-panel-hd">
+        <span>スコープ判定</span>
+        <button class="btn btn-small" id="scoutRunAllScopeBtn" style="font-size:11px; padding:3px 10px;" onclick="rerunScopeJudgement()"><i data-lucide="refresh-cw" class="lucide"></i> 再判定</button>
+      </div>
+      <div class="scout-panel-body" id="scoutScopePanelBody">
         <span class="scope-badge" id="scoutScopeBadge" style="display:none;"><i data-lucide="check" class="lucide"></i> スコープ判定: 推奨</span>
+        <div id="scoutScopeReason" style="display:none; background: var(--info-bg); color: var(--info-text); padding: 8px 12px; border-radius: 6px; font-size: 12px; margin: 10px 0; border-left: 3px solid var(--info); white-space: pre-wrap; line-height:1.6;"></div>
+        <div id="scoutScopeMultiCard" class="scope-card" style="display:none; margin-top: 12px;"></div>
+        <div id="scoutScopePlaceholder" style="font-size:12px; color:var(--text-tertiary); font-style:italic;">プロフィールを貼り付けると自動で判定されます</div>
       </div>
-      <div id="scoutScopeReason" style="display:none; background: var(--info-bg); color: var(--info-text); padding: 8px 12px; border-radius: 6px; font-size: 12px; margin-bottom: 10px; border-left: 3px solid var(--info); white-space: pre-wrap; line-height:1.6;"></div>
-      <div style="margin-bottom: 10px;">
-        <button class="btn btn-small" id="scoutRunAllScopeBtn" onclick="runAllScopeJudgementsForScout()"><i data-lucide="refresh-cw" class="lucide"></i> 全ポジションで判定</button>
-      </div>
-      <div id="scoutScopeMultiCard" class="scope-card" style="display:none; margin-bottom: 12px;"></div>
-      <div class="scout-generated placeholder" id="scoutGenerated">ここに生成されたメッセージが表示されます。</div>
-      <button class="btn btn-primary" id="scoutCopyRegisterBtn" onclick="copyAndRegisterCandidate()" style="width:100%; margin-bottom:8px;"><i data-lucide="clipboard" class="lucide"></i> コピーして登録</button>
-      <div class="button-row">
-        <button class="btn" onclick="copyScoutMessage()"><i data-lucide="clipboard" class="lucide"></i> コピー</button>
-        <button class="btn" onclick="generateScoutMessage()"><i data-lucide="refresh-cw" class="lucide"></i> 再生成</button>
-      </div>
-      <div class="hint-box"><i data-lucide="lightbulb" class="lucide"></i> 「コピーして登録」でクリップボードにコピーされ、候補者が自動登録されます。</div>
-      <button class="btn btn-success" id="scoutRegisterMain" style="display:none;" onclick="registerCandidateFromScout(true)"></button>
-      <button class="btn" id="scoutRegisterContinue" style="display:none;" onclick="registerCandidateFromScout(false)"></button>
-      <button class="btn btn-success" id="scoutSendOnly" style="width: 100%; display: none;" onclick="registerCandidateFromScout(false)"><i data-lucide="mail" class="lucide"></i> 送付して候補者詳細に戻る</button>
     </div>
+
+    <!-- パネル3: AI要約（新規モードのみ） -->
+    <div class="scout-panel" id="scoutSummaryPanel" style="display:none;">
+      <div class="scout-panel-hd">
+        <span>AIが整理したプロフィール</span>
+      </div>
+      <div class="scout-panel-body" id="scoutSummaryPanelBody"></div>
+    </div>
+
+    <!-- パネル4: メッセージ生成 -->
+    <div class="scout-panel" id="scoutMessagePanel">
+      <div class="scout-panel-hd">
+        <span>メッセージ生成</span>
+        <div style="display:flex; align-items:center; gap:8px; text-transform:none; letter-spacing:normal;">
+          <span id="scoutMsgTypeLabel" style="font-size:11px; color:var(--text-tertiary); font-weight:400;">初回メッセージ</span>
+          <button class="btn btn-small" id="scoutRegenBtn" style="font-size:11px; padding:3px 10px; display:none;" onclick="generateScoutMessage()"><i data-lucide="refresh-cw" class="lucide"></i> 再生成</button>
+        </div>
+      </div>
+      <div class="scout-panel-body">
+        <button class="btn btn-primary" style="width:100%; margin-bottom:14px; padding:11px;" id="scoutGenerateBtn" onclick="generateScoutMessage()">メッセージを生成する</button>
+        <div id="scoutApiKeyHint" style="display:none; margin-bottom:10px; font-size:12px; color:var(--warning-text); background:var(--warning-bg); padding:8px 12px; border-radius:6px;">
+          <i data-lucide="alert-triangle" class="lucide"></i> 設定画面でAnthropic APIキーを登録するとAIによる生成が可能になります。
+        </div>
+        <div class="scout-generated placeholder" id="scoutGenerated">ここに生成されたメッセージが表示されます。</div>
+        <div class="button-row" style="margin-top:10px;">
+          <button class="btn" onclick="copyScoutMessage()"><i data-lucide="clipboard" class="lucide"></i> コピー</button>
+        </div>
+        <div id="scoutHlLegend" style="display:none; font-size:11px; color:var(--text-secondary); margin-top:10px; align-items:center; gap:6px;">
+          <span style="width:12px; height:12px; background:#FFF9C4; border-bottom:2px solid #F9A825; border-radius:2px; display:inline-block; flex-shrink:0;"></span>
+          <span>黄色部分がパーソナライズ箇所です。ホバーするとプロフィールの引用元が表示されます</span>
+        </div>
+        <div id="scoutRegenHint" style="display:none; font-size:11px; color:var(--text-tertiary); margin-top:8px; padding:8px 12px; background:var(--bg-secondary); border-radius:6px; border:1px solid var(--border-light); line-height:1.6;">
+          <i data-lucide="lightbulb" class="lucide"></i> プロフィールから<strong style="color:var(--info-text);">強調したい箇所を選択</strong>してから「再生成」するとその内容を優先して反映します
+        </div>
+        <!-- 既存モードの送付ボタン（既存モード時のみ JS で表示） -->
+        <button class="btn btn-success" id="scoutSendOnly" style="width: 100%; display: none; margin-top:14px;" onclick="registerCandidateFromScout(false)"><i data-lucide="mail" class="lucide"></i> 送付して候補者詳細に戻る</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 固定下部バー（新規モードのみ） -->
+  <div id="scoutSaveBar" style="display:none; position:sticky; bottom:0; background:var(--bg-primary); border-top:1px solid var(--border); padding:14px 20px; align-items:center; justify-content:center; gap:16px; box-shadow:0 -2px 12px rgba(0,0,0,.06);">
+    <div id="scoutSaveHint" style="font-size:12px; color:var(--text-tertiary);">メッセージを生成してください</div>
+    <button id="scoutCopyRegisterBtn" class="btn btn-success" style="font-size:14px; font-weight:700; padding:12px 32px; border-radius:8px;" disabled onclick="copyAndRegisterCandidate()"><i data-lucide="clipboard" class="lucide"></i> コピーして候補者を保存</button>
+  </div>
+
+  <!-- レガシー登録ボタン（DOM維持のため） -->
+  <div style="display:none;">
+    <button id="scoutRegisterMain" onclick="registerCandidateFromScout(true)"></button>
+    <button id="scoutRegisterContinue" onclick="registerCandidateFromScout(false)"></button>
   </div>
 </div>
 
@@ -4265,6 +4341,8 @@ function prepareScoutScreen() {
   document.getElementById('scoutCandidateName').value = '';
   document.getElementById('scoutProfile').value = '';
   document.getElementById('scoutMsgType').value = 'first';
+  // 媒体バッジの初期化
+  if (typeof updatePlatBadge === 'function') updatePlatBadge('');
   scoutCurrentMessage = '';
   scoutCurrentScopeSummary = null;
   scoutAllScopeResults = null;
@@ -4303,15 +4381,36 @@ function prepareScoutScreen() {
   const regMain  = document.getElementById('scoutRegisterMain');
   const regCont  = document.getElementById('scoutRegisterContinue');
   const sendOnly = document.getElementById('scoutSendOnly');
-  const copyReg  = document.getElementById('scoutCopyRegisterBtn');
   // 旧「登録」系ボタンは廃止のためどちらのモードでも非表示。DOM のみ残す。
   if (regMain) regMain.style.display = 'none';
   if (regCont) regCont.style.display = 'none';
-  // 新規モード: 「コピーして登録」を表示。既存モード: 旧「送付して候補者詳細に戻る」を表示。
-  if (copyReg)  copyReg.style.display  = isExisting ? 'none' : '';
+  // 新規モード: 固定下部バーで「コピーして候補者を保存」を表示。既存モード: 「送付して候補者詳細に戻る」を表示。
   if (sendOnly) sendOnly.style.display = isExisting ? '' : 'none';
 
-  // シンプルUI: プロフィール入力欄・URL入力欄・スコープ判定・APIキーヒントは非表示
+  // 縦1カラム構成のパネル表示制御
+  const scopePanel   = document.getElementById('scoutScopePanel');
+  const summaryPanel = document.getElementById('scoutSummaryPanel');
+  const saveBar      = document.getElementById('scoutSaveBar');
+  const copyReg      = document.getElementById('scoutCopyRegisterBtn');
+  const regenBtn     = document.getElementById('scoutRegenBtn');
+  const hlLegend     = document.getElementById('scoutHlLegend');
+  const regenHint    = document.getElementById('scoutRegenHint');
+  const msgTypeRow   = document.getElementById('scoutMsgTypeRow');
+  const saveHint     = document.getElementById('scoutSaveHint');
+  if (scopePanel)   scopePanel.style.display   = isExisting ? 'none' : '';
+  if (summaryPanel) summaryPanel.style.display = 'none';   // 要約は判定後に表示
+  if (saveBar)      saveBar.style.display      = isExisting ? 'none' : 'flex';
+  if (copyReg)      copyReg.disabled = true;
+  if (saveHint) {
+    saveHint.textContent = 'メッセージを生成してください';
+    saveHint.style.color = 'var(--text-tertiary)';
+  }
+  if (regenBtn)  regenBtn.style.display  = 'none';
+  if (hlLegend)  hlLegend.style.display  = 'none';
+  if (regenHint) regenHint.style.display = 'none';
+  if (msgTypeRow) msgTypeRow.style.display = isExisting ? '' : 'none';
+
+  // シンプルUI: 既存モードではプロフィール/URL/媒体/スカウト先など新規モード固有のフォームを非表示
   const newOnlyGroup = document.getElementById('scoutNewOnlyGroup');
   if (newOnlyGroup) newOnlyGroup.style.display = isExisting ? 'none' : '';
   const scopeBadge = document.getElementById('scoutScopeBadge');
@@ -4533,6 +4632,17 @@ async function generateScoutMessage() {
     const gen = document.getElementById('scoutGenerated');
     gen.textContent = scoutCurrentMessage;
     gen.classList.remove('placeholder');
+    // 縦1カラムUI: 生成成功時に下部バーのボタンを有効化 + 再生成ボタンを表示
+    const copyReg = document.getElementById('scoutCopyRegisterBtn');
+    if (copyReg && scoutMode !== 'existing') {
+      copyReg.disabled = false;
+      const sh = document.getElementById('scoutSaveHint');
+      if (sh) { sh.textContent = '内容を確認して保存してください'; sh.style.color = 'var(--text-secondary)'; }
+    }
+    const regenBtn = document.getElementById('scoutRegenBtn');
+    if (regenBtn) regenBtn.style.display = '';
+    const regenHint = document.getElementById('scoutRegenHint');
+    if (regenHint && scoutMode !== 'existing') regenHint.style.display = '';
     // 統一スコープ判定（同一プロフィールならキャッシュヒットしてAPIは叩かれない）
     await runScopeJudgement(apiKey, profile);
   } catch (e) {
@@ -4889,6 +4999,11 @@ async function autoAnalyzeProfile({ force } = {}) {
         platformSel.value = detectedPlatform;
         filled.platform = true;
       }
+    }
+    // 縦1カラムUIの媒体バッジに反映（プルダウンの値が拾えればそれを優先）
+    if (typeof updatePlatBadge === 'function') {
+      const currentPlat = (platformSel && platformSel.value) || detectedPlatform || '';
+      updatePlatBadge(currentPlat || '');
     }
 
     // 2) URL抽出（ローカル・同期）
@@ -7416,6 +7531,30 @@ function registerCompleteAddAnother() {
   scoutMode = 'new';
   scoutActiveSpId = null;
   showScreen('add');
+}
+
+// 強調ポイント指定バナーを閉じる（再生成時のフォーカステキスト解除）
+function clearScoutEmphasis() {
+  const banner = document.getElementById('scoutEmphasisBanner');
+  if (banner) banner.style.display = 'none';
+}
+
+// スコープ判定パネルの「再判定」ボタンから呼ばれる
+function rerunScopeJudgement() {
+  if (typeof runAllScopeJudgementsForScout === 'function') {
+    return runAllScopeJudgementsForScout();
+  }
+}
+
+// プロフィール貼り付け / URL から判別した媒体名をパネル1のバッジに反映
+function updatePlatBadge(platform) {
+  const badge = document.getElementById('scoutPlatBadge');
+  if (!badge) return;
+  if (platform) {
+    badge.innerHTML = `<span style="display:inline-flex; align-items:center; gap:4px; font-size:12px; font-weight:600; color:var(--primary);"><i data-lucide="check" class="lucide" style="width:14px;height:14px;"></i> ${escapeHtml(platform)}</span>`;
+  } else {
+    badge.innerHTML = `<span style="color:var(--text-tertiary); font-size:12px;">URLを貼り付けると自動判別されます</span>`;
+  }
 }
 
 // 既存候補者モードで、選択中のsourceProfileに紐づけて送付履歴に記録する
