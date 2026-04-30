@@ -3557,7 +3557,7 @@ function updateDriveStatus(connected, opts) {
     btn.textContent = 'Googleログイン';
     btn.onclick = signInGoogle;
     if (!_driveGraceTimer) {
-      const remaining = Math.max(0, DRIVE_GRACE_MS - (Date.now() - PAGE_LOAD_AT));
+      const remaining = Math.max(0, DRIVE_GRACE_MS - (Date.now() - _driveGraceStartAt));
       _driveGraceTimer = setTimeout(() => {
         _driveGraceTimer = null;
         if (!DriveStorage.isAuthenticated()) updateDriveStatus(false);
