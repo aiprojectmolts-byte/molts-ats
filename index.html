@@ -3152,8 +3152,11 @@ const DriveStorage = {
 
   // 共有運用時に DRIVE_OWNER_EMAIL が指定されていればそのアカウント所有のフォルダ/ファイルを優先する
   // （drive.file スコープでは、共有先ユーザーがDriveピッカー等でアクセスを得たもののみ可視）
+  // Drive API は corpora=allDrives と "in owners" の組み合わせで 400 を返すため、
+  // owners 句は使わずファイル名 + 親フォルダ ID でのみ絞り込む。
+  // 共有運用では 共有設定 + supportsAllDrives で正しいファイルにヒットする。
   ownerClause() {
-    return DRIVE_OWNER_EMAIL ? (" and '" + DRIVE_OWNER_EMAIL + "' in owners") : '';
+    return '';
   },
 
   async ensureSubFolder(parentId, name) {
