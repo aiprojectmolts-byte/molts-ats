@@ -1779,7 +1779,7 @@
 <div class="statusbar">
   <div class="statusbar-brand"><span class="accent">THE MOLTS</span> 採用管理 ATS</div>
   <div class="statusbar-right">
-    <div class="status-dot" id="gdriveStatus"><span class="dot"></span><span id="gdriveStatusText">Drive未接続</span></div>
+    <div class="status-dot" id="gdriveStatus"><span class="dot"></span><span id="gdriveStatusText">Drive接続確認中...</span></div>
     <button class="statusbar-btn" id="gdriveBtn" onclick="signInGoogle()">Googleログイン</button>
   </div>
 </div>
@@ -3454,6 +3454,10 @@ function signInGoogle() {
     showToast('Google認証が未初期化です。clientIdをconfig.jsonに設定してください。', 'error');
     return;
   }
+  // ログイン開始時にグレースピリオドを再起動（OAuth処理中の「未接続」誤表示を防ぐ）
+  resetDriveGracePeriod();
+  // 直ちに「接続確認中...」表示へ更新（赤バッジを抑制）
+  updateDriveStatus(false);
   setLoginBtnLoading(true);
   // 前回ログイン時のスコープより今回要求するスコープが拡張されている場合、
   // 自動キャッシュされた古いトークンではAPIが403になるため、強制的に同意画面を出す。
@@ -3487,11 +3491,16 @@ function signOutGoogle() {
   applyAuthState();
   showToast('Google Driveから切断しました', 'success');
 }
-// ページロード時刻。Drive接続表示の60秒グレースピリオド判定に使う
-const PAGE_LOAD_AT = Date.now();
+// Drive接続表示の60秒グレースピリオド判定に使う基準時刻。
+// ページロード時にセットされ、signInGoogle 呼び出し時にも再セットされる。
+let _driveGraceStartAt = Date.now();
 const DRIVE_GRACE_MS = 60 * 1000;
 let _driveGraceTimer = null;
-function isInDriveGracePeriod() { return Date.now() - PAGE_LOAD_AT < DRIVE_GRACE_MS; }
+function isInDriveGracePeriod() { return Date.now() - _driveGraceStartAt < DRIVE_GRACE_MS; }
+function resetDriveGracePeriod() {
+  _driveGraceStartAt = Date.now();
+  if (_driveGraceTimer) { clearTimeout(_driveGraceTimer); _driveGraceTimer = null; }
+}
 
 function updateDriveStatus(connected, opts) {
   opts = opts || {};
