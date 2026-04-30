@@ -5228,9 +5228,14 @@ function renderFlowPhaseHtml(c, def, canEdit) {
 function openFlowMessage(candidateId, msgType) {
   const c = loadCandidate(candidateId);
   if (!c) { showToast('候補者データが見つかりません', 'error'); return; }
-  currentCandidateId = candidateId;
   // SNS補助メッセージは main 以外の sourceProfile を使う（既存仕様に合わせる）
   const useSupp = msgType === 'second';
+  // SNS補助の場合、sourceProfiles が 1件以下なら 2件目の媒体が無いので開かない
+  if (useSupp && (c.sourceProfiles || []).length <= 1) {
+    showToast('SNS補助メッセージの媒体URLが登録されていません。ソース情報から追加してください。', 'error');
+    return;
+  }
+  currentCandidateId = candidateId;
   openScoutForExistingCandidate({ msgType, useSupplementarySp: useSupp });
 }
 
