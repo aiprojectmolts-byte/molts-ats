@@ -1913,7 +1913,7 @@
             <button class="btn btn-small btn-primary" onclick="generateScoutMessage()" style="font-size:11px; padding:4px 10px; flex-shrink:0;"><i data-lucide="refresh-cw" class="lucide"></i> この内容で再生成</button>
             <button onclick="clearScoutEmphasis()" style="background:none; border:none; color:var(--text-tertiary); cursor:pointer; font-size:14px; padding:2px 6px; flex-shrink:0;" title="強調ポイントを解除">×</button>
           </div>
-          <div class="hint" id="scoutEmphasisHint" style="font-size:11px; color:var(--text-tertiary); margin-top:4px;">再生成時に強調したい箇所をテキスト選択して指定できます</div>
+          <div class="hint" id="scoutEmphasisHint" style="font-size:11px; color:var(--text-tertiary); margin-top:4px;">スコープ判定の「マッチ条件タグ」をクリックすると、その内容を強調して再生成できます</div>
 
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:14px;">
             <div>
@@ -2002,8 +2002,9 @@
           <span style="width:12px; height:12px; background:#FFF9C4; border-bottom:2px solid #F9A825; border-radius:2px; display:inline-block; flex-shrink:0;"></span>
           <span>黄色部分がパーソナライズ箇所です。ホバーするとプロフィールの引用元が表示されます</span>
         </div>
-        <div id="scoutRegenHint" style="display:none; font-size:11px; color:var(--text-tertiary); margin-top:8px; padding:8px 12px; background:var(--bg-secondary); border-radius:6px; border:1px solid var(--border-light); line-height:1.6;">
-          <i data-lucide="lightbulb" class="lucide"></i> 上の<strong style="color:var(--info-text);">スコープ判定カードのマッチ条件タグ</strong>をクリックすると、その内容を強調して再生成できます。プロフィール本文を直接ドラッグ選択してもOK
+        <div id="scoutRegenHint" style="display:none; font-size:11px; color:var(--text-tertiary); margin-top:8px; padding:10px 14px; background:var(--bg-secondary); border-radius:6px; border:1px solid var(--border-light); line-height:1.7;">
+          <div style="font-weight:600; color:var(--text-secondary); margin-bottom:4px;"><i data-lucide="lightbulb" class="lucide"></i> メッセージを微調整したいときは</div>
+          上の<strong style="color:var(--success);">スコープ判定カード</strong>に並ぶ <span style="display:inline-flex;align-items:center;gap:3px;font-size:10px;padding:2px 7px;border-radius:10px;border:1px solid var(--success);color:var(--success);"><i data-lucide="zap" class="lucide" style="width:10px;height:10px;"></i> マッチ条件タグ</span> をクリック → 「この内容で再生成」ボタン
         </div>
         <!-- 既存モードの送付ボタン（既存モード時のみ JS で表示） -->
         <button class="btn btn-success" id="scoutSendOnly" style="width: 100%; display: none; margin-top:14px;" onclick="registerCandidateFromScout(false)"><i data-lucide="mail" class="lucide"></i> 送付して候補者詳細に戻る</button>
