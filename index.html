@@ -2785,6 +2785,8 @@ let mainView = 'home';  // 'home' | 'candidates' | 'analytics'
 
 // 操作ログセクションのアコーディオン開閉状態（セッション内のみ保持、デフォルト折りたたみ）
 let activityLogOpen = false;
+// スコープ判定セクションのアコーディオン開閉状態（同上、デフォルト折りたたみ）
+let scopeDetailOpen = false;
 
 // 分析タブの状態
 let analyticsPeriod = 'this_month';  // this_week / this_month / last_month / 3_months / all
@@ -7006,6 +7008,16 @@ function scopeIconLucide(cls) {
   if (cls === 'ng')   return '<i data-lucide="x-circle" class="lucide"></i>';
   return '';
 }
+// スコープ判定テキストの markdown→HTML 変換（**太字** + 絵文字→Lucideアイコン + 改行→<br>）
+function markdownToScopeHtml(text) {
+  if (!text) return '';
+  return escapeHtml(text)
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/✅/g, '<span class="scope-icon ok"><i data-lucide="check-circle" style="width:14px;height:14px;color:var(--success);vertical-align:middle;"></i></span>')
+    .replace(/⚠️|⚠/g, '<span class="scope-icon warn"><i data-lucide="alert-triangle" style="width:14px;height:14px;color:#E65100;vertical-align:middle;"></i></span>')
+    .replace(/❌/g, '<span class="scope-icon ng"><i data-lucide="x-circle" style="width:14px;height:14px;color:var(--error);vertical-align:middle;"></i></span>')
+    .replace(/\n/g, '<br>');
+}
 function buildScopeResultHtml(rawText) {
   const sections = parseScopeResult(rawText || '');
   let html = '';
@@ -7152,8 +7164,13 @@ function applyScopeResultToScoutUI(result) {
   badge.innerHTML = label;
   badge.style.display = '';
   if (reason) {
-    if (result.detail) { reason.textContent = result.detail; reason.style.display = ''; }
-    else { reason.style.display = 'none'; }
+    if (result.detail) {
+      reason.innerHTML = markdownToScopeHtml(result.detail);
+      reason.style.display = '';
+      if (window.lucide) lucide.createIcons();
+    } else {
+      reason.style.display = 'none';
+    }
   }
 }
 
@@ -9176,6 +9193,7 @@ function openCandidateDetail(id) {
   currentCandidateId = id;
   multichannelPromptShown = false;
   activityLogOpen = false;  // 候補者切替時は常に折りたたみに戻す
+  scopeDetailOpen = false;  // スコープ判定セクションも同様に折りたたみへ
   const c = loadCandidate(id);
   if (!c) {
     showToast('候補者が見つかりません', 'error');
@@ -9318,15 +9336,18 @@ function renderCandidateDetail(c) {
         ${renderProfileSummaryAndRaw(c)}
       </div>
 
-      <!-- 3. スコープ判定（複数ポジション対応） -->
+      <!-- 3. スコープ判定（複数ポジション対応・デフォルト折りたたみ） -->
       <div class="detail-section" style="margin-bottom: 16px;">
-        <div class="detail-section-title">
-          <span>スコープ判定</span>
-          <span class="detail-actions" style="display:flex; gap:6px;">
-            <button class="btn btn-small" onclick="runAllScopeJudgementsForCandidate('${escapeHtml(c.id)}')"><i data-lucide="refresh-cw" class="lucide"></i> 全ポジションで判定</button>
+        <div class="detail-section-title" style="cursor:pointer; user-select:none;" onclick="toggleScopeDetail()">
+          <span>スコープ判定${c.scopeResult ? `<span style="font-weight:normal; font-size:12px; color:var(--text-secondary); margin-left:6px;">（${escapeHtml({recommend:'推奨', caution:'要注意', not_recommend:'見送り'}[c.scopeResult.verdict] || '')}）</span>` : ''}</span>
+          <span class="detail-actions" style="display:flex; gap:6px; align-items:center;">
+            <button class="btn btn-small" onclick="event.stopPropagation(); runAllScopeJudgementsForCandidate('${escapeHtml(c.id)}')"><i data-lucide="refresh-cw" class="lucide"></i> 全ポジションで判定</button>
+            <span id="scopeDetailChevron" style="font-size:11px; color:var(--text-secondary);">${scopeDetailOpen ? '▲' : '▼'}</span>
           </span>
         </div>
-        ${renderCandidateScopeSection(c)}
+        <div id="scopeDetailBody" style="display:${scopeDetailOpen ? 'block' : 'none'};">
+          ${renderCandidateScopeSection(c)}
+        </div>
       </div>
 
       <!-- 4. 送付履歴 -->
@@ -9351,6 +9372,15 @@ function toggleActivityLog() {
   activityLogOpen = !activityLogOpen;
   const c = loadCandidate(currentCandidateId);
   if (c) renderCandidateDetail(c);
+}
+
+function toggleScopeDetail() {
+  scopeDetailOpen = !scopeDetailOpen;
+  const body = document.getElementById('scopeDetailBody');
+  const chevron = document.getElementById('scopeDetailChevron');
+  if (body) body.style.display = scopeDetailOpen ? 'block' : 'none';
+  if (chevron) chevron.textContent = scopeDetailOpen ? '▲' : '▼';
+  if (scopeDetailOpen && window.lucide) lucide.createIcons();
 }
 
 // 候補者詳細のスコープ判定セクションをHTML生成（複数ポジション × 根拠付き3階層）
@@ -9390,7 +9420,7 @@ function renderCandidateScopeSection(c) {
     if (r.rawText) {
       html += buildScopeResultHtml(r.rawText);
     } else if (r.detail) {
-      html += `<div class="scope-loading" style="text-align:left; padding:8px 0;">${escapeHtml(r.detail)}</div>`;
+      html += `<div class="scope-loading" style="text-align:left; padding:8px 0; line-height:1.7;">${markdownToScopeHtml(r.detail)}</div>`;
     }
     const d = r.scoreDetail;
     if (d) {
