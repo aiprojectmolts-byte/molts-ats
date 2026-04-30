@@ -2747,6 +2747,8 @@ let GOOGLE_CLIENT_ID = '';
 let DRIVE_FOLDER_NAME = 'ScoutData';
 let DRIVE_ATS_SUBFOLDER = 'ats';
 let DRIVE_ATS_CANDIDATES_DIR = 'candidates';
+// 共有運用: 指定アカウントが所有するフォルダ/ファイルを優先利用する（空なら自分のDrive）
+let DRIVE_OWNER_EMAIL = '';
 let STORAGE_PREFIX = 'ats_';
 
 // Drive file names (inside ats/)
@@ -3026,6 +3028,7 @@ function applyConfig(cfg) {
   DRIVE_FOLDER_NAME = (cfg.google && cfg.google.driveFolderName) || 'ScoutData';
   DRIVE_ATS_SUBFOLDER = (cfg.google && cfg.google.atsSubFolder) || 'ats';
   DRIVE_ATS_CANDIDATES_DIR = (cfg.google && cfg.google.candidatesSubFolder) || 'candidates';
+  DRIVE_OWNER_EMAIL = (cfg.google && cfg.google.driveOwnerEmail) || '';
 
   STORAGE_PREFIX = (cfg.google && cfg.google.storagePrefix) || 'ats_';
   LS_API_KEY         = STORAGE_PREFIX + 'api_key';
@@ -3145,15 +3148,26 @@ const DriveStorage = {
     return res;
   },
 
+  // 共有運用時に DRIVE_OWNER_EMAIL が指定されていればそのアカウント所有のフォルダ/ファイルを優先する
+  // （drive.file スコープでは、共有先ユーザーがDriveピッカー等でアクセスを得たもののみ可視）
+  ownerClause() {
+    return DRIVE_OWNER_EMAIL ? (" and '" + DRIVE_OWNER_EMAIL + "' in owners") : '';
+  },
+
   async ensureSubFolder(parentId, name) {
-    const q = "name='" + name + "' and mimeType='application/vnd.google-apps.folder' and '" + parentId + "' in parents and trashed=false";
+    let q = "name='" + name + "' and mimeType='application/vnd.google-apps.folder' and '" + parentId + "' in parents and trashed=false";
+    q += this.ownerClause();
     const url = 'https://www.googleapis.com/drive/v3/files?q=' + encodeURIComponent(q)
-      + '&fields=files(id,name,createdTime)&spaces=drive&orderBy=createdTime&pageSize=50';
+      + '&fields=files(id,name,owners,createdTime)&spaces=drive&orderBy=createdTime&pageSize=50';
     const res = await this.apiRequest(url);
     const data = await res.json();
     if (data.files && data.files.length > 0) {
       console.log('[Drive] ensureSubFolder found:', name, '->', data.files[0].id);
       return data.files[0].id;
+    }
+    // 共有運用かつ共有元（owner）が見つからない場合は新規作成しない（個別ユーザーのDriveに作ると共有が壊れるため）
+    if (DRIVE_OWNER_EMAIL) {
+      throw new Error(`[Drive] 共有フォルダ "${name}" が見つかりません。${DRIVE_OWNER_EMAIL} が所有する "${DRIVE_FOLDER_NAME}/${DRIVE_ATS_SUBFOLDER}" 配下を共有してください`);
     }
     console.log('[Drive] ensureSubFolder creating:', name, 'under', parentId);
     const createRes = await this.apiRequest('https://www.googleapis.com/drive/v3/files', {
@@ -3171,12 +3185,16 @@ const DriveStorage = {
     if (this._rootPromise) return this._rootPromise;
     this._rootPromise = (async () => {
       try {
-        const q = "name='" + DRIVE_FOLDER_NAME + "' and mimeType='application/vnd.google-apps.folder' and trashed=false";
+        let q = "name='" + DRIVE_FOLDER_NAME + "' and mimeType='application/vnd.google-apps.folder' and trashed=false";
+        q += this.ownerClause();
         const url = 'https://www.googleapis.com/drive/v3/files?q=' + encodeURIComponent(q)
-          + '&fields=files(id,name,createdTime)&spaces=drive&orderBy=createdTime&pageSize=50';
+          + '&fields=files(id,name,owners,createdTime)&spaces=drive&orderBy=createdTime&pageSize=50';
         const res = await this.apiRequest(url);
         const data = await res.json();
         if (data.files && data.files.length > 0) { this.rootFolderId = data.files[0].id; return this.rootFolderId; }
+        if (DRIVE_OWNER_EMAIL) {
+          throw new Error(`[Drive] 共有ルートフォルダ "${DRIVE_FOLDER_NAME}" が見つかりません。${DRIVE_OWNER_EMAIL} が所有するフォルダを共有してください`);
+        }
         const createRes = await this.apiRequest('https://www.googleapis.com/drive/v3/files', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -3218,9 +3236,10 @@ const DriveStorage = {
 
   async findFileInFolder(folderId, filename, cache) {
     if (cache && cache[filename]) return cache[filename];
-    const q = "name='" + filename + "' and '" + folderId + "' in parents and trashed=false";
+    let q = "name='" + filename + "' and '" + folderId + "' in parents and trashed=false";
+    q += this.ownerClause();
     const res = await this.apiRequest(
-      'https://www.googleapis.com/drive/v3/files?q=' + encodeURIComponent(q) + '&fields=files(id)'
+      'https://www.googleapis.com/drive/v3/files?q=' + encodeURIComponent(q) + '&fields=files(id,owners)'
     );
     const data = await res.json();
     if (data.files && data.files.length > 0) {

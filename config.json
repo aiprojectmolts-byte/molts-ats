@@ -9,7 +9,8 @@
     "driveFolderName": "ScoutData",
     "atsSubFolder": "ats",
     "candidatesSubFolder": "candidates",
-    "storagePrefix": "ats_"
+    "storagePrefix": "ats_",
+    "driveOwnerEmail": "aiprojectmolts@gmail.com"
   },
   "platforms": [
     {
