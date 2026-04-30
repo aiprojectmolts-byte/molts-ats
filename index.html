@@ -4110,6 +4110,7 @@ function renderCandidateList() {
   const onlyMine    = document.getElementById('filterMine').checked;
 
   let list = (cachedIndex.candidates || []).slice();
+  const total0 = list.length;
   if (query) list = list.filter(c => (c.name || '').toLowerCase().includes(query));
   if (statusFilter) list = list.filter(c => c.status === statusFilter);
   if (onlyOverdue) list = list.filter(c => {
@@ -4120,6 +4121,9 @@ function renderCandidateList() {
     return full && hasOpenTasks(full);
   });
   if (onlyMine && currentUserEmail) list = list.filter(c => c.assignee === currentUserEmail);
+  // 診断ログ: 一覧から消える理由を特定するため、各フィルタ状態と件数を出す
+  console.log('[CandidateList] index=', total0, 'shown=', list.length,
+    '| filters:', { query, statusFilter, onlyOverdue, onlyAction, onlyMine, listViewMode, listExtraFilter, listTagFilters });
 
   // タレントプールタブ: talentPool.registered === true のみ
   if (listViewMode === 'talentPool') {
@@ -5192,16 +5196,22 @@ function renderFlowPhaseHtml(c, def, canEdit) {
       autoDate = new Date(ts).toLocaleString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
     }
   } else if (def.id === 'replied') {
-    const REPLY_LABELS = ['mendan','jouken','kentou','kakutei','reschedule_them','reschedule_us','shitsumon','jitai'];
-    const replies = (c.logs || []).filter(l => REPLY_LABELS.includes(l.label)).slice().sort((a, b) => {
-      const av = new Date(a.at || a.date || 0).getTime();
-      const bv = new Date(b.at || b.date || 0).getTime();
-      return av - bv;
-    });
-    const first = replies[0];
-    const ts = first && (first.at || first.date);
-    if (ts) {
-      autoDate = new Date(ts).toLocaleString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+    // 手動入力（c.flow.replied.repliedAt）があれば優先、なければ最初の返信系ログ
+    const manualTs = c.flow && c.flow.replied && c.flow.replied.repliedAt;
+    if (manualTs) {
+      autoDate = new Date(manualTs).toLocaleString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+    } else {
+      const REPLY_LABELS = ['mendan','jouken','kentou','kakutei','reschedule_them','reschedule_us','shitsumon','jitai'];
+      const replies = (c.logs || []).filter(l => REPLY_LABELS.includes(l.label)).slice().sort((a, b) => {
+        const av = new Date(a.at || a.date || 0).getTime();
+        const bv = new Date(b.at || b.date || 0).getTime();
+        return av - bv;
+      });
+      const first = replies[0];
+      const ts = first && (first.at || first.date);
+      if (ts) {
+        autoDate = new Date(ts).toLocaleString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+      }
     }
   }
   const company = c.targetCompanyId ? getCompanyName(c.targetCompanyId) : '';
@@ -5212,6 +5222,7 @@ function renderFlowPhaseHtml(c, def, canEdit) {
 
   // フェーズ・状態に応じたメッセージ送付ボタン
   let msgBtn = '';
+  let dateBtn = '';
   if (canEdit) {
     const INTERVIEW_PHASES = ['casual','first_interview','second_interview','offer_meeting'];
     if (def.id === 'scout_sent' && stat === 'completed') {
@@ -5228,6 +5239,15 @@ function renderFlowPhaseHtml(c, def, canEdit) {
       } else if (stat === 'scheduled') {
         msgBtn = `<button class="flow-msg-btn" onclick="openFlowMessage('${escapeHtml(c.id)}', 'interview_url')"><i data-lucide="mail" class="lucide"></i> 面談URLを送る</button>`;
       }
+    }
+    // 返信ありフェーズ: 手動で日時入力できるボタン（datetime-local をネイティブ表示）
+    if (def.id === 'replied') {
+      const inputId = 'repliedDateInput_' + escapeHtml(c.id);
+      const cur = (c.flow && c.flow.replied && c.flow.replied.repliedAt) || '';
+      const curLocal = cur ? new Date(cur).toISOString().slice(0, 16) : '';
+      dateBtn = `
+        <input type="datetime-local" id="${inputId}" value="${escapeHtml(curLocal)}" style="position:absolute; opacity:0; pointer-events:none; width:0; height:0;" onchange="setRepliedDate('${escapeHtml(c.id)}', this.value)">
+        <button class="flow-msg-btn" onclick="(function(el){ if (el.showPicker) el.showPicker(); else el.click(); })(document.getElementById('${inputId}'))"><i data-lucide="calendar" class="lucide"></i> 返信日時を入力</button>`;
     }
   }
 
@@ -5247,6 +5267,7 @@ function renderFlowPhaseHtml(c, def, canEdit) {
       ${d.memo ? `<div class="flow-memo">${escapeHtml(d.memo)}</div>` : ''}
       ${canEdit && !def.autoComplete ? `<button class="flow-edit-btn" onclick="openFlowEdit('${escapeHtml(def.id)}')"><i data-lucide="pencil" class="lucide"></i> 編集</button>` : ''}
       ${msgBtn}
+      ${dateBtn}
       <div class="flow-edit-form" id="flowEdit_${escapeHtml(def.id)}" style="display:none;"></div>
     </div>
   </div>`;
@@ -5265,6 +5286,29 @@ function openFlowMessage(candidateId, msgType) {
   }
   currentCandidateId = candidateId;
   openScoutForExistingCandidate({ msgType, useSupplementarySp: useSupp });
+}
+
+// 「返信あり」フェーズの返信日時を手動セット（カレンダー入力からの onchange）
+async function setRepliedDate(candidateId, isoLocal) {
+  if (!isoLocal) return;
+  const c = loadCandidate(candidateId);
+  if (!c) { showToast('候補者データが見つかりません', 'error'); return; }
+  c.flow = c.flow || {};
+  c.flow.replied = c.flow.replied || {};
+  c.flow.replied.repliedAt = new Date(isoLocal).toISOString();
+  c.updatedAt = new Date().toISOString();
+  pushActivity(c, 'flow_updated', `返信あり：返信日時を ${new Date(isoLocal).toLocaleString('ja-JP')} に設定`);
+  persistCandidate(c);
+  syncIndexFromCandidate(c);
+  await runDriveSave([
+    () => DriveStorage.writeCandidate(c.id, c),
+    () => DriveStorage.writeAts(DRIVE_INDEX_FILE, cachedIndex)
+  ], {
+    success: '返信日時を更新しました（Driveに保存 ✓）',
+    fail:    'Drive保存に失敗しました。ローカルには保存済みです',
+    local:   '返信日時を更新しました（ローカル保存のみ）'
+  });
+  if (currentCandidateId === candidateId) renderCandidateDetail(c);
 }
 
 function openFlowEdit(phaseId) {
