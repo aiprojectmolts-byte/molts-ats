@@ -338,9 +338,6 @@
     letter-spacing: .07em; text-transform: uppercase;
   }
   .scout-panel-body { padding: 16px; }
-  /* スカウトメッセージのパーソナライズハイライト */
-  .msg-hl:hover { background: #FFF176 !important; }
-  .msg-hl:hover .msg-hl-tooltip { display: block !important; }
   .scout-label {
     font-size: 12px; font-weight: 500;
     color: var(--text-secondary); margin-bottom: 8px;
@@ -1907,14 +1904,6 @@
           <label class="scout-label">プロフィール <span class="required">*</span></label>
           <textarea class="scout-textarea" id="scoutProfile" placeholder="プロフィールページのテキストをそのままコピーして貼り付けてください&#10;&#10;貼り付けると自動で以下が実行されます：&#10;・候補者名・媒体を自動判別&#10;・スコープ判定（推奨 / 要注意 / 見送り）"></textarea>
 
-          <div id="scoutEmphasisBanner" style="display:none; background:var(--info-bg); border:1px solid var(--info); border-radius:7px; padding:10px 14px; margin-top:8px; font-size:12px; color:var(--info-text); align-items:center; gap:10px;">
-            <span style="background:var(--info-text); color:#fff; font-size:10px; font-weight:700; padding:2px 8px; border-radius:10px; white-space:nowrap; flex-shrink:0;"><i data-lucide="pin" class="lucide"></i> 強調ポイント指定</span>
-            <span id="scoutEmphasisText" style="flex:1; font-style:italic; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"></span>
-            <button class="btn btn-small btn-primary" onclick="generateScoutMessage()" style="font-size:11px; padding:4px 10px; flex-shrink:0;"><i data-lucide="refresh-cw" class="lucide"></i> この内容で再生成</button>
-            <button onclick="clearScoutEmphasis()" style="background:none; border:none; color:var(--text-tertiary); cursor:pointer; font-size:14px; padding:2px 6px; flex-shrink:0;" title="強調ポイントを解除">×</button>
-          </div>
-          <div class="hint" id="scoutEmphasisHint" style="font-size:11px; color:var(--text-tertiary); margin-top:4px;">スコープ判定の「マッチ条件タグ」をクリックすると、その内容を強調して再生成できます</div>
-
           <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-top:14px;">
             <div>
               <label class="scout-label">候補者URL <span class="required">*</span></label>
@@ -1997,14 +1986,6 @@
         <div class="scout-generated placeholder" id="scoutGenerated">ここに生成されたメッセージが表示されます。</div>
         <div class="button-row" style="margin-top:10px;">
           <button class="btn" onclick="copyScoutMessage()"><i data-lucide="clipboard" class="lucide"></i> コピー</button>
-        </div>
-        <div id="scoutHlLegend" style="display:none; font-size:11px; color:var(--text-secondary); margin-top:10px; align-items:center; gap:6px;">
-          <span style="width:12px; height:12px; background:#FFF9C4; border-bottom:2px solid #F9A825; border-radius:2px; display:inline-block; flex-shrink:0;"></span>
-          <span>黄色部分がパーソナライズ箇所です。ホバーするとプロフィールの引用元が表示されます</span>
-        </div>
-        <div id="scoutRegenHint" style="display:none; font-size:11px; color:var(--text-tertiary); margin-top:8px; padding:10px 14px; background:var(--bg-secondary); border-radius:6px; border:1px solid var(--border-light); line-height:1.7;">
-          <div style="font-weight:600; color:var(--text-secondary); margin-bottom:4px;"><i data-lucide="lightbulb" class="lucide"></i> メッセージを微調整したいときは</div>
-          上の<strong style="color:var(--success);">スコープ判定カード</strong>に並ぶ <span style="display:inline-flex;align-items:center;gap:3px;font-size:10px;padding:2px 7px;border-radius:10px;border:1px solid var(--success);color:var(--success);"><i data-lucide="zap" class="lucide" style="width:10px;height:10px;"></i> マッチ条件タグ</span> をクリック → 「この内容で再生成」ボタン
         </div>
         <!-- 既存モードの送付ボタン（既存モード時のみ JS で表示） -->
         <button class="btn btn-success" id="scoutSendOnly" style="width: 100%; display: none; margin-top:14px;" onclick="registerCandidateFromScout(false)"><i data-lucide="mail" class="lucide"></i> 送付して候補者詳細に戻る</button>
@@ -2844,8 +2825,6 @@ let editingScopeCompanyId = null;
 // スカウト画面の起動モード（'new' = 新規追加ウィザード / 'existing' = 既存候補者から）
 let scoutMode = 'new';
 let scoutActiveSpId = null;  // 既存モード時に対象とする sourceProfile ID
-// プロフィール内で選択された強調ポイント（再生成時にプロンプトへ追記）
-let scoutEmphasisText = '';
 
 // タグカテゴリ定義（ランク・居住地・職種 + 旧データ用のその他）
 const TAG_CATEGORIES = [
@@ -4363,9 +4342,8 @@ function prepareScoutScreen() {
   document.getElementById('scoutCandidateName').value = '';
   document.getElementById('scoutProfile').value = '';
   document.getElementById('scoutMsgType').value = 'first';
-  // 媒体バッジ・強調ポイントの初期化
+  // 媒体バッジの初期化
   if (typeof updatePlatBadge === 'function') updatePlatBadge('');
-  if (typeof clearScoutEmphasis === 'function') clearScoutEmphasis();
   scoutCurrentMessage = '';
   scoutCurrentScopeSummary = null;
   scoutAllScopeResults = null;
@@ -4416,8 +4394,6 @@ function prepareScoutScreen() {
   const saveBar      = document.getElementById('scoutSaveBar');
   const copyReg      = document.getElementById('scoutCopyRegisterBtn');
   const regenBtn     = document.getElementById('scoutRegenBtn');
-  const hlLegend     = document.getElementById('scoutHlLegend');
-  const regenHint    = document.getElementById('scoutRegenHint');
   const msgTypeRow   = document.getElementById('scoutMsgTypeRow');
   const saveHint     = document.getElementById('scoutSaveHint');
   if (scopePanel)   scopePanel.style.display   = isExisting ? 'none' : '';
@@ -4429,8 +4405,6 @@ function prepareScoutScreen() {
     saveHint.style.color = 'var(--text-tertiary)';
   }
   if (regenBtn)  regenBtn.style.display  = 'none';
-  if (hlLegend)  hlLegend.style.display  = 'none';
-  if (regenHint) regenHint.style.display = 'none';
   if (msgTypeRow) msgTypeRow.style.display = isExisting ? '' : 'none';
 
   // シンプルUI: 既存モードではプロフィール/URL/媒体/スカウト先など新規モード固有のフォームを非表示
@@ -4629,12 +4603,20 @@ async function generateScoutMessage() {
   showLoading(true);
   document.getElementById('scoutGenerateBtn').disabled = true;
   try {
-    const systemPrompt = buildSystemPrompt();
-    let userPrompt = buildUserPrompt({ name, surname, profile, msgType, targetCompanyId });
-    // 強調ポイント指定があればプロンプト末尾に追記
-    if (scoutEmphasisText) {
-      userPrompt += `\n\n【再生成の際の強調ポイント】\n以下の内容を特に強調してメッセージを作成してください：\n「${scoutEmphasisText}」`;
+    // 現在のsourceProfile（既存モード）または profileSummaryCache（新規モード）から AI要約を取得
+    let profileSummary = null;
+    if (currentCandidateId) {
+      const c = loadCandidate(currentCandidateId);
+      if (c) {
+        const sp = (typeof getMainSourceProfile === 'function') ? getMainSourceProfile(c) : null;
+        profileSummary = (sp && sp.summary) || c.profileSummary || null;
+      }
+    } else {
+      const cacheKey = profileCacheKey(profile);
+      profileSummary = profileSummaryCache.get(cacheKey) || null;
     }
+    const systemPrompt = buildSystemPrompt();
+    const userPrompt = buildUserPrompt({ name, surname, profile, msgType, targetCompanyId, profileSummary });
     const res = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
@@ -4657,17 +4639,7 @@ async function generateScoutMessage() {
     const data = await res.json();
     scoutCurrentMessage = (data.content && data.content[0] && data.content[0].text) || '';
     const gen = document.getElementById('scoutGenerated');
-    // [[HL:...]]強調[[/HL]] のマーカーが含まれていればハイライト+ツールチップに変換
-    if (/\[\[HL:[\s\S]*?\]\][\s\S]*?\[\[\/HL\]\]/.test(scoutCurrentMessage)) {
-      gen.innerHTML = renderMessageWithHighlight(scoutCurrentMessage);
-      // localStorageや送付履歴用にはマーカーを除いたテキストを保持
-      scoutCurrentMessage = scoutCurrentMessage.replace(/\[\[HL:[\s\S]*?\]\]([\s\S]*?)\[\[\/HL\]\]/g, '$1');
-      const hlLegend = document.getElementById('scoutHlLegend');
-      if (hlLegend) hlLegend.style.display = 'flex';
-      if (window.lucide) lucide.createIcons();
-    } else {
-      gen.textContent = scoutCurrentMessage;
-    }
+    gen.textContent = scoutCurrentMessage;
     gen.classList.remove('placeholder');
     // 縦1カラムUI: 生成成功時に下部バーのボタンを有効化 + 再生成ボタンを表示
     const copyReg = document.getElementById('scoutCopyRegisterBtn');
@@ -4678,8 +4650,6 @@ async function generateScoutMessage() {
     }
     const regenBtn = document.getElementById('scoutRegenBtn');
     if (regenBtn) regenBtn.style.display = '';
-    const regenHint = document.getElementById('scoutRegenHint');
-    if (regenHint && scoutMode !== 'existing') regenHint.style.display = '';
     // 統一スコープ判定（同一プロフィールならキャッシュヒットしてAPIは叩かれない）
     await runScopeJudgement(apiKey, profile);
   } catch (e) {
@@ -4818,24 +4788,9 @@ function buildSystemPrompt() {
 - パーソナライズ部分はプロフィールの内容（志向・経験）を反映する
 - スキルの箇条書きにしない
 - マークダウン記法は使わない（**太字** や # 見出しなど）
-- 本文のみ出力する（前置き・後書きの説明文は不要）
-
-## パーソナライズ箇所のハイライトマーカー
-プロフィールの具体的な記述を引用して書いた箇所は、以下の形式でマークしてください：
-
-[[HL:引用元のプロフィール文（短く30字以内に要約可）]]生成したメッセージ内の該当部分[[/HL]]
-
-例:
-プロフィール「リクルートでHR事業マーケティング統括の経験」→
-メッセージ: ...[[HL:リクルートでHR事業マーケティング統括]]リクルートでのHR事業マーケティング統括という責任あるポジション[[/HL]]での実績...
-
-注意:
-- 一般的な定型文（「はじめまして」「失礼いたします」「会社紹介」等）はマークしない
-- プロフィール固有の経験・スキル・志向を反映した文だけマークする
-- 1メッセージあたり 2〜4箇所が目安
-- マーカーが入れ子にならないようにする`;
+- 本文のみ出力する（前置き・後書きの説明文は不要）`;
 }
-function buildUserPrompt({ name, surname, profile, msgType, targetCompanyId }) {
+function buildUserPrompt({ name, surname, profile, msgType, targetCompanyId, profileSummary }) {
   const rawTemplate = cachedTemplates[msgType] || '';
   // 事前に ◯◯ / {送付媒体} / {SNS媒体名} を置換してから AI に渡す
   const template = fillMessageTemplate(rawTemplate, { surname });
@@ -4850,20 +4805,44 @@ function buildUserPrompt({ name, surname, profile, msgType, targetCompanyId }) {
       + (qConds.length ? '定量条件:\n- ' + qConds.join('\n- ') + '\n' : '')
       + (lConds.length ? '定性条件:\n- ' + lConds.join('\n- ') + '\n' : '');
   }
+  // AI整理済みのプロフィール要約があればプロンプトに含めて初回生成品質を上げる
+  let summarySection = '';
+  if (profileSummary && typeof profileSummary === 'object') {
+    summarySection = '\n\n## 候補者プロフィール（AI整理済み）\n';
+    if (profileSummary.currentRole) {
+      summarySection += `- 現在の役職：${profileSummary.currentRole}\n`;
+    }
+    if (Array.isArray(profileSummary.recentCareer) && profileSummary.recentCareer.length) {
+      summarySection += '- 直近の経歴：\n';
+      profileSummary.recentCareer.forEach(c => {
+        const period = c.period ? `（${c.period}）` : '';
+        summarySection += `  - ${c.company || ''}${period} ${c.role || ''}\n`;
+      });
+    }
+    if (Array.isArray(profileSummary.skills) && profileSummary.skills.length) {
+      summarySection += `- 主なスキル：${profileSummary.skills.join('、')}\n`;
+    }
+    if (profileSummary.recruitingPoint) {
+      summarySection += `- 採用観点でのポイント：${profileSummary.recruitingPoint}\n`;
+    }
+    summarySection += '\n※ 上記の整理済み情報を優先的に参照してパーソナライズしてください。特に具体的な会社名・年数・スキル名・実績数値を積極的に盛り込んでください。';
+  }
   return `# 候補者情報
 - 候補者名：${name}
 - 呼び方（姓）：${surname}
 - 応募先会社：${company ? company.name : '未指定'}
 - メッセージ種別：${msgType}
 
-## 候補者プロフィール
+## 候補者プロフィール（生データ）
 ${profile || '（プロフィールが提供されていません。雛形の構造を維持したまま、一般的な表現でパーソナライズ部分を埋めてください）'}
+${summarySection}
 ${scopeSection}
 
 ## 雛形テンプレート
 ${template}
 
-上記の雛形をベースにメッセージ本文を生成してください。`;
+上記の雛形をベースにメッセージ本文を生成してください。
+パーソナライズの際は「候補者プロフィール（AI整理済み）」の内容を優先して参照し、具体的な会社名・期間・スキル・数値実績を積極的に盛り込んでください。`;
 }
 
 function getActiveScopePosition() {
@@ -7592,51 +7571,6 @@ function registerCompleteAddAnother() {
   showScreen('add');
 }
 
-// プロフィールテキストエリアで選択した範囲を強調ポイントとして保存
-function updateEmphasisFromSelection() {
-  const ta = document.getElementById('scoutProfile');
-  if (!ta) return;
-  const start = ta.selectionStart;
-  const end = ta.selectionEnd;
-  if (end > start) {
-    const text = ta.value.substring(start, end).trim();
-    if (text.length > 3) {
-      scoutEmphasisText = text;
-      const banner = document.getElementById('scoutEmphasisBanner');
-      const textEl = document.getElementById('scoutEmphasisText');
-      const hint = document.getElementById('scoutEmphasisHint');
-      if (banner) banner.style.display = 'flex';
-      if (textEl) textEl.textContent = '「' + text.substring(0, 40) + (text.length > 40 ? '...' : '') + '」';
-      if (hint) hint.style.display = 'none';
-    }
-  }
-}
-
-// 強調ポイント指定バナーを閉じる（再生成時のフォーカステキスト解除）
-function clearScoutEmphasis() {
-  scoutEmphasisText = '';
-  const banner = document.getElementById('scoutEmphasisBanner');
-  const hint = document.getElementById('scoutEmphasisHint');
-  if (banner) banner.style.display = 'none';
-  if (hint) hint.style.display = '';
-}
-
-// スコープ判定カードのマッチ条件チップから強調ポイントを設定
-function applyScopeChipFromBtn(btn) {
-  if (!btn) return;
-  const text = btn.getAttribute('data-emphasis') || '';
-  if (!text) return;
-  scoutEmphasisText = text;
-  const banner = document.getElementById('scoutEmphasisBanner');
-  const textEl = document.getElementById('scoutEmphasisText');
-  const hint = document.getElementById('scoutEmphasisHint');
-  if (banner) banner.style.display = 'flex';
-  if (textEl) textEl.textContent = '「' + (text.length > 50 ? text.substring(0, 50) + '...' : text) + '」';
-  if (hint) hint.style.display = 'none';
-  // バナーが見えるようにスクロール
-  if (banner) banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
-}
-
 // スコープ判定パネルの「再判定」ボタンから呼ばれる
 function rerunScopeJudgement() {
   if (typeof runAllScopeJudgementsForScout === 'function') {
@@ -7713,29 +7647,6 @@ function updateScoutScopePanels(result) {
     breakdownHtml = `<div style="font-size:12px; color:var(--text-secondary); line-height:1.7; margin-top:8px;">${markdownToScopeHtml(result.detail)}</div>`;
   }
 
-  // ✅マッチ項目をチップ化して「これを強調して再生成」できるようにする
-  let chipsHtml = '';
-  const parsed = result.parsed || (result.rawText && typeof parseScopeResult === 'function' ? parseScopeResult(result.rawText) : null);
-  if (parsed) {
-    const matched = [];
-    ['定量条件', '定性条件', '歓迎条件'].forEach(key => {
-      (parsed[key] || []).forEach(item => {
-        if (item && item.icon === '✅' && item.label) {
-          matched.push({ label: String(item.label), reason: String(item.reason || '') });
-        }
-      });
-    });
-    if (matched.length > 0) {
-      const chipItems = matched.map(m => {
-        const fullText = m.reason ? `${m.label}：${m.reason}` : m.label;
-        return `<button data-emphasis="${escapeHtml(fullText)}" onclick="applyScopeChipFromBtn(this)" title="${escapeHtml(fullText)}" style="font-size:11px; padding:5px 11px; border-radius:14px; background:rgba(255,255,255,0.75); border:1px solid var(--success); color:var(--success); cursor:pointer; font-family:inherit; display:inline-flex; align-items:center; gap:4px;"><i data-lucide="zap" class="lucide" style="width:11px;height:11px;"></i> ${escapeHtml(m.label)}</button>`;
-      }).join(' ');
-      chipsHtml = `<div style="margin-top:12px; padding-top:10px; border-top:1px dashed var(--border);">
-        <div style="font-size:11px; font-weight:600; color:var(--text-secondary); margin-bottom:6px;"><i data-lucide="pin" class="lucide" style="width:12px;height:12px;"></i> マッチした条件を選んで強調 → 再生成</div>
-        <div style="display:flex; flex-wrap:wrap; gap:6px;">${chipItems}</div>
-      </div>`;
-    }
-  }
 
   // スコア詳細（quantOk / qualOk / ngBad / ngWarn の内訳）
   let scoreDetailHtml = '';
@@ -7758,7 +7669,6 @@ NG要確認　${scopeIconLucide('warn')} ${d.ngWarn}件 × -2点 = <span class="
       </div>
       ${breakdownHtml}
       ${scoreDetailHtml}
-      ${chipsHtml}
     </div>`;
   if (window.lucide) lucide.createIcons();
 
@@ -7777,23 +7687,12 @@ NG要確認　${scopeIconLucide('warn')} ${d.ngWarn}件 × -2点 = <span class="
   }
 }
 
-// AIレスポンスの [[HL:引用元]]強調[[/HL]] 形式をハイライト+ツールチップHTMLに変換
-function renderMessageWithHighlight(text) {
-  if (!text) return '';
-  const escaped = escapeHtml(text);
-  // [[HL:...]]...[[/HL]] のマーカーは escapeHtml 後に残ったままなのでそのままパース
-  return escaped.replace(/\[\[HL:([\s\S]*?)\]\]([\s\S]*?)\[\[\/HL\]\]/g, (_, ref, content) => {
-    return `<span style="background:#FFF9C4; border-bottom:2px solid #F9A825; border-radius:2px; padding:0 1px; cursor:pointer; position:relative;" class="msg-hl">${content}<span style="display:none; position:absolute; bottom:calc(100% + 8px); left:0; background:var(--primary); color:#fff; font-size:11px; line-height:1.6; padding:9px 13px; border-radius:8px; width:280px; z-index:50; box-shadow:0 4px 16px rgba(0,0,0,.22); white-space:normal;" class="msg-hl-tooltip"><span style="display:block; font-size:10px; font-weight:700; color:#C9A961; margin-bottom:4px; letter-spacing:.04em;"><i data-lucide="pin" class="lucide" style="width:12px;height:12px;"></i> プロフィールより引用</span><span style="display:block; font-style:italic; color:#CBD5E1;">${ref}</span></span></span>`;
-  });
-}
-
 function scoutCompleteGoToList() {
   closeModal('scoutCompleteModal');
   showScreen('list');
 }
 function scoutCompleteAddAnother() {
   closeModal('scoutCompleteModal');
-  scoutEmphasisText = '';
   startNewCandidateWizard();
 }
 
@@ -12207,9 +12106,6 @@ function deleteUser(id) {
   if (profileEl) {
     profileEl.addEventListener('paste', onProfilePaste);
     profileEl.addEventListener('input', onProfileInput);
-    // 範囲選択で強調ポイントを指定する
-    profileEl.addEventListener('mouseup', updateEmphasisFromSelection);
-    profileEl.addEventListener('keyup', updateEmphasisFromSelection);
   }
 
   // ヘッダの「設定」ボタン: インラインonclickが何らかの理由で発火しないケースに備えて
