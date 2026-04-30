@@ -5177,6 +5177,33 @@ function renderFlowPhaseHtml(c, def, canEdit) {
   const sched = d.scheduledAt ? new Date(d.scheduledAt) : null;
   const schedText = sched ? sched.toLocaleString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }) : '';
   const statusLabel = stat === 'completed' ? '完了' : stat === 'scheduled' ? '予定あり' : '（未）';
+
+  // スカウト送付・返信ありフェーズは送付履歴 / やり取りログ から自動で日時を取り出して表示
+  let autoDate = '';
+  if (def.id === 'scout_sent') {
+    const arr = (c.sendHistory || []).slice().sort((a, b) => {
+      const av = new Date(a.date || a.sentAt || 0).getTime();
+      const bv = new Date(b.date || b.sentAt || 0).getTime();
+      return av - bv;
+    });
+    const first = arr[0];
+    const ts = first && (first.date || first.sentAt);
+    if (ts) {
+      autoDate = new Date(ts).toLocaleString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+    }
+  } else if (def.id === 'replied') {
+    const REPLY_LABELS = ['mendan','jouken','kentou','kakutei','reschedule_them','reschedule_us','shitsumon','jitai'];
+    const replies = (c.logs || []).filter(l => REPLY_LABELS.includes(l.label)).slice().sort((a, b) => {
+      const av = new Date(a.at || a.date || 0).getTime();
+      const bv = new Date(b.at || b.date || 0).getTime();
+      return av - bv;
+    });
+    const first = replies[0];
+    const ts = first && (first.at || first.date);
+    if (ts) {
+      autoDate = new Date(ts).toLocaleString('ja-JP', { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+    }
+  }
   const company = c.targetCompanyId ? getCompanyName(c.targetCompanyId) : '';
   const assigneeChips = interviewers.map(i => `<span class="assignee"><span class="assignee-avatar">${escapeHtml((i.name||'?').substring(0,1))}</span>${escapeHtml(i.name)}</span>`).join(' ');
 
@@ -5214,6 +5241,7 @@ function renderFlowPhaseHtml(c, def, canEdit) {
         ${assigneeChips}
       </div>
       ${schedText ? `<div class="flow-detail">${escapeHtml(schedText)}${interviewers.length ? ' / ' + escapeHtml(interviewers.map(i => i.name).join(', ')) : ''}${company && interviewers.length ? '（' + escapeHtml(company) + '）' : ''}</div>` : ''}
+      ${autoDate && !schedText ? `<div class="flow-detail">${escapeHtml(autoDate)}</div>` : ''}
       ${d.meetingUrl ? `<a href="${escapeHtml(d.meetingUrl)}" target="_blank" class="flow-meeting-url"><i data-lucide="paperclip" class="lucide"></i> 面談記録URL: ${escapeHtml(d.meetingUrl)}</a>` : ''}
       ${chips.length ? `<div class="flow-integrations">${chips.join('')}</div>` : ''}
       ${d.memo ? `<div class="flow-memo">${escapeHtml(d.memo)}</div>` : ''}
@@ -9619,14 +9647,9 @@ function renderCandidateDetail(c) {
     </div>
 
     <div>
-      <!-- 1. 採用フロー -->
-      ${renderFlowSectionHtml(c)}
-
-      <!-- プロフィール関連の通知バナー（プロフィール セクション直上に配置） -->
+      <!-- 1. 候補者プロフィール（プロフィール差分バナー / マルチチャネル通知を直上に） -->
       ${renderProfileDiffBannerHtml(c)}
       ${multichannelPromptShown ? renderMultichannelPromptHtml(c) : ''}
-
-      <!-- 2. 候補者プロフィール -->
       <div class="detail-section" style="margin-bottom: 16px;">
         <div class="detail-section-title">
           <span>候補者プロフィール</span>
@@ -9634,6 +9657,9 @@ function renderCandidateDetail(c) {
         </div>
         ${renderProfileSummaryAndRaw(c)}
       </div>
+
+      <!-- 2. 採用フロー -->
+      ${renderFlowSectionHtml(c)}
 
       <!-- 3. スコープ判定（複数ポジション対応・デフォルト折りたたみ） -->
       <div class="detail-section" style="margin-bottom: 16px;">
