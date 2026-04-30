@@ -5192,10 +5192,11 @@ async function autoAnalyzeProfile({ force } = {}) {
     if (badge) badge.style.display = 'none';
     if (reason) reason.style.display = 'none';
     setProfileAnalyzingIndicator(false);
-    // セッション変数のクリア
+    // セッション変数のクリア（再解析抑制キャッシュ + in-flightフラグも明示的にリセット）
     scoutCurrentScopeSummary = null;
     scoutAllScopeResults = null;
     profileLastAnalyzedText = '';
+    profileAnalyzeInFlight = false;
     return;
   }
   if (!force && profile === profileLastAnalyzedText) return;
