@@ -3473,9 +3473,8 @@ function signInGoogle() {
   }
 }
 function signOutGoogle() {
-  if (DriveStorage.accessToken) {
-    try { google.accounts.oauth2.revoke(DriveStorage.accessToken); } catch (e) {}
-  }
+  // Google側のトークンrevokeはしない（revokeすると次回ログイン時に毎回consent画面が出るため）。
+  // ローカルのセッション情報だけクリアして「未接続」状態に戻す。
   DriveStorage.accessToken = null;
   DriveStorage.rootFolderId = null;
   DriveStorage.atsFolderId = null;
