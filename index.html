@@ -7328,7 +7328,7 @@ function renderScoutScopeMultiCard(ranked) {
     html += `<span class="scope-rank-badge${isFirst ? ' rank-1' : ''}">${rankNum}</span>`;
     html += `<span class="scope-position-name">${escapeHtml(r.positionName || '')}</span>`;
     if (r.companyName) html += `<span class="scope-position-company">${escapeHtml(r.companyName)}</span>`;
-    html += `<span class="scope-overall ${overallCls}" style="margin-bottom:0; padding:6px 10px; font-size:12px;">${escapeHtml(overall || '判定不明')}</span>`;
+    html += `<span class="scope-overall ${overallCls}" style="margin-bottom:0; padding:6px 10px; font-size:12px;">${markdownToScopeHtml(overall || '判定不明')}</span>`;
     html += `</div><div class="scope-position-detail">`;
     if (r.rawText) html += buildScopeResultHtml(r.rawText);
     const d = r.scoreDetail;
@@ -7337,10 +7337,10 @@ function renderScoutScopeMultiCard(ranked) {
       html += `<button class="scope-score-link" onclick="toggleScopeScoreDetailCandidate('${sid}')"><i data-lucide="bar-chart-2" class="lucide"></i> スコア詳細を見る</button>`;
       html += `<div class="scope-score-detail" id="${sid}">`;
       html += `<span class="scope-score-total">マッチスコア：${d.total}点</span>\n\n`;
-      html += `定量条件　✅ ${d.quantOk}件 × 3点 = ${d.quantPoints}点\n`;
-      html += `定性条件　✅ ${d.qualOk}件 × 2点 = ${d.qualPoints}点\n`;
-      html += `NG非推奨　❌ ${d.ngBad}件 × -5点 = <span class="${d.ngBadPoints < 0 ? 'scope-score-minus' : ''}">${d.ngBadPoints}点</span>\n`;
-      html += `NG要確認　⚠️ ${d.ngWarn}件 × -2点 = <span class="${d.ngWarnPoints < 0 ? 'scope-score-minus' : ''}">${d.ngWarnPoints}点</span>\n`;
+      html += `定量条件　${scopeIconLucide('ok')} ${d.quantOk}件 × 3点 = ${d.quantPoints}点\n`;
+      html += `定性条件　${scopeIconLucide('ok')} ${d.qualOk}件 × 2点 = ${d.qualPoints}点\n`;
+      html += `NG非推奨　${scopeIconLucide('ng')} ${d.ngBad}件 × -5点 = <span class="${d.ngBadPoints < 0 ? 'scope-score-minus' : ''}">${d.ngBadPoints}点</span>\n`;
+      html += `NG要確認　${scopeIconLucide('warn')} ${d.ngWarn}件 × -2点 = <span class="${d.ngWarnPoints < 0 ? 'scope-score-minus' : ''}">${d.ngWarnPoints}点</span>\n`;
       html += `────────────────\n<span class="scope-score-total">合計：${d.total}点</span>`;
       html += `</div>`;
     }
@@ -9409,7 +9409,7 @@ function renderCandidateScopeSection(c) {
     html += `<span class="scope-rank-badge${isFirst ? ' rank-1' : ''}">${rankNum}</span>`;
     html += `<span class="scope-position-name">${escapeHtml(r.positionName || '(名称なし)')}</span>`;
     if (r.companyName) html += `<span class="scope-position-company">${escapeHtml(r.companyName)}</span>`;
-    html += `<span class="scope-overall ${overallCls}" style="margin-bottom:0; padding:6px 10px; font-size:12px;">${escapeHtml(overall || '判定不明')}</span>`;
+    html += `<span class="scope-overall ${overallCls}" style="margin-bottom:0; padding:6px 10px; font-size:12px;">${markdownToScopeHtml(overall || '判定不明')}</span>`;
     html += `<span class="scope-position-actions" onclick="event.stopPropagation()">`;
     if (isMain) html += `<span style="font-size:11px; color: var(--text-secondary); padding:4px 8px;"><i data-lucide="star" class="lucide"></i> メイン</span>`;
     else html += `<button class="btn btn-small" onclick="setMainScopePosition('${escapeHtml(c.id)}', '${escapeHtml(r.positionId)}')">メインに設定</button>`;
@@ -9428,10 +9428,10 @@ function renderCandidateScopeSection(c) {
       html += `<button class="scope-score-link" onclick="toggleScopeScoreDetailCandidate('${sid}')"><i data-lucide="bar-chart-2" class="lucide"></i> スコア詳細を見る</button>`;
       html += `<div class="scope-score-detail" id="${sid}">`;
       html += `<span class="scope-score-total">マッチスコア：${d.total}点</span>\n\n`;
-      html += `定量条件　✅ ${d.quantOk}件 × 3点 = ${d.quantPoints}点\n`;
-      html += `定性条件　✅ ${d.qualOk}件 × 2点 = ${d.qualPoints}点\n`;
-      html += `NG非推奨　❌ ${d.ngBad}件 × -5点 = <span class="${d.ngBadPoints < 0 ? 'scope-score-minus' : ''}">${d.ngBadPoints}点</span>\n`;
-      html += `NG要確認　⚠️ ${d.ngWarn}件 × -2点 = <span class="${d.ngWarnPoints < 0 ? 'scope-score-minus' : ''}">${d.ngWarnPoints}点</span>\n`;
+      html += `定量条件　${scopeIconLucide('ok')} ${d.quantOk}件 × 3点 = ${d.quantPoints}点\n`;
+      html += `定性条件　${scopeIconLucide('ok')} ${d.qualOk}件 × 2点 = ${d.qualPoints}点\n`;
+      html += `NG非推奨　${scopeIconLucide('ng')} ${d.ngBad}件 × -5点 = <span class="${d.ngBadPoints < 0 ? 'scope-score-minus' : ''}">${d.ngBadPoints}点</span>\n`;
+      html += `NG要確認　${scopeIconLucide('warn')} ${d.ngWarn}件 × -2点 = <span class="${d.ngWarnPoints < 0 ? 'scope-score-minus' : ''}">${d.ngWarnPoints}点</span>\n`;
       html += `────────────────\n<span class="scope-score-total">合計：${d.total}点</span>`;
       html += `</div>`;
     }
