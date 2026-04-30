@@ -3488,6 +3488,12 @@ function signOutGoogle() {
   applyAuthState();
   showToast('Google Driveから切断しました', 'success');
 }
+// ページロード時刻。Drive接続表示の60秒グレースピリオド判定に使う
+const PAGE_LOAD_AT = Date.now();
+const DRIVE_GRACE_MS = 60 * 1000;
+let _driveGraceTimer = null;
+function isInDriveGracePeriod() { return Date.now() - PAGE_LOAD_AT < DRIVE_GRACE_MS; }
+
 function updateDriveStatus(connected, opts) {
   opts = opts || {};
   const el = document.getElementById('gdriveStatus');
@@ -3501,6 +3507,7 @@ function updateDriveStatus(connected, opts) {
     txt.textContent = 'Drive接続中';
     btn.textContent = 'ログアウト';
     btn.onclick = signOutGoogle;
+    if (_driveGraceTimer) { clearTimeout(_driveGraceTimer); _driveGraceTimer = null; }
   } else if (opts.needsReauth) {
     // スコープ不足での切断。ボタンを再認証用に切り替える。
     el.classList.remove('connected');
@@ -3509,6 +3516,21 @@ function updateDriveStatus(connected, opts) {
     txt.textContent = 'Drive再認証が必要';
     btn.textContent = 'Drive接続を更新';
     btn.onclick = reconnectGoogle;
+  } else if (isInDriveGracePeriod()) {
+    // ページロード直後の60秒間は「接続確認中...」を表示し赤バッジを出さない
+    el.classList.remove('connected');
+    el.style.background = '';
+    el.style.border = '';
+    txt.textContent = 'Drive接続確認中...';
+    btn.textContent = 'Googleログイン';
+    btn.onclick = signInGoogle;
+    if (!_driveGraceTimer) {
+      const remaining = Math.max(0, DRIVE_GRACE_MS - (Date.now() - PAGE_LOAD_AT));
+      _driveGraceTimer = setTimeout(() => {
+        _driveGraceTimer = null;
+        if (!DriveStorage.isAuthenticated()) updateDriveStatus(false);
+      }, remaining + 100);
+    }
   } else {
     el.classList.remove('connected');
     el.style.background = 'rgba(183, 28, 28, 0.2)';
