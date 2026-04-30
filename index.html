@@ -2040,7 +2040,8 @@
         </div>
       </div>
       <div class="scout-panel-body">
-        <button class="btn btn-primary" title="" style="width:100%; margin-bottom:14px; padding:11px;" id="scoutGenerateBtn" onclick="generateScoutMessage()">メッセージを生成する</button>
+        <button class="btn btn-primary" title="" style="width:100%; padding:11px;" id="scoutGenerateBtn" onclick="generateScoutMessage()">メッセージを生成する</button>
+        <div id="scoutGenerateBtnHint" style="font-size:11px; color:var(--error); margin-top:4px; margin-bottom:10px; display:none;">候補者URLを入力するとメッセージを生成できます</div>
         <div id="scoutApiKeyHint" style="display:none; margin-bottom:10px; font-size:12px; color:var(--warning-text); background:var(--warning-bg); padding:8px 12px; border-radius:6px;">
           <i data-lucide="alert-triangle" class="lucide"></i> 設定画面でAnthropic APIキーを登録するとAIによる生成が可能になります。
         </div>
@@ -4672,6 +4673,9 @@ function validateScoutUrl() {
   if (genBtn)  genBtn.disabled  = invalid;
   if (regMain) regMain.disabled = invalid;
   if (regCont) regCont.disabled = invalid;
+  // 「メッセージを生成する」ボタンのグレーアウト理由を明示するヒント
+  const genHint = document.getElementById('scoutGenerateBtnHint');
+  if (genHint) genHint.style.display = invalid ? '' : 'none';
 }
 
 // 媒体プルダウン変更時: 既存候補者なら該当媒体のsourceProfileを自動入力
