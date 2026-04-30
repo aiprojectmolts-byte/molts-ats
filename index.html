@@ -5061,7 +5061,10 @@ async function autoAnalyzeProfile({ force } = {}) {
         summarizeProfile(profile, apiKey)
       ]);
       filled.scope = !!scopeResult;
-      if (summary) filled.summary = true;
+      if (summary) {
+        filled.summary = true;
+        if (typeof updateScoutSummaryPanel === 'function') updateScoutSummaryPanel(summary);
+      }
     }
 
     // フィードバック
@@ -7570,24 +7573,15 @@ function updatePlatBadge(platform) {
   }
 }
 
-// プロフィール要約を整形して HTML 化（AI要約パネル用）
-function renderProfileSummaryHtml(summary) {
-  if (!summary || typeof summary !== 'object') return '';
-  const rows = [];
-  if (summary.currentJob)  rows.push(['現職', escapeHtml(summary.currentJob)]);
-  if (summary.career)      rows.push(['経歴', escapeHtml(summary.career)]);
-  if (summary.strengths)   rows.push(['強み', escapeHtml(summary.strengths)]);
-  if (Array.isArray(summary.skills) && summary.skills.length) {
-    rows.push(['スキル', summary.skills.map(s =>
-      `<span style="display:inline-block; background:var(--bg-secondary); border:1px solid var(--border); border-radius:4px; padding:2px 8px; font-size:11px; color:var(--text-secondary); margin:2px 2px 0 0;">${escapeHtml(s)}</span>`
-    ).join('')]);
-  }
-  if (summary.jobSearchStatus) rows.push(['転職意欲', `<span style="color:var(--text-tertiary);">${escapeHtml(summary.jobSearchStatus)}</span>`]);
-  return rows.map(([k, v]) => `
-    <div style="display:flex; gap:8px; align-items:flex-start; margin-bottom:8px;">
-      <div style="font-size:10px; font-weight:600; color:var(--text-tertiary); min-width:60px; padding-top:2px; flex-shrink:0;">${k}</div>
-      <div style="font-size:12px; color:var(--text); line-height:1.5;">${v}</div>
-    </div>`).join('');
+// AI要約パネル: 既存の renderSummaryCardOnlyHtml を流用して充実表示する
+function updateScoutSummaryPanel(summary) {
+  const panel = document.getElementById('scoutSummaryPanel');
+  const body  = document.getElementById('scoutSummaryPanelBody');
+  if (!panel || !body) return;
+  if (!summary) { panel.style.display = 'none'; body.innerHTML = ''; return; }
+  body.innerHTML = renderSummaryCardOnlyHtml(summary);
+  panel.style.display = '';
+  if (window.lucide) lucide.createIcons();
 }
 
 // 縦1カラムUI: スコープ判定結果と AI要約 をパネルに反映
@@ -7640,17 +7634,34 @@ NG非推奨　${scopeIconLucide('ng')} ${d.ngBad}件 × -5点 = <span class="${d
 NG要確認　${scopeIconLucide('warn')} ${d.ngWarn}件 × -2点 = <span class="${d.ngWarnPoints < 0 ? 'scope-score-minus' : ''}">${d.ngWarnPoints}点</span></div>`;
   }
 
+  // 詳細パートはデフォルト折りたたみ。判定ラベル・ポジション名・スコアだけ最初に見せる
+  const hasDetails = !!(breakdownHtml || scoreDetailHtml);
+  const detailsHtml = hasDetails
+    ? `<button id="scoutScopeToggle" type="button" style="margin-top:10px; font-size:11px; color:var(--text-secondary); background:none; border:none; cursor:pointer; padding:4px 0; font-family:inherit;">詳細を見る ▼</button>
+       <div id="scoutScopeDetailWrap" style="display:none;">${breakdownHtml}${scoreDetailHtml}</div>`
+    : '';
+
   mainCard.innerHTML = `
     <div style="border-radius:8px; padding:14px 16px; background:${vm.bg}; border:1px solid ${vm.bd};">
-      <div style="display:flex; flex-wrap:wrap; align-items:center; gap:8px; margin-bottom:8px;">
+      <div style="display:flex; flex-wrap:wrap; align-items:center; gap:8px;">
         <span style="font-size:14px; font-weight:700; display:inline-flex; align-items:center; gap:6px;">${vm.icon} ${escapeHtml(vm.label)}</span>
         ${posName ? `<span style="font-size:12px; font-weight:600; color:var(--text); padding:2px 8px; background:rgba(255,255,255,0.5); border-radius:10px;">${escapeHtml(posName)}</span>` : ''}
         ${compName ? `<span style="font-size:11px; color:var(--text-secondary);">（${escapeHtml(compName)}）</span>` : ''}
         ${score !== null ? `<span style="margin-left:auto; font-size:11px; color:var(--text-secondary);">マッチスコア <strong style="color:var(--text); font-size:13px;">${score}</strong>点</span>` : ''}
       </div>
-      ${breakdownHtml}
-      ${scoreDetailHtml}
+      ${detailsHtml}
     </div>`;
+  // トグルボタンの開閉ハンドラ
+  const toggleBtn = document.getElementById('scoutScopeToggle');
+  const detailWrap = document.getElementById('scoutScopeDetailWrap');
+  if (toggleBtn && detailWrap) {
+    toggleBtn.addEventListener('click', () => {
+      const open = detailWrap.style.display !== 'none';
+      detailWrap.style.display = open ? 'none' : '';
+      toggleBtn.textContent = open ? '詳細を見る ▼' : '詳細を閉じる ▲';
+      if (!open && window.lucide) lucide.createIcons();
+    });
+  }
   if (window.lucide) lucide.createIcons();
 
   // AI要約: result.summary か profileSummaryCache 経由
@@ -7661,11 +7672,7 @@ NG要確認　${scopeIconLucide('warn')} ${d.ngWarn}件 × -2点 = <span class="
       summary = profileSummaryCache.get(profileCacheKey(profile)) || null;
     }
   }
-  if (summary && summaryPanel && summaryBody) {
-    summaryBody.innerHTML = renderProfileSummaryHtml(summary);
-    summaryPanel.style.display = '';
-    if (window.lucide) lucide.createIcons();
-  }
+  if (summary) updateScoutSummaryPanel(summary);
 }
 
 function scoutCompleteGoToList() {
