@@ -3873,32 +3873,52 @@ function removeCandidateLs(id) {
 // ----- Sync to Drive helpers -------------------------------------
 // 各 sync 関数は { ok, reason?, error? } を返す（throwしない）。
 // 呼び出し側はその結果を見てトーストを出す。
+
+// Drive API の一時的な失敗（OAuth直後やレート制限）に備えて、
+// 既定で 3回（=最初の試行 + リトライ2回）まで指数バックオフで再試行する。
+const DRIVE_RETRY_ATTEMPTS = 3;
+const DRIVE_RETRY_DELAY_MS = 1500;
+async function retryDriveOp(fn) {
+  let lastErr = null;
+  for (let i = 0; i < DRIVE_RETRY_ATTEMPTS; i++) {
+    try {
+      const result = await fn();
+      if (i > 0) console.log('[Drive] retry succeeded on attempt', i + 1);
+      return { ok: true, result };
+    } catch (e) {
+      lastErr = e;
+      console.warn('[Drive] attempt', i + 1, 'failed:', e && e.message);
+      if (i < DRIVE_RETRY_ATTEMPTS - 1) {
+        await new Promise(r => setTimeout(r, DRIVE_RETRY_DELAY_MS * (i + 1)));
+      }
+    }
+  }
+  return { ok: false, error: lastErr };
+}
+
 async function syncAtsFile(name, data) {
   if (!DriveStorage.isAuthenticated()) return { ok: false, reason: 'not_authenticated' };
-  try {
-    console.log('[Drive] writing', name);
-    await DriveStorage.writeAts(name, data);
+  console.log('[Drive] writing', name);
+  const r = await retryDriveOp(() => DriveStorage.writeAts(name, data));
+  if (r.ok) {
     console.log('[Drive] wrote', name, 'OK');
     return { ok: true };
-  } catch (e) {
-    console.warn('[Drive] failed to write ' + name, e);
-    // Fire-and-forget 呼び出し側でも気づけるようにトーストを出す
-    // （候補者CRUDは runDriveSave を直接使うのでこちらは通らない）
-    showToast('Google Driveへの保存に失敗しました（' + name + '）', 'error');
-    return { ok: false, reason: 'error', error: e };
   }
+  console.warn('[Drive] failed to write ' + name + ' (all retries exhausted)', r.error);
+  // すべてのリトライが失敗したときだけトーストを出す
+  showToast('Google Driveへの保存に失敗しました（' + name + '）', 'error');
+  return { ok: false, reason: 'error', error: r.error };
 }
 async function syncCandidateFile(c) {
   if (!DriveStorage.isAuthenticated()) return { ok: false, reason: 'not_authenticated' };
-  try {
-    console.log('[Drive] writing candidate', c.id);
-    await DriveStorage.writeCandidate(c.id, c);
+  console.log('[Drive] writing candidate', c.id);
+  const r = await retryDriveOp(() => DriveStorage.writeCandidate(c.id, c));
+  if (r.ok) {
     console.log('[Drive] wrote candidate', c.id, 'OK');
     return { ok: true };
-  } catch (e) {
-    console.warn('[Drive] failed to write candidate ' + c.id, e);
-    return { ok: false, reason: 'error', error: e };
   }
+  console.warn('[Drive] failed to write candidate ' + c.id + ' (all retries exhausted)', r.error);
+  return { ok: false, reason: 'error', error: r.error };
 }
 
 // 複数のDrive書き込みをまとめて実行し、結果を集約してトーストを出すヘルパー。
@@ -3910,15 +3930,15 @@ async function runDriveSave(actions, toasts) {
     if (toasts.local) showToast(toasts.local, 'success');
     return { attempted: false, ok: false };
   }
-  const results = await Promise.all((actions || []).map(fn =>
-    Promise.resolve().then(fn).then(() => ({ ok: true })).catch(e => ({ ok: false, error: e }))
-  ));
+  // 各アクションも retryDriveOp 経由でリトライしてから結果を集約
+  const results = await Promise.all((actions || []).map(fn => retryDriveOp(fn)));
   const allOk = results.length > 0 && results.every(r => r.ok);
   if (allOk) {
     if (toasts.success) showToast(toasts.success, 'success');
   } else {
     const firstErr = results.find(r => !r.ok);
-    if (firstErr && firstErr.error) console.warn('[Drive] save failed:', firstErr.error);
+    if (firstErr && firstErr.error) console.warn('[Drive] save failed (all retries exhausted):', firstErr.error);
+    // すべてのリトライが失敗した場合のみ失敗トースト表示
     if (toasts.fail) showToast(toasts.fail, 'error');
   }
   return { attempted: true, ok: allOk, results };
