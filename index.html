@@ -2587,7 +2587,7 @@
     <button class="login-btn" id="loginBtn" onclick="signInGoogle()"><i data-lucide="lock" class="lucide"></i> Googleでログイン</button>
     <div class="login-loading" id="loginLoadingNote" style="display:none;">
       <span class="mini-spinner"></span>
-      <span>ログイン中...<br><span style="font-size:11px; color:var(--text-tertiary);">認証ウィンドウで操作を続けてください</span></span>
+      <span id="loginLoadingMsg"><strong>ログイン中...</strong><br><span style="font-size:11px; color:var(--text-tertiary);">認証ウィンドウで操作を続けてください</span></span>
     </div>
     <div class="login-note">
       ログインすると、ScoutData/ats/ 配下にデータが保存されます。<br>
@@ -3205,6 +3205,8 @@ async function handleAuthResponse(response) {
   DriveStorage.accessToken = response.access_token;
   updateDriveStatus(true);
   showToast('Google Driveに接続しました', 'success');
+  // 認証ウィンドウは閉じたので、メッセージを「データ読み込み中」に切り替える
+  setLoginLoadingPhase('syncing');
   try {
     currentUserEmail = await fetchCurrentUserEmail();
     if (currentUserEmail) try { localStorage.setItem(LS_LAST_LOGIN_EMAIL, currentUserEmail); } catch (e) {}
@@ -3269,6 +3271,7 @@ function setLoginBtnLoading(loading) {
       btn.innerHTML = '<span class="mini-spinner"></span>ログイン中...';
     }
     if (note) note.style.display = 'flex';
+    setLoginLoadingPhase('auth');  // 初期メッセージは「認証ウィンドウで操作を続けてください」
   } else {
     if (btn) {
       btn.disabled = false;
@@ -3278,6 +3281,16 @@ function setLoginBtnLoading(loading) {
       }
     }
     if (note) note.style.display = 'none';
+  }
+}
+// OAuth コールバック後の Drive 同期フェーズではメッセージを切り替える
+function setLoginLoadingPhase(phase) {
+  const msg = document.getElementById('loginLoadingMsg');
+  if (!msg) return;
+  if (phase === 'syncing') {
+    msg.innerHTML = '<strong>データを読み込んでいます...</strong><br><span style="font-size:11px; color:var(--text-tertiary);">Driveから候補者・設定を取得中</span>';
+  } else {
+    msg.innerHTML = '<strong>ログイン中...</strong><br><span style="font-size:11px; color:var(--text-tertiary);">認証ウィンドウで操作を続けてください</span>';
   }
 }
 const LS_LAST_LOGIN_EMAIL = 'ats_last_login_email';
