@@ -2003,7 +2003,7 @@
           <span>黄色部分がパーソナライズ箇所です。ホバーするとプロフィールの引用元が表示されます</span>
         </div>
         <div id="scoutRegenHint" style="display:none; font-size:11px; color:var(--text-tertiary); margin-top:8px; padding:8px 12px; background:var(--bg-secondary); border-radius:6px; border:1px solid var(--border-light); line-height:1.6;">
-          <i data-lucide="lightbulb" class="lucide"></i> プロフィールから<strong style="color:var(--info-text);">強調したい箇所を選択</strong>してから「再生成」するとその内容を優先して反映します
+          <i data-lucide="lightbulb" class="lucide"></i> 上の<strong style="color:var(--info-text);">スコープ判定カードのマッチ条件タグ</strong>をクリックすると、その内容を強調して再生成できます。プロフィール本文を直接ドラッグ選択してもOK
         </div>
         <!-- 既存モードの送付ボタン（既存モード時のみ JS で表示） -->
         <button class="btn btn-success" id="scoutSendOnly" style="width: 100%; display: none; margin-top:14px;" onclick="registerCandidateFromScout(false)"><i data-lucide="mail" class="lucide"></i> 送付して候補者詳細に戻る</button>
@@ -7618,6 +7618,22 @@ function clearScoutEmphasis() {
   if (hint) hint.style.display = '';
 }
 
+// スコープ判定カードのマッチ条件チップから強調ポイントを設定
+function applyScopeChipFromBtn(btn) {
+  if (!btn) return;
+  const text = btn.getAttribute('data-emphasis') || '';
+  if (!text) return;
+  scoutEmphasisText = text;
+  const banner = document.getElementById('scoutEmphasisBanner');
+  const textEl = document.getElementById('scoutEmphasisText');
+  const hint = document.getElementById('scoutEmphasisHint');
+  if (banner) banner.style.display = 'flex';
+  if (textEl) textEl.textContent = '「' + (text.length > 50 ? text.substring(0, 50) + '...' : text) + '」';
+  if (hint) hint.style.display = 'none';
+  // バナーが見えるようにスクロール
+  if (banner) banner.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
 // スコープ判定パネルの「再判定」ボタンから呼ばれる
 function rerunScopeJudgement() {
   if (typeof runAllScopeJudgementsForScout === 'function') {
@@ -7694,6 +7710,30 @@ function updateScoutScopePanels(result) {
     breakdownHtml = `<div style="font-size:12px; color:var(--text-secondary); line-height:1.7; margin-top:8px;">${markdownToScopeHtml(result.detail)}</div>`;
   }
 
+  // ✅マッチ項目をチップ化して「これを強調して再生成」できるようにする
+  let chipsHtml = '';
+  const parsed = result.parsed || (result.rawText && typeof parseScopeResult === 'function' ? parseScopeResult(result.rawText) : null);
+  if (parsed) {
+    const matched = [];
+    ['定量条件', '定性条件', '歓迎条件'].forEach(key => {
+      (parsed[key] || []).forEach(item => {
+        if (item && item.icon === '✅' && item.label) {
+          matched.push({ label: String(item.label), reason: String(item.reason || '') });
+        }
+      });
+    });
+    if (matched.length > 0) {
+      const chipItems = matched.map(m => {
+        const fullText = m.reason ? `${m.label}：${m.reason}` : m.label;
+        return `<button data-emphasis="${escapeHtml(fullText)}" onclick="applyScopeChipFromBtn(this)" title="${escapeHtml(fullText)}" style="font-size:11px; padding:5px 11px; border-radius:14px; background:rgba(255,255,255,0.75); border:1px solid var(--success); color:var(--success); cursor:pointer; font-family:inherit; display:inline-flex; align-items:center; gap:4px;"><i data-lucide="zap" class="lucide" style="width:11px;height:11px;"></i> ${escapeHtml(m.label)}</button>`;
+      }).join(' ');
+      chipsHtml = `<div style="margin-top:12px; padding-top:10px; border-top:1px dashed var(--border);">
+        <div style="font-size:11px; font-weight:600; color:var(--text-secondary); margin-bottom:6px;"><i data-lucide="pin" class="lucide" style="width:12px;height:12px;"></i> マッチした条件を選んで強調 → 再生成</div>
+        <div style="display:flex; flex-wrap:wrap; gap:6px;">${chipItems}</div>
+      </div>`;
+    }
+  }
+
   // スコア詳細（quantOk / qualOk / ngBad / ngWarn の内訳）
   let scoreDetailHtml = '';
   const d = result.scoreDetail;
@@ -7715,6 +7755,7 @@ NG要確認　${scopeIconLucide('warn')} ${d.ngWarn}件 × -2点 = <span class="
       </div>
       ${breakdownHtml}
       ${scoreDetailHtml}
+      ${chipsHtml}
     </div>`;
   if (window.lucide) lucide.createIcons();
 
