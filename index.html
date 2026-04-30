@@ -1984,7 +1984,7 @@
           <i data-lucide="alert-triangle" class="lucide"></i> 設定画面でAnthropic APIキーを登録するとAIによる生成が可能になります。
         </div>
         <div class="scout-generated placeholder" id="scoutGenerated">ここに生成されたメッセージが表示されます。</div>
-        <div class="button-row" style="margin-top:10px;">
+        <div class="button-row" id="scoutCopyRow" style="margin-top:10px;">
           <button class="btn" onclick="copyScoutMessage()"><i data-lucide="clipboard" class="lucide"></i> コピー</button>
         </div>
         <!-- 既存モードの送付ボタン（既存モード時のみ JS で表示） -->
@@ -4406,6 +4406,9 @@ function prepareScoutScreen() {
   }
   if (regenBtn)  regenBtn.style.display  = 'none';
   if (msgTypeRow) msgTypeRow.style.display = isExisting ? '' : 'none';
+  // 新規モードでは下部バーの「コピーして候補者を保存」が主導線なので「コピー」単体ボタンは隠す
+  const copyRow = document.getElementById('scoutCopyRow');
+  if (copyRow) copyRow.style.display = isExisting ? '' : 'none';
 
   // シンプルUI: 既存モードではプロフィール/URL/媒体/スカウト先など新規モード固有のフォームを非表示
   const newOnlyGroup = document.getElementById('scoutNewOnlyGroup');
