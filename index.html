@@ -3151,11 +3151,11 @@ const DriveStorage = {
   },
 
   async ensureSubFolder(parentId, name) {
-    // 共有運用では corpora=allDrives + supportsAllDrives で正しいファイルにヒットする。
-    // owners 句は Drive API の allDrives 検索で 400 を返すため使用しない。
+    // 共有運用では includeItemsFromAllDrives + supportsAllDrives で共有ファイルがヒットする。
+    // owners 句や corpora=allDrives は Gmailアカウントで 400 を返すため使用しない。
     const q = "name='" + name + "' and mimeType='application/vnd.google-apps.folder' and '" + parentId + "' in parents and trashed=false";
     const url = 'https://www.googleapis.com/drive/v3/files?q=' + encodeURIComponent(q)
-      + '&fields=files(id,name,owners,createdTime)&spaces=drive,allDrives&orderBy=createdTime&pageSize=50'
+      + '&fields=files(id,name,owners,createdTime)&spaces=drive&orderBy=createdTime&pageSize=50'
       + '&includeItemsFromAllDrives=true&supportsAllDrives=true';
     const res = await this.apiRequest(url);
     const data = await res.json();
@@ -3185,8 +3185,8 @@ const DriveStorage = {
       try {
         const q = "name='" + DRIVE_FOLDER_NAME + "' and mimeType='application/vnd.google-apps.folder' and trashed=false";
         const url = 'https://www.googleapis.com/drive/v3/files?q=' + encodeURIComponent(q)
-          + '&fields=files(id,name,owners,createdTime)&spaces=drive,allDrives&orderBy=createdTime&pageSize=50'
-          + '&includeItemsFromAllDrives=true&supportsAllDrives=true&corpora=allDrives';
+          + '&fields=files(id,name,owners,createdTime)&spaces=drive&orderBy=createdTime&pageSize=50'
+          + '&includeItemsFromAllDrives=true&supportsAllDrives=true';
         const res = await this.apiRequest(url);
         const data = await res.json();
         if (data.files && data.files.length > 0) { this.rootFolderId = data.files[0].id; return this.rootFolderId; }
