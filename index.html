@@ -3207,10 +3207,7 @@ async function handleAuthResponse(response) {
   showToast('Google Driveに接続しました', 'success');
   // 認証ウィンドウは閉じたので、メッセージを「データ読み込み中」に切り替える
   setLoginLoadingPhase('syncing');
-  try {
-    currentUserEmail = await fetchCurrentUserEmail();
-    if (currentUserEmail) try { localStorage.setItem(LS_LAST_LOGIN_EMAIL, currentUserEmail); } catch (e) {}
-  } catch (e) { console.warn(e); }
+  try { currentUserEmail = await fetchCurrentUserEmail(); } catch (e) { console.warn(e); }
 
   // Drive から users.json を含む全データを読み込んでからユーザー判定する
   try { await loadAllFromDrive(); } catch (e) { console.warn('Drive load failed', e); }
@@ -3293,7 +3290,6 @@ function setLoginLoadingPhase(phase) {
     msg.innerHTML = '<strong>ログイン中...</strong><br><span style="font-size:11px; color:var(--text-tertiary);">認証ウィンドウで操作を続けてください</span>';
   }
 }
-const LS_LAST_LOGIN_EMAIL = 'ats_last_login_email';
 function signInGoogle() {
   if (!tokenClient) {
     showToast('Google認証が未初期化です。clientIdをconfig.jsonに設定してください。', 'error');
@@ -3306,10 +3302,9 @@ function signInGoogle() {
   try { priorScopes = JSON.parse(localStorage.getItem(LS_OAUTH_SCOPES_KEY) || '[]'); } catch (e) {}
   const priorSet = new Set(Array.isArray(priorScopes) ? priorScopes : []);
   const needsConsent = REQUIRED_OAUTH_SCOPES.some(s => !priorSet.has(s));
-  // 2回目以降は prompt:'' + hint で アカウント選択 / 同意画面 をスキップしてサイレントに近い再認証をする
-  const opts = needsConsent ? { prompt: 'consent' } : { prompt: '' };
-  const lastEmail = localStorage.getItem(LS_LAST_LOGIN_EMAIL);
-  if (lastEmail) opts.hint = lastEmail;
+  // 初回はフルconsent。2回目以降はアカウントピッカーのみ表示し、同意画面はスキップする
+  // （複数アカウントを使い分ける可能性があるため hint で固定はしない）
+  const opts = needsConsent ? { prompt: 'consent' } : { prompt: 'select_account' };
   try {
     tokenClient.requestAccessToken(opts);
   } catch (e) {
