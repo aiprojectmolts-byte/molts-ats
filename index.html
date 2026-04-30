@@ -324,7 +324,7 @@
 
   /* --- Scout generator --- */
   .scout-panels {
-    padding: 24px 32px; max-width: 720px; margin: 0 auto;
+    padding: 24px 32px; max-width: 1000px; margin: 0 auto;
     display: flex; flex-direction: column; gap: 16px;
   }
   .scout-panel {
@@ -1882,7 +1882,7 @@
       <span id="scoutHeaderMediaBadge" style="display:none; font-size:12px; padding:3px 10px; background:var(--info-bg); color:var(--info-text); border-radius:12px;"></span>
     </div>
   </div>
-  <div class="wizard-steps">
+  <div class="wizard-steps" style="display:none;">
     <span class="step-circle done"><i data-lucide="check" class="lucide"></i></span>
     <span id="scoutSourceLabel" style="color: var(--text-secondary);">ソース：スカウト媒体</span>
     <span class="step-sep">→</span>
@@ -4329,15 +4329,12 @@ function prepareScoutScreen() {
 
   // Different fields depending on source
   if (wizardSelectedSource === 'scout') {
-    const platforms = (CONFIG && CONFIG.platforms) || [];
+    // 媒体は URL/プロフィールから自動判別し、下の媒体バッジで表示する。
+    // #scoutPlatform は既存ロジックとの互換のため hidden input として残す。
     box.innerHTML = `
-      <label class="scout-label">媒体<span class="required">*</span></label>
-      <select class="scout-input" id="scoutPlatform" onchange="prefillScoutFromPlatform()">
-        ${platforms.map(p => `<option value="${escapeHtml(p.name)}">${escapeHtml(p.name)}</option>`).join('')}
-      </select>
-      <label class="scout-label">候補者URL<span class="required">*</span></label>
-      <input type="text" class="scout-input" id="scoutUrl" placeholder="例：https://youtrust.jp/users/..." oninput="validateScoutUrl()">
-      <div id="scoutUrlError" style="display:none; font-size:11px; color:var(--error); margin-top:-8px; margin-bottom:10px;">候補者URLは必須です</div>`;
+      <input type="hidden" id="scoutPlatform" value="">
+      <input type="text" class="scout-input" id="scoutUrl" placeholder="例：https://youtrust.jp/users/..." oninput="validateScoutUrl()" style="margin-bottom:0;">
+      <div id="scoutUrlError" style="display:none; font-size:11px; color:var(--error); margin-top:4px;">候補者URLは必須です</div>`;
   } else if (wizardSelectedSource === 'referral') {
     box.innerHTML = `
       <label class="scout-label">紹介者名</label>
@@ -5048,14 +5045,19 @@ async function autoAnalyzeProfile({ force } = {}) {
     // 1) 媒体判定（ローカル・同期）
     const detectedPlatform = detectPlatformFromProfile(profile);
     if (detectedPlatform && platformSel) {
-      // プルダウンに該当オプションがある場合のみ反映
-      const hasOpt = Array.from(platformSel.options).some(o => o.value === detectedPlatform);
-      if (hasOpt && platformSel.value !== detectedPlatform) {
+      // <select> の場合は options を確認して反映、<input type="hidden"> の場合は直接代入
+      if (platformSel.tagName === 'SELECT') {
+        const hasOpt = Array.from(platformSel.options).some(o => o.value === detectedPlatform);
+        if (hasOpt && platformSel.value !== detectedPlatform) {
+          platformSel.value = detectedPlatform;
+          filled.platform = true;
+        }
+      } else if (platformSel.value !== detectedPlatform) {
         platformSel.value = detectedPlatform;
         filled.platform = true;
       }
     }
-    // 縦1カラムUIの媒体バッジに反映（プルダウンの値が拾えればそれを優先）
+    // 縦1カラムUIの媒体バッジに反映
     if (typeof updatePlatBadge === 'function') {
       const currentPlat = (platformSel && platformSel.value) || detectedPlatform || '';
       updatePlatBadge(currentPlat || '');
