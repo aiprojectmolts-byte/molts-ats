@@ -9622,11 +9622,10 @@ function renderCandidateDetail(c) {
   const ballState = getBallState(c);
   const slackHint = '※ Slack Incoming Webhookの制約により、同一チャンネルに ↳ [候補者名] のプレフィックスで投稿されます';
   const slackBtn = cachedSlack.webhookUrl && !c.slackThreadTs
-    ? `<button class="btn btn-small" onclick="createSlackThreadManual()" title="${escapeHtml(slackHint)}"><i data-lucide="megaphone" class="lucide"></i> Slackスレッドを作成</button>
-       <span style="font-size:10px; color:var(--text-tertiary); margin-left:4px;">${escapeHtml(slackHint)}</span>`
+    ? `<button class="btn btn-small" onclick="createSlackThreadManual()" title="${escapeHtml(slackHint)}"><i data-lucide="megaphone" class="lucide"></i> Slackスレッドを作成</button>`
     : (c.slackThreadTs
         ? `<span class="source-label" title="${escapeHtml(slackHint)}"><i data-lucide="megaphone" class="lucide"></i> Slackスレッド作成済み</span>
-           <button class="btn btn-small" style="margin-left:6px;" onclick="recreateSlackThread()"><i data-lucide="refresh-cw" class="lucide"></i> Slackスレッドを再作成する</button>`
+           <button class="btn btn-small" onclick="recreateSlackThread()"><i data-lucide="refresh-cw" class="lucide"></i> Slackスレッドを再作成</button>`
         : '');
   body.innerHTML = `
     <div>
@@ -9634,7 +9633,7 @@ function renderCandidateDetail(c) {
       <div class="detail-section" style="margin-bottom: 16px;">
         <div class="detail-section-title">
           <span>基本情報</span>
-          <div style="display:flex; align-items:center; gap:6px;">
+          <div style="display:flex; align-items:center; gap:6px; text-transform:none; letter-spacing:normal; font-weight:normal;">
             ${can('candidates.edit', { candidate: c }) ? `<button class="btn btn-small" onclick="openCandidateEditModal()"><i data-lucide="pencil" class="lucide"></i> 編集</button>` : ''}
             ${slackBtn}
           </div>
