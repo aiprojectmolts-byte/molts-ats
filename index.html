@@ -5295,7 +5295,7 @@ async function saveFlowPhase(phaseId, withCalendar) {
   await runDriveSave([
     () => DriveStorage.writeCandidate(c.id, c)
   ], {
-    success: withCalendar ? '面談予定を登録しました（カレンダー & Driveに保存 <i data-lucide="check" class="lucide"></i>）' : '採用フローを更新しました（Driveに保存 <i data-lucide="check" class="lucide"></i>）',
+    success: withCalendar ? '面談予定を登録しました（カレンダー & Driveに保存 ✓）' : '採用フローを更新しました（Driveに保存 ✓）',
     fail:    'Drive保存失敗、ローカルに保存しました',
     local:   '採用フローを更新しました（ローカル保存のみ）'
   });
@@ -5921,7 +5921,7 @@ async function submitAddSourceProfile() {
   await runDriveSave([
     () => DriveStorage.writeCandidate(c.id, c)
   ], {
-    success: 'URLを追加しました（Driveに保存 <i data-lucide="check" class="lucide"></i>）',
+    success: 'URLを追加しました（Driveに保存 ✓）',
     fail:    'Drive保存失敗、ローカルに保存しました',
     local:   'URLを追加しました（ローカル保存のみ）'
   });
@@ -5948,7 +5948,7 @@ async function setMainSourceProfile(spId) {
   await runDriveSave([
     () => DriveStorage.writeCandidate(c.id, c)
   ], {
-    success: 'メインプロフィールを変更しました（Driveに保存 <i data-lucide="check" class="lucide"></i>）',
+    success: 'メインプロフィールを変更しました（Driveに保存 ✓）',
     fail:    'Drive保存失敗、ローカルに保存しました',
     local:   'メインプロフィールを変更しました（ローカル保存のみ）'
   });
@@ -5972,7 +5972,7 @@ async function deleteSourceProfile(spId) {
   await runDriveSave([
     () => DriveStorage.writeCandidate(c.id, c)
   ], {
-    success: 'URLを削除しました（Driveに保存 <i data-lucide="check" class="lucide"></i>）',
+    success: 'URLを削除しました（Driveに保存 ✓）',
     fail:    'Drive保存失敗、ローカルに保存しました',
     local:   'URLを削除しました（ローカル保存のみ）'
   });
@@ -6168,7 +6168,7 @@ async function applyProfileUpdate() {
   await runDriveSave([
     () => DriveStorage.writeCandidate(c.id, c)
   ], {
-    success: 'プロフィールを更新しました（Driveに保存 <i data-lucide="check" class="lucide"></i>）',
+    success: 'プロフィールを更新しました（Driveに保存 ✓）',
     fail:    'Drive保存失敗、ローカルに保存しました',
     local:   'プロフィールを更新しました（ローカル保存のみ）'
   });
@@ -6426,7 +6426,7 @@ async function markTaskDone(taskId) {
   await runDriveSave([
     () => DriveStorage.writeCandidate(c.id, c)
   ], {
-    success: 'タスクを完了しました（Driveに保存 <i data-lucide="check" class="lucide"></i>）',
+    success: 'タスクを完了しました（Driveに保存 ✓）',
     fail:    'Drive保存失敗、ローカルに保存しました',
     local:   'タスクを完了しました（ローカル保存のみ）'
   });
@@ -6669,7 +6669,7 @@ async function deleteLogEntry(logId) {
   await runDriveSave([
     () => DriveStorage.writeCandidate(c.id, c)
   ], {
-    success: 'やり取りログを削除しました（Driveに保存 <i data-lucide="check" class="lucide"></i>）',
+    success: 'やり取りログを削除しました（Driveに保存 ✓）',
     fail:    'Drive保存失敗、ローカルに保存しました',
     local:   'やり取りログを削除しました（ローカル保存のみ）'
   });
@@ -6702,7 +6702,7 @@ async function saveLogEdit(logId) {
   await runDriveSave([
     () => DriveStorage.writeCandidate(c.id, c)
   ], {
-    success: 'やり取りログを更新しました（Driveに保存 <i data-lucide="check" class="lucide"></i>）',
+    success: 'やり取りログを更新しました（Driveに保存 ✓）',
     fail:    'Drive保存失敗、ローカルに保存しました',
     local:   'やり取りログを更新しました（ローカル保存のみ）'
   });
@@ -6823,7 +6823,7 @@ async function saveLogEntry() {
   await runDriveSave([
     () => DriveStorage.writeCandidate(c.id, c)
   ], {
-    success: 'やり取りログを追加しました（Driveに保存 <i data-lucide="check" class="lucide"></i>）',
+    success: 'やり取りログを追加しました（Driveに保存 ✓）',
     fail:    'Drive保存失敗、ローカルに保存しました',
     local:   'やり取りログを追加しました（ローカル保存のみ）'
   });
@@ -6936,7 +6936,7 @@ async function applyProfileDiff(diffId) {
   await runDriveSave([
     () => DriveStorage.writeCandidate(c.id, c)
   ], {
-    success: 'プロフィールに反映しました（Driveに保存 <i data-lucide="check" class="lucide"></i>）',
+    success: 'プロフィールに反映しました（Driveに保存 ✓）',
     fail:    'Drive保存失敗、ローカルに保存しました',
     local:   'プロフィールに反映しました（ローカル保存のみ）'
   });
@@ -7838,7 +7838,7 @@ async function registerCandidateFromScout(goBackToList) {
     () => DriveStorage.writeCandidate(candidate.id, candidate),
     () => DriveStorage.writeAts(DRIVE_INDEX_FILE, cachedIndex)
   ], {
-    success: '候補者を登録しました（Driveに保存 <i data-lucide="check" class="lucide"></i>）',
+    success: '候補者を登録しました（Driveに保存 ✓）',
     fail:    'Drive保存に失敗しました。ローカルには保存済みです',
     local:   '候補者を登録しました（ローカル保存のみ / Drive未接続）'
   });
@@ -8097,7 +8097,7 @@ async function submitAddTag() {
   renderCandidateDetail(c);
   await runDriveSave([
     () => DriveStorage.writeCandidate(c.id, c)
-  ], { success: 'タグを追加しました（Driveに保存 <i data-lucide="check" class="lucide"></i>）', fail: 'Drive保存失敗、ローカルに保存しました', local: 'タグを追加しました（ローカル保存のみ）' });
+  ], { success: 'タグを追加しました（Driveに保存 ✓）', fail: 'Drive保存失敗、ローカルに保存しました', local: 'タグを追加しました（ローカル保存のみ）' });
   // フォームを閉じずに開いたまま、次のタグを続けて入れやすくする
   toggleAddTagForm(true);
 }
@@ -8116,7 +8116,7 @@ async function deleteTagFromCandidate(tagId) {
   renderCandidateDetail(c);
   await runDriveSave([
     () => DriveStorage.writeCandidate(c.id, c)
-  ], { success: 'タグを削除しました（Driveに保存 <i data-lucide="check" class="lucide"></i>）', fail: 'Drive保存失敗、ローカルに保存しました', local: 'タグを削除しました（ローカル保存のみ）' });
+  ], { success: 'タグを削除しました（Driveに保存 ✓）', fail: 'Drive保存失敗、ローカルに保存しました', local: 'タグを削除しました（ローカル保存のみ）' });
 }
 
 // ========== タレントプール ================================================
@@ -8213,7 +8213,7 @@ async function saveTalentPool() {
   renderCandidateDetail(c);
   await runDriveSave([
     () => DriveStorage.writeCandidate(c.id, c)
-  ], { success: 'タレントプールを保存しました（Driveに保存 <i data-lucide="check" class="lucide"></i>）', fail: 'Drive保存失敗、ローカルに保存しました', local: 'タレントプールを保存しました（ローカル保存のみ）' });
+  ], { success: 'タレントプールを保存しました（Driveに保存 ✓）', fail: 'Drive保存失敗、ローカルに保存しました', local: 'タレントプールを保存しました（ローカル保存のみ）' });
 }
 
 async function removeFromTalentPool() {
@@ -8228,7 +8228,7 @@ async function removeFromTalentPool() {
   renderCandidateDetail(c);
   await runDriveSave([
     () => DriveStorage.writeCandidate(c.id, c)
-  ], { success: 'タレントプールから削除しました（Driveに保存 <i data-lucide="check" class="lucide"></i>）', fail: 'Drive保存失敗、ローカルに保存しました', local: 'タレントプールから削除しました（ローカル保存のみ）' });
+  ], { success: 'タレントプールから削除しました（Driveに保存 ✓）', fail: 'Drive保存失敗、ローカルに保存しました', local: 'タレントプールから削除しました（ローカル保存のみ）' });
 }
 
 // ========== ダッシュボード（候補者一覧上部） ==============================
@@ -10066,7 +10066,7 @@ async function saveSummaryEdit() {
   await runDriveSave([
     () => DriveStorage.writeCandidate(c.id, c)
   ], {
-    success: '要約を更新しました（Driveに保存 <i data-lucide="check" class="lucide"></i>）',
+    success: '要約を更新しました（Driveに保存 ✓）',
     fail:    'Drive保存失敗、ローカルに保存しました',
     local:   '要約を更新しました（ローカル保存のみ）'
   });
@@ -10100,7 +10100,7 @@ async function resummarizeCurrentCandidate() {
     await runDriveSave([
       () => DriveStorage.writeCandidate(c.id, c)
     ], {
-      success: '要約を再生成しました（Driveに保存 <i data-lucide="check" class="lucide"></i>）',
+      success: '要約を再生成しました（Driveに保存 ✓）',
       fail:    'Drive保存失敗、ローカルに保存しました',
       local:   '要約を再生成しました（ローカル保存のみ）'
     });
@@ -10163,7 +10163,7 @@ async function saveCandidateFromEditModal() {
     () => DriveStorage.writeCandidate(c.id, c),
     () => DriveStorage.writeAts(DRIVE_INDEX_FILE, cachedIndex)
   ], {
-    success: '更新しました（Driveに保存 <i data-lucide="check" class="lucide"></i>）',
+    success: '更新しました（Driveに保存 ✓）',
     fail:    'Drive保存失敗、ローカルに保存しました',
     local:   '更新しました（ローカル保存のみ）'
   });
@@ -10194,7 +10194,7 @@ async function deleteCurrentCandidate() {
     () => DriveStorage.deleteCandidate(c.id),
     () => DriveStorage.writeAts(DRIVE_INDEX_FILE, cachedIndex)
   ], {
-    success: '削除しました（Driveからも削除 <i data-lucide="check" class="lucide"></i>）',
+    success: '削除しました（Driveからも削除 ✓）',
     fail:    'Drive削除失敗、ローカルからは削除しました',
     local:   '削除しました（ローカル保存のみ）'
   });
@@ -11287,7 +11287,7 @@ async function confirmPendingMail(pendingId, candidateId) {
   await runDriveSave([
     () => DriveStorage.writeCandidate(c.id, c)
   ], {
-    success: 'やり取りログに反映しました（Driveに保存 <i data-lucide="check" class="lucide"></i>）',
+    success: 'やり取りログに反映しました（Driveに保存 ✓）',
     fail:    'Drive保存失敗、ローカルに保存しました',
     local:   'やり取りログに反映しました（ローカル保存のみ）'
   });
