@@ -7738,6 +7738,19 @@ function applyScopeResultToScoutUI(result) {
   }
   // 縦1カラムUI: スコープ判定パネルとAI要約パネルを更新
   if (typeof updateScoutScopePanels === 'function') updateScoutScopePanels(result);
+
+  // 判定完了後、判定結果カード／パネルが見える位置までスムーススクロール。
+  // 既存モード時はパネル自体が hidden なのでスキップ。
+  setTimeout(() => {
+    if (scoutMode === 'existing') return;
+    const candidates = [
+      document.getElementById('scoutScopeMainCard'),
+      document.getElementById('scoutScopePanelBody'),
+      document.getElementById('scoutScopePanel')
+    ];
+    const target = candidates.find(el => el && el.offsetParent !== null && el.style.display !== 'none');
+    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 200);
 }
 
 // スコープ判定モデル（Sonnetで根拠付き3階層Markdownを取得）
@@ -8098,14 +8111,6 @@ NG要確認　${scopeIconLucide('warn')} ${d.ngWarn}件 × -2点 = <span class="
     }
   }
   if (summary) updateScoutSummaryPanel(summary);
-
-  // スコープ判定完了後にパネルが見える位置までスムーススクロール
-  setTimeout(() => {
-    const scopeEl = document.getElementById('scoutScopePanel');
-    if (scopeEl && scopeEl.style.display !== 'none') {
-      scopeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-  }, 100);
 }
 
 function scoutCompleteGoToList() {
