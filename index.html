@@ -1956,8 +1956,8 @@
     <div class="scout-panel" id="scoutProfilePanel">
       <div class="scout-panel-hd">
         <span>プロフィール</span>
-        <span id="profileAnalyzingIndicator" style="display:none; font-size:11px; color:var(--info); align-items:center; gap:6px;">
-          <span class="mini-spinner"></span><span id="profileAnalyzingText">AI解析中...</span>
+        <span id="profileAnalyzingIndicator" style="display:none; align-items:center; gap:8px; font-size:14px; font-weight:700; color:var(--info); padding:5px 12px; border:1px solid var(--info); border-radius:18px; background:var(--info-bg); text-transform:none; letter-spacing:normal;">
+          <span class="mini-spinner" style="width:16px; height:16px; border-width:2.5px;"></span><span id="profileAnalyzingText">AI解析中...</span>
         </span>
       </div>
       <div class="scout-panel-body">
@@ -5165,16 +5165,18 @@ async function autoAnalyzeProfile({ force } = {}) {
   const profileEl = document.getElementById('scoutProfile');
   if (!profileEl) return;
   const profile = profileEl.value.trim();
-  if (!profile) {
-    // プロフィール削除時の自動入力リセット（URLは手動入力なので残す）
+  if (profile.length === 0) {
+    // === プロフィール全削除時のリセット（URLは手動入力なので残す） ===
+    // 候補者名クリア
     const nameEl = document.getElementById('scoutCandidateName');
     if (nameEl) nameEl.value = '';
-    // 媒体バッジ初期化
+    // 媒体バッジ初期化（プレースホルダ表示に戻す）
     if (typeof updatePlatBadge === 'function') updatePlatBadge('');
-    // hidden input の scoutPlatform もクリア
     const platformSel = document.getElementById('scoutPlatform');
     if (platformSel) platformSel.value = '';
-    // スコープ判定パネルを初期状態へ
+    // スコープ判定パネル全体を非表示にして「プロフィールを貼り付けると自動で判定されます」状態に戻す
+    const scopePanel = document.getElementById('scoutScopePanel');
+    if (scopePanel) scopePanel.style.display = 'none';
     const mainCard = document.getElementById('scoutScopeMainCard');
     if (mainCard) mainCard.innerHTML = '';
     const placeholder = document.getElementById('scoutScopePlaceholder');
@@ -5184,7 +5186,7 @@ async function autoAnalyzeProfile({ force } = {}) {
     // AI要約パネル非表示
     const summaryPanel = document.getElementById('scoutSummaryPanel');
     if (summaryPanel) summaryPanel.style.display = 'none';
-    // 旧スコープバッジ・解析バッジ非表示
+    // 旧 scope バッジ・reason 非表示 + AI解析中バッジを非表示
     const badge = document.getElementById('scoutScopeBadge');
     const reason = document.getElementById('scoutScopeReason');
     if (badge) badge.style.display = 'none';
@@ -8008,6 +8010,9 @@ function updateScoutScopePanels(result) {
   const placeholder = document.getElementById('scoutScopePlaceholder');
   const summaryPanel = document.getElementById('scoutSummaryPanel');
   const summaryBody = document.getElementById('scoutSummaryPanelBody');
+  const scopePanel = document.getElementById('scoutScopePanel');
+  // 結果ありなら新規モードでスコープパネル自体を表示（プロフィール削除でhide済みなら再表示）
+  if (result && scopePanel && scoutMode !== 'existing') scopePanel.style.display = '';
   // 旧UI由来のバッジ/Reason は新カードに統合済みのため常時非表示にする（冗長表示の解消）
   const legacyBadge  = document.getElementById('scoutScopeBadge');
   const legacyReason = document.getElementById('scoutScopeReason');
