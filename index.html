@@ -5907,7 +5907,7 @@ function renderSourceProfilesHtml(c) {
         <button class="btn btn-small btn-primary" onclick="submitAddSourceProfile()">追加</button>
       </div>
     </div>` : '';
-  return `<div class="detail-row"><span class="detail-row-label">登録済みURL（${list.length}件）</span>
+  return `<div class="detail-row"><span class="detail-row-label" style="white-space:nowrap;">登録済みURL（${list.length}件）</span>
     <span class="detail-row-value"></span></div>
     <div class="source-profile-list">${items}</div>
     ${addForm}`;
