@@ -4173,9 +4173,12 @@ function renderCandidateList() {
     return full && hasOpenTasks(full);
   });
   if (onlyMine && currentUserEmail) list = list.filter(c => c.assignee === currentUserEmail);
-  // 診断ログ: 一覧から消える理由を特定するため、各フィルタ状態と件数を出す
+  // 診断ログ: 一覧から消える理由を特定するため、各フィルタ状態と件数 + 全候補者の assignee を出す
   console.log('[CandidateList] index=', total0, 'shown=', list.length,
+    '| currentUser=', currentUserEmail, 'role=', (typeof currentRoleId === 'function' ? currentRoleId() : '?'),
     '| filters:', { query, statusFilter, onlyOverdue, onlyAction, onlyMine, listViewMode, listExtraFilter, listTagFilters });
+  console.log('[CandidateList] cachedIndex.candidates =',
+    (cachedIndex.candidates || []).map(c => ({ id: c.id, name: c.name, assignee: c.assignee })));
 
   // タレントプールタブ: talentPool.registered === true のみ
   if (listViewMode === 'talentPool') {
@@ -9559,7 +9562,15 @@ function applyMainView() {
   }
 
   if (isHome)       renderDashboard();
-  if (isCandidates) renderCandidateList();
+  if (isCandidates) {
+    // 候補者ビューに入る度に「自分の担当のみ」等のチェックを明示的にOFFへ。
+    // ブラウザのフォーム状態自動復元やbfcacheで前回のチェックが残るケースを防ぐ。
+    ['filterMine', 'filterOverdue', 'filterRequiresAction'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.checked = false;
+    });
+    renderCandidateList();
+  }
   if (isAnalytics)  renderAnalytics();
 }
 
