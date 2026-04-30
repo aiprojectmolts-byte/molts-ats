@@ -3160,7 +3160,7 @@ const DriveStorage = {
     let q = "name='" + name + "' and mimeType='application/vnd.google-apps.folder' and '" + parentId + "' in parents and trashed=false";
     q += this.ownerClause();
     const url = 'https://www.googleapis.com/drive/v3/files?q=' + encodeURIComponent(q)
-      + '&fields=files(id,name,owners,createdTime)&spaces=drive&orderBy=createdTime&pageSize=50'
+      + '&fields=files(id,name,owners,createdTime)&spaces=drive,allDrives&orderBy=createdTime&pageSize=50'
       + '&includeItemsFromAllDrives=true&supportsAllDrives=true';
     const res = await this.apiRequest(url);
     const data = await res.json();
@@ -3191,7 +3191,7 @@ const DriveStorage = {
         let q = "name='" + DRIVE_FOLDER_NAME + "' and mimeType='application/vnd.google-apps.folder' and trashed=false";
         q += this.ownerClause();
         const url = 'https://www.googleapis.com/drive/v3/files?q=' + encodeURIComponent(q)
-          + '&fields=files(id,name,owners,createdTime)&spaces=drive&orderBy=createdTime&pageSize=50'
+          + '&fields=files(id,name,owners,createdTime)&spaces=drive,allDrives&orderBy=createdTime&pageSize=50'
           + '&includeItemsFromAllDrives=true&supportsAllDrives=true&corpora=allDrives';
         const res = await this.apiRequest(url);
         const data = await res.json();
