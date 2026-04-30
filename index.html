@@ -3173,7 +3173,7 @@ const DriveStorage = {
       throw new Error(`[Drive] 共有フォルダ "${name}" が見つかりません。${DRIVE_OWNER_EMAIL} が所有する "${DRIVE_FOLDER_NAME}/${DRIVE_ATS_SUBFOLDER}" 配下を共有してください`);
     }
     console.log('[Drive] ensureSubFolder creating:', name, 'under', parentId);
-    const createRes = await this.apiRequest('https://www.googleapis.com/drive/v3/files', {
+    const createRes = await this.apiRequest('https://www.googleapis.com/drive/v3/files?supportsAllDrives=true', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, mimeType: 'application/vnd.google-apps.folder', parents: [parentId] })
@@ -3199,7 +3199,7 @@ const DriveStorage = {
         if (DRIVE_OWNER_EMAIL) {
           throw new Error(`[Drive] 共有ルートフォルダ "${DRIVE_FOLDER_NAME}" が見つかりません。${DRIVE_OWNER_EMAIL} が所有するフォルダを共有してください`);
         }
-        const createRes = await this.apiRequest('https://www.googleapis.com/drive/v3/files', {
+        const createRes = await this.apiRequest('https://www.googleapis.com/drive/v3/files?supportsAllDrives=true', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ name: DRIVE_FOLDER_NAME, mimeType: 'application/vnd.google-apps.folder' })
@@ -3259,7 +3259,7 @@ const DriveStorage = {
     const jsonStr = JSON.stringify(jsonData);
     if (fileId) {
       await this.apiRequest(
-        'https://www.googleapis.com/upload/drive/v3/files/' + fileId + '?uploadType=media',
+        'https://www.googleapis.com/upload/drive/v3/files/' + fileId + '?uploadType=media&supportsAllDrives=true',
         { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: jsonStr }
       );
     } else {
@@ -3272,7 +3272,7 @@ const DriveStorage = {
         jsonStr + '\r\n' +
         '--' + boundary + '--';
       const res = await this.apiRequest(
-        'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',
+        'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&supportsAllDrives=true',
         { method: 'POST', headers: { 'Content-Type': 'multipart/related; boundary=' + boundary }, body: body }
       );
       const file = await res.json();
@@ -3286,7 +3286,7 @@ const DriveStorage = {
       return null;
     }
     const res = await this.apiRequest(
-      'https://www.googleapis.com/drive/v3/files/' + fileId + '?alt=media'
+      'https://www.googleapis.com/drive/v3/files/' + fileId + '?alt=media&supportsAllDrives=true'
     );
     const json = await res.json();
     console.log('[Drive] readJSONFromFolder: loaded ->', filename, '(id:', fileId + ')');
@@ -3302,7 +3302,7 @@ const DriveStorage = {
     const name = id + '.json';
     const fid = await this.findFileInFolder(f, name, this.candidateFileIds);
     if (!fid) return false;
-    await this.apiRequest('https://www.googleapis.com/drive/v3/files/' + fid, { method: 'DELETE' });
+    await this.apiRequest('https://www.googleapis.com/drive/v3/files/' + fid + '?supportsAllDrives=true', { method: 'DELETE' });
     delete this.candidateFileIds[name];
     return true;
   }
