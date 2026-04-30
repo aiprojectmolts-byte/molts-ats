@@ -3411,7 +3411,8 @@ async function handleAuthResponse(response) {
   applyAuthState();
   // 全ての非同期処理（fetchUserEmail / loadAllFromDrive / users.json 同期）が完了した後にスピナーを解除
   setLoginBtnLoading(false);
-  renderCandidateList();
+  // ログイン後は常にホーム画面を表示
+  setMainView('home');
   updateOverdueBanner();
   scheduleGmailPolling();
 }
@@ -5165,11 +5166,33 @@ async function autoAnalyzeProfile({ force } = {}) {
   if (!profileEl) return;
   const profile = profileEl.value.trim();
   if (!profile) {
-    // プロフィールが消されたらスコープバッジも隠す
+    // プロフィール削除時の自動入力リセット（URLは手動入力なので残す）
+    const nameEl = document.getElementById('scoutCandidateName');
+    if (nameEl) nameEl.value = '';
+    // 媒体バッジ初期化
+    if (typeof updatePlatBadge === 'function') updatePlatBadge('');
+    // hidden input の scoutPlatform もクリア
+    const platformSel = document.getElementById('scoutPlatform');
+    if (platformSel) platformSel.value = '';
+    // スコープ判定パネルを初期状態へ
+    const mainCard = document.getElementById('scoutScopeMainCard');
+    if (mainCard) mainCard.innerHTML = '';
+    const placeholder = document.getElementById('scoutScopePlaceholder');
+    if (placeholder) placeholder.style.display = '';
+    const multiCard = document.getElementById('scoutScopeMultiCard');
+    if (multiCard) { multiCard.style.display = 'none'; multiCard.innerHTML = ''; }
+    // AI要約パネル非表示
+    const summaryPanel = document.getElementById('scoutSummaryPanel');
+    if (summaryPanel) summaryPanel.style.display = 'none';
+    // 旧スコープバッジ・解析バッジ非表示
     const badge = document.getElementById('scoutScopeBadge');
     const reason = document.getElementById('scoutScopeReason');
     if (badge) badge.style.display = 'none';
     if (reason) reason.style.display = 'none';
+    setProfileAnalyzingIndicator(false);
+    // セッション変数のクリア
+    scoutCurrentScopeSummary = null;
+    scoutAllScopeResults = null;
     profileLastAnalyzedText = '';
     return;
   }
