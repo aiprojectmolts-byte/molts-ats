@@ -4314,15 +4314,15 @@ function renderCandidateList() {
     });
   }
 
-  // 「要対応のみ」または「期日超過のみ」フィルタONの場合は期日昇順（期日なしは末尾）
+  // フィルターON時は期日順（昇順）、期日なしは一番下
   if (onlyAction || onlyOverdue) {
     list.sort((a, b) => {
-      const aHas = !!a.nextActionDue, bHas = !!b.nextActionDue;
-      if (aHas !== bHas) return aHas ? -1 : 1;  // 期日ありを先に
-      if (!aHas && !bHas) return 0;
-      return String(a.nextActionDue).localeCompare(String(b.nextActionDue));
+      const aDue = a.nextActionDue || '9999-99-99';
+      const bDue = b.nextActionDue || '9999-99-99';
+      return aDue.localeCompare(bDue);
     });
   } else {
+    // 既存のlistSortKey/listSortDirによるソート
     const dir = listSortDir === 'asc' ? 1 : -1;
     list.sort((a, b) => {
       const av = a[listSortKey] || ''; const bv = b[listSortKey] || '';
