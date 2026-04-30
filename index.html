@@ -7944,15 +7944,22 @@ function openScoutForExistingCandidate(opts) {
   showScreen('scout');
 
   document.getElementById('scoutCandidateName').value = c.name || '';
-  // 媒体プルダウン
+  // 媒体: <select>（旧UI） または <input type="hidden">（新UI）の両方に対応
   const ps = document.getElementById('scoutPlatform');
+  let resolvedPlatform = '';
   if (ps) {
     const p = (sp && sp.platform) || c.sourcePlatform || '';
     if (p) {
-      const opt = Array.from(ps.options).find(o => o.value === p);
-      if (opt) ps.value = p;
+      if (ps.tagName === 'SELECT') {
+        const opt = Array.from(ps.options).find(o => o.value === p);
+        if (opt) { ps.value = p; resolvedPlatform = p; }
+      } else {
+        ps.value = p;
+        resolvedPlatform = p;
+      }
     }
   }
+  if (typeof updatePlatBadge === 'function') updatePlatBadge(resolvedPlatform);
   // URL + プロフィール（選択中のsourceProfileから直接）
   const urlEl = document.getElementById('scoutUrl');
   const profEl = document.getElementById('scoutProfile');
