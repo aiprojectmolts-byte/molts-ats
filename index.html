@@ -392,7 +392,7 @@
   .timeline-status-bar {
     display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
     background: var(--bg-primary); border: 1px solid var(--border);
-    border-radius: 9px; padding: 12px 16px; margin-bottom: 14px;
+    border-radius: 9px; padding: 12px 16px;
   }
   .tsb-item { display: flex; flex-direction: column; gap: 2px; }
   .tsb-label { font-size: 10px; color: var(--text-tertiary); font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
@@ -400,7 +400,7 @@
   .tsb-div { width: 1px; height: 32px; background: var(--border); }
   .timeline-tasks-zone {
     background: var(--warning-bg); border: 1px solid #FFD54F;
-    border-radius: 9px; padding: 12px 16px; margin-bottom: 14px;
+    border-radius: 9px; padding: 12px 16px;
   }
   .tl-timeline { position: relative; padding-left: 32px; }
   .tl-timeline::before {
@@ -9849,10 +9849,17 @@ function renderCandidateDetail(c) {
     ? `<div class="timeline-tasks-zone">${renderTasksSectionHtml(c)}</div>`
     : '';
 
+  // ステータスバー + タスクゾーンを横並びの2カラム（タスク無しは1カラム全幅）にする
+  const topZoneHtml = tasksZoneHtml
+    ? `<div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;">
+         ${statusBarHtml}
+         ${tasksZoneHtml}
+       </div>`
+    : `<div style="margin-bottom:14px;">${statusBarHtml}</div>`;
+
   body.innerHTML = `
     <div style="grid-column: 1 / -1;">
-      ${statusBarHtml}
-      ${tasksZoneHtml}
+      ${topZoneHtml}
       ${renderTimelineSectionHtml(c)}
     </div>
     <div>
