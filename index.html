@@ -8098,6 +8098,14 @@ NG要確認　${scopeIconLucide('warn')} ${d.ngWarn}件 × -2点 = <span class="
     }
   }
   if (summary) updateScoutSummaryPanel(summary);
+
+  // スコープ判定完了後にパネルが見える位置までスムーススクロール
+  setTimeout(() => {
+    const scopeEl = document.getElementById('scoutScopePanel');
+    if (scopeEl && scopeEl.style.display !== 'none') {
+      scopeEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }, 100);
 }
 
 function scoutCompleteGoToList() {
