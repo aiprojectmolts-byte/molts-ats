@@ -10151,8 +10151,9 @@ function renderCandidateDetail(c) {
     : '';
 
   // ステータスバー + タスクゾーンを横並びの2カラム（タスク無しは1カラム全幅）にする
+  // align-items:start でセル高さの自動引き伸ばしを抑制（左セルが右タスク高さと同じに伸びて空白を作るのを防ぐ）
   const topZoneHtml = tasksZoneHtml
-    ? `<div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;">
+    ? `<div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px; align-items:start;">
          ${statusBarHtml}
          ${tasksZoneHtml}
        </div>`
