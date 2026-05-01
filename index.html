@@ -10165,14 +10165,11 @@ function renderCandidateDetail(c) {
     ? `<div class="timeline-tasks-zone">${renderTasksSectionHtml(c)}</div>`
     : '';
 
-  // ステータスバー（自然な横長サイズ）+ タスクゾーン（残り全部）を flex で横並び。
-  // 各カードは independent height。タスク無し時はステータスバーのみ全幅で表示。
-  const topZoneHtml = tasksZoneHtml
-    ? `<div style="display:flex; gap:14px; margin-bottom:14px; align-items:flex-start; flex-wrap:wrap;">
-         <div style="flex:1 1 360px; min-width:0;">${statusBarHtml}</div>
-         <div style="flex:1 1 360px; min-width:0;">${tasksZoneHtml}</div>
-       </div>`
-    : `<div style="margin-bottom:14px;">${statusBarHtml}</div>`;
+  // ステータスバー → タスクゾーン の順に縦並び（全幅）
+  const topZoneHtml = `
+    <div style="margin-bottom:14px;">${statusBarHtml}</div>
+    ${tasksZoneHtml ? `<div style="margin-bottom:14px;">${tasksZoneHtml}</div>` : ''}
+  `;
 
   body.innerHTML = `
     <div style="grid-column: 1 / -1; width: 100%; min-width: 0;">
