@@ -6774,10 +6774,13 @@ function renderTasksSectionHtml(c) {
       <div class="task-list">${items}</div>
     </div>`;
   }).join('');
+  // 「最近対応済み」はデフォルト折りたたみ。クリックで開閉
   const doneHtml = done.length
-    ? `<div class="task-group">
-        <div class="task-group-title" style="color:var(--text-tertiary);">最近対応済み</div>
-        <div class="task-list">${done.map(t => renderTaskItemHtml(t, false, true)).join('')}</div>
+    ? `<div class="task-group" id="taskDoneGroup" style="margin-top:8px;">
+        <div class="task-group-title" style="color:var(--text-tertiary); cursor:pointer; user-select:none; display:flex; align-items:center; gap:6px;" onclick="toggleTaskDoneGroup()">
+          <span id="taskDoneToggleChevron">▼</span>最近対応済み（${done.length}件）
+        </div>
+        <div class="task-list" id="taskDoneList" style="display:none;">${done.map(t => renderTaskItemHtml(t, false, true)).join('')}</div>
       </div>`
     : '';
   return `<div class="detail-section" style="margin-bottom: 16px;">
@@ -6785,6 +6788,15 @@ function renderTasksSectionHtml(c) {
     ${groupsHtml || (open.length === 0 ? '<div class="source-label">未対応タスクはありません</div>' : '')}
     ${doneHtml}
   </div>`;
+}
+
+function toggleTaskDoneGroup() {
+  const list = document.getElementById('taskDoneList');
+  const chev = document.getElementById('taskDoneToggleChevron');
+  if (!list) return;
+  const open = list.style.display !== 'none';
+  list.style.display = open ? 'none' : '';
+  if (chev) chev.textContent = open ? '▼' : '▲';
 }
 function renderTaskItemHtml(t, canEdit, isDone) {
   const diff = daysUntil(t.dueAt);
@@ -10136,7 +10148,7 @@ function renderCandidateDetail(c) {
         <div class="tsb-div"></div>
         <div class="tsb-item"><div class="tsb-label">主担当</div><div class="tsb-val">${assigneeUser ? escapeHtml(assigneeUser.name) : (c.assignee ? escapeHtml(c.assignee) : '—')}</div></div>
         <div class="tsb-div"></div>
-        <div class="tsb-item"><div class="tsb-label">ボール</div><div class="tsb-val">${ballState ? ballChipHtml(ballState) : '<span style="color:var(--text-tertiary);">—</span>'}</div></div>
+        <div class="tsb-item"><div class="tsb-label">アクション</div><div class="tsb-val">${ballState ? ballChipHtml(ballState) : '<span style="color:var(--text-tertiary);">—</span>'}</div></div>
       </div>
       <div style="border-top:1px solid var(--border); padding:10px 16px; display:flex; flex-wrap:wrap; gap:14px; align-items:center; font-size:12px; color:var(--text-secondary);">
         <span><i data-lucide="hourglass" class="lucide" style="width:13px;height:13px;"></i> 流入から <strong style="color:var(--text);">${elapsedDays}</strong></span>
