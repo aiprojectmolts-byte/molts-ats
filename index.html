@@ -10159,7 +10159,7 @@ function renderCandidateDetail(c) {
     : `<div style="margin-bottom:14px;">${statusBarHtml}</div>`;
 
   body.innerHTML = `
-    <div style="grid-column: 1 / -1;">
+    <div style="grid-column: 1 / -1; width: 100%; min-width: 0;">
       ${topZoneHtml}
       ${renderTimelineSectionHtml(c)}
     </div>
