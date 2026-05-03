@@ -338,30 +338,6 @@
     letter-spacing: .07em; text-transform: uppercase;
   }
   .scout-panel-body { padding: 16px; }
-  /* === 求人票画面 === */
-  .jp-layout {
-    display: grid; grid-template-columns: 380px 1fr; gap: 16px;
-    padding: 24px 32px; max-width: 1400px; margin: 0 auto;
-  }
-  @media (max-width: 900px) { .jp-layout { grid-template-columns: 1fr; } }
-  .jp-tabs { display: flex; gap: 4px; }
-  .jp-tab {
-    padding: 6px 14px; border: 1px solid var(--border); background: transparent;
-    font-size: 13px; cursor: pointer; font-family: inherit; border-radius: 6px;
-    color: var(--text-secondary);
-  }
-  .jp-tab.active { background: var(--primary); color: white; border-color: var(--primary); }
-  .jp-tab:hover:not(.active) { background: var(--bg-secondary); color: var(--text); }
-  .jp-ref-item {
-    border: 1px solid var(--border); border-radius: 6px;
-    padding: 10px 12px; margin-bottom: 8px; font-size: 12px;
-    display: flex; gap: 10px; align-items: flex-start;
-  }
-  .jp-ref-item input[type="checkbox"] { margin-top: 3px; }
-  .jp-ref-meta { font-size: 10px; color: var(--text-tertiary); margin-top: 2px; }
-  .jp-counter { font-size: 11px; color: var(--text-tertiary); font-weight: normal; }
-  .jp-counter.warn { color: #c47b1a; font-weight: 600; }
-  .jp-counter.over { color: var(--error); font-weight: 600; }
   .scout-label {
     font-size: 12px; font-weight: 500;
     color: var(--text-secondary); margin-bottom: 8px;
@@ -1851,7 +1827,7 @@
         <button class="top-nav-btn active" data-view="home" onclick="setMainView('home')"><i data-lucide="home" class="lucide"></i> ホーム</button>
         <button class="top-nav-btn" data-view="candidates" onclick="setMainView('candidates')"><i data-lucide="users" class="lucide"></i> 候補者</button>
         <button class="top-nav-btn" data-view="analytics" onclick="setMainView('analytics')"><i data-lucide="bar-chart-2" class="lucide"></i> 分析</button>
-        <button class="top-nav-btn" data-perm="candidates.create" onclick="openJobPostingScreen()" style="display:none;"><i data-lucide="file-text" class="lucide"></i> 求人票</button>
+        <button class="top-nav-btn" data-perm="candidates.create" onclick="showScreen('jobposting')" style="display:none;"><i data-lucide="file-text" class="lucide"></i> 求人票</button>
       </div>
       <div class="header-count" id="headerCount">候補者 0名</div>
     </div>
@@ -2101,85 +2077,155 @@
       <div style="font-size: 16px; font-weight: 500;"><i data-lucide="file-text" class="lucide"></i> 求人票生成</div>
     </div>
   </div>
-  <div class="jp-layout">
-    <!-- 左カラム: 入力 -->
-    <div>
-      <!-- 参考求人票 -->
-      <div class="detail-section" style="margin-bottom:16px;">
-        <div class="detail-section-title">
-          <span>参考求人票</span>
-          <button class="btn btn-small" onclick="toggleAddJpRefForm()"><i data-lucide="plus" class="lucide"></i> 登録</button>
-        </div>
-        <div id="jpRefList"><div class="source-label">登録なし</div></div>
-        <div id="jpRefForm" style="display:none; margin-top:10px; padding:10px; background:var(--bg-secondary); border-radius:6px;">
-          <label class="scout-label">タイトル</label>
-          <input type="text" class="scout-input" id="jpRefTitle" placeholder="例：マーケター（中途）" style="margin-bottom:8px;">
-          <label class="scout-label">雇用形態</label>
-          <select class="scout-input" id="jpRefEmpType" style="margin-bottom:8px;">
-            <option value="中途">中途</option>
-            <option value="副業">副業</option>
-            <option value="新卒">新卒</option>
-          </select>
-          <label class="scout-label">求人票本文</label>
-          <textarea class="scout-textarea" id="jpRefText" style="min-height:120px;" placeholder="参考にしたい既存求人票の本文を貼り付け"></textarea>
-          <div style="display:flex; gap:6px; margin-top:6px;">
-            <button class="btn btn-small" onclick="toggleAddJpRefForm()">キャンセル</button>
-            <button class="btn btn-small btn-primary" onclick="saveJpReference()"><i data-lucide="save" class="lucide"></i> 保存</button>
+  <div class="screen-inner" style="max-width:1200px;">
+    <div style="display:grid; grid-template-columns:360px 1fr; gap:20px; align-items:start;">
+
+      <!-- 左：入力 -->
+      <div>
+        <!-- 参考求人票 -->
+        <div class="detail-section" style="margin-bottom:14px;">
+          <div class="detail-section-title">
+            <span>参考求人票</span>
+            <button class="btn btn-small" onclick="openAddJobRefModal()"><i data-lucide="plus" class="lucide"></i> 追加</button>
+          </div>
+          <div style="font-size:11px; color:var(--text-tertiary); margin-bottom:10px;">
+            チェックした求人票のトーン・構成を学習して生成します
+          </div>
+          <div id="jobRefList"></div>
+          <div id="jpRefForm" style="display:none; margin-top:10px; padding:10px; background:var(--bg-secondary); border-radius:6px;">
+            <label class="scout-label">タイトル</label>
+            <input type="text" class="scout-input" id="jpRefTitle" placeholder="例：マーケター（中途）" style="margin-bottom:8px;">
+            <label class="scout-label">雇用形態</label>
+            <select class="scout-input" id="jpRefEmpType" style="margin-bottom:8px;">
+              <option value="中途">中途</option>
+              <option value="副業">副業</option>
+              <option value="新卒">新卒</option>
+            </select>
+            <label class="scout-label">求人票本文</label>
+            <textarea class="scout-textarea" id="jpRefText" style="min-height:120px;" placeholder="参考にしたい既存求人票の本文を貼り付け"></textarea>
+            <div style="display:flex; gap:6px; margin-top:6px;">
+              <button class="btn btn-small" onclick="openAddJobRefModal()">キャンセル</button>
+              <button class="btn btn-small btn-primary" onclick="saveJobRef()"><i data-lucide="save" class="lucide"></i> 保存</button>
+            </div>
           </div>
         </div>
-      </div>
 
-      <!-- ポジション情報 -->
-      <div class="detail-section" style="margin-bottom:16px;">
-        <div class="detail-section-title"><span>ポジション情報</span></div>
-        <label class="scout-label">ポジション名 <span class="required">*</span></label>
-        <input type="text" class="scout-input" id="jpPosName" placeholder="例：マーケティング統括">
-        <label class="scout-label">雇用形態</label>
-        <select class="scout-input" id="jpEmpType">
-          <option value="中途">中途</option>
-          <option value="副業">副業</option>
-          <option value="新卒">新卒</option>
-        </select>
-        <label class="scout-label">募集背景・目的</label>
-        <textarea class="scout-textarea" id="jpPurpose" style="min-height:60px;"></textarea>
-        <label class="scout-label">具体的な業務内容</label>
-        <textarea class="scout-textarea" id="jpDuties" style="min-height:80px;"></textarea>
-        <label class="scout-label">必須スキル・経験</label>
-        <textarea class="scout-textarea" id="jpRequired" style="min-height:60px;"></textarea>
-        <label class="scout-label">歓迎スキル・経験</label>
-        <textarea class="scout-textarea" id="jpPreferred" style="min-height:60px;"></textarea>
-        <label class="scout-label">稼働・報酬条件</label>
-        <textarea class="scout-textarea" id="jpComp" style="min-height:60px;"></textarea>
-        <button class="btn btn-primary" style="width:100%; margin-top:8px;" id="jpGenerateBtn" onclick="generateJobPosting()"><i data-lucide="sparkles" class="lucide"></i> 求人票を生成する</button>
+        <!-- ポジション情報 -->
+        <div class="detail-section" style="margin-bottom:14px;">
+          <div class="detail-section-title">ポジション情報</div>
+          <div style="display:flex; flex-direction:column; gap:12px; margin-top:8px;">
+            <div>
+              <label class="scout-label">ポジション名 <span class="required">*</span></label>
+              <input type="text" class="scout-input" id="jpPositionName" placeholder="例：Webマーケター">
+            </div>
+            <div>
+              <label class="scout-label">雇用形態</label>
+              <select class="scout-input" id="jpEmpType">
+                <option value="中途">中途（正社員）</option>
+                <option value="副業">副業・業務委託</option>
+                <option value="新卒">新卒</option>
+              </select>
+            </div>
+            <div>
+              <label class="scout-label">募集背景・ポジションの目的</label>
+              <textarea class="scout-textarea" id="jpBackground" rows="3"
+                placeholder="例：クライアントのWebサイト改善を担当するメンバーを増員したい"></textarea>
+            </div>
+            <div>
+              <label class="scout-label">具体的な業務内容</label>
+              <textarea class="scout-textarea" id="jpTasks" rows="3"
+                placeholder="箇条書きで記載"></textarea>
+            </div>
+            <div>
+              <label class="scout-label">必須スキル・経験 <span class="required">*</span></label>
+              <textarea class="scout-textarea" id="jpRequired" rows="3"
+                placeholder="箇条書きで記載"></textarea>
+            </div>
+            <div>
+              <label class="scout-label">歓迎スキル・経験</label>
+              <textarea class="scout-textarea" id="jpPreferred" rows="2"
+                placeholder="箇条書きで記載"></textarea>
+            </div>
+            <div>
+              <label class="scout-label">稼働・報酬条件</label>
+              <input type="text" class="scout-input" id="jpConditions"
+                placeholder="例：月40〜60時間、時給5,000〜8,000円">
+            </div>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" style="width:100%; padding:12px; font-size:14px;" id="jpGenerateBtn"
+          onclick="generateJobPosting()">
+          ✨ 求人票を生成する
+        </button>
         <div id="jpGenStatus" style="display:none; font-size:12px; color:var(--info); margin-top:6px; align-items:center; gap:6px;"><span class="mini-spinner"></span><span id="jpGenStatusText">生成中...</span></div>
       </div>
-    </div>
 
-    <!-- 右カラム: 出力 -->
-    <div>
+      <!-- 右：結果 -->
       <div class="detail-section">
         <div class="detail-section-title">
-          <div class="jp-tabs">
-            <button class="jp-tab active" data-platform="youtrust" onclick="switchJpTab('youtrust')"><i data-lucide="handshake" class="lucide"></i> YOUTRUST</button>
-            <button class="jp-tab" data-platform="wantedly" onclick="switchJpTab('wantedly')"><i data-lucide="handshake" class="lucide"></i> Wantedly</button>
+          <span>生成された求人票</span>
+          <button class="btn btn-small" onclick="generateJobPosting()" id="jpRegenBtn" style="display:none;">再生成</button>
+        </div>
+
+        <!-- 媒体タブ -->
+        <div style="display:flex; gap:2px; background:var(--bg-secondary); padding:3px; border-radius:8px; border:1px solid var(--border); margin:12px 0;">
+          <button class="jp-media-tab active" onclick="switchJpMedia(this,'yt')" style="flex:1; padding:7px; border-radius:6px; font-size:13px; cursor:pointer; border:none; background:var(--bg); font-family:inherit; font-weight:500; box-shadow:0 1px 3px rgba(0,0,0,.08);">YOUTRUST</button>
+          <button class="jp-media-tab" onclick="switchJpMedia(this,'wa')" style="flex:1; padding:7px; border-radius:6px; font-size:13px; cursor:pointer; border:none; background:none; color:var(--text-secondary); font-family:inherit;">Wantedly</button>
+        </div>
+
+        <!-- YOUTRUST -->
+        <div id="jp-pane-yt">
+          <div style="margin-bottom:10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <label class="scout-label" style="margin:0;">タイトル</label>
+              <span id="jp-yt-title-count" style="font-size:11px; color:var(--success);">0 / 40文字</span>
+            </div>
+            <input type="text" class="scout-input" id="jp-yt-title"
+              placeholder="生成されたタイトルがここに表示されます"
+              oninput="jpCountChars('jp-yt-title','jp-yt-title-count',40)">
+          </div>
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <label class="scout-label" style="margin:0;">詳細</label>
+              <span id="jp-yt-body-count" style="font-size:11px; color:var(--success);">0 / 2000文字</span>
+            </div>
+            <textarea class="scout-textarea" id="jp-yt-body" rows="20"
+              style="min-height:300px;"
+              oninput="jpCountChars('jp-yt-body','jp-yt-body-count',2000)"
+              placeholder="「求人票を生成する」を押すとここに表示されます"></textarea>
+          </div>
+          <div style="display:flex; justify-content:flex-end; margin-top:10px;">
+            <button class="btn" onclick="jpCopy('yt')" style="font-size:12px;"><i data-lucide="clipboard" class="lucide"></i> タイトル＋詳細をコピー</button>
           </div>
         </div>
-        <!-- YOUTRUST -->
-        <div class="jp-pane" id="jpPane-youtrust">
-          <label class="scout-label">タイトル <span id="jpYTitleCounter" class="jp-counter">0/40</span></label>
-          <input type="text" class="scout-input" id="jpYTitle" oninput="updateJpCounter('youtrust')">
-          <label class="scout-label">詳細 <span id="jpYBodyCounter" class="jp-counter">0/2000</span></label>
-          <textarea class="scout-textarea" id="jpYBody" style="min-height:420px;" oninput="updateJpCounter('youtrust')"></textarea>
-          <button class="btn btn-primary" style="width:100%; margin-top:8px;" onclick="copyJobPosting('youtrust')"><i data-lucide="clipboard" class="lucide"></i> タイトル+詳細をコピー</button>
-        </div>
+
         <!-- Wantedly -->
-        <div class="jp-pane" id="jpPane-wantedly" style="display:none;">
-          <label class="scout-label">タイトル <span id="jpWTitleCounter" class="jp-counter">0/37</span></label>
-          <input type="text" class="scout-input" id="jpWTitle" oninput="updateJpCounter('wantedly')">
-          <label class="scout-label">詳細 <span id="jpWBodyCounter" class="jp-counter">0/2000</span></label>
-          <textarea class="scout-textarea" id="jpWBody" style="min-height:420px;" oninput="updateJpCounter('wantedly')"></textarea>
-          <button class="btn btn-primary" style="width:100%; margin-top:8px;" onclick="copyJobPosting('wantedly')"><i data-lucide="clipboard" class="lucide"></i> タイトル+詳細をコピー</button>
+        <div id="jp-pane-wa" style="display:none;">
+          <div style="margin-bottom:10px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <label class="scout-label" style="margin:0;">タイトル（ターゲットに呼びかけよう）</label>
+              <span id="jp-wa-title-count" style="font-size:11px; color:var(--success);">0 / 37文字</span>
+            </div>
+            <input type="text" class="scout-input" id="jp-wa-title"
+              placeholder="生成されたタイトルがここに表示されます"
+              oninput="jpCountChars('jp-wa-title','jp-wa-title-count',37)">
+          </div>
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <label class="scout-label" style="margin:0;">募集するポジションの詳細</label>
+              <span id="jp-wa-body-count" style="font-size:11px; color:var(--success);">0 / 2000文字</span>
+            </div>
+            <textarea class="scout-textarea" id="jp-wa-body" rows="20"
+              style="min-height:300px;"
+              oninput="jpCountChars('jp-wa-body','jp-wa-body-count',2000)"
+              placeholder="「求人票を生成する」を押すとここに表示されます"></textarea>
+          </div>
+          <div style="display:flex; justify-content:flex-end; margin-top:10px;">
+            <button class="btn" onclick="jpCopy('wa')" style="font-size:12px;"><i data-lucide="clipboard" class="lucide"></i> タイトル＋詳細をコピー</button>
+          </div>
         </div>
+
       </div>
     </div>
   </div>
@@ -3038,9 +3084,186 @@ let cachedDashboard = {
   enabled: true,
   thresholds: { reply: 3, consider: 7, nocontact: 7 }
 };
-// 求人票機能：参考求人票の保存リストと選択状態
-let cachedJobPostings = { items: [] };  // items: [{ id, title, empType, text, createdAt }]
-let jpSelectedRefIds = new Set();  // 生成時に参照する参考求人票のID集合（セッション内）
+// 求人票機能：参考求人票の保存リスト
+// refs が null の場合は DEFAULT_JOB_REFS をフォールバックとして使用
+let cachedJobRefs = { refs: null };
+
+const DEFAULT_JOB_REFS = [
+  {
+    id: 'ref_001',
+    title: '第二新卒歓迎！マーケ全体を横断するジュニアコンサル募集',
+    empType: '中途',
+    body: `カジュアル面談
+
+中途
+
+マーケティング
+
+
+株式会社THE MOLTS
+
+第二新卒歓迎！マーケ全体を横断するジュニアコンサル募集
+海老澤里沙
+
+株式会社THE MOLTSは、「美味い、酒を飲む。」という独自の理念のもと、徹底した成果主義を貫くデジタルマーケティングカンパニーです。設立10年間で800社以上の支援実績を誇り、元大手企業出身者など独立できるほどの実力を持つプロフェッショナルが約30名集結。それぞれが異なる専門性を活かし、クライアントの事業成果最大化にコミットしています。今回募集するSFA/MAミドルコンサルタントは、マーケティングオペレーションの最適化を通じてクライアントのビジネス課題解決を担う重要なポジション。全数字開示、出社義務なしなど、プロフェッショナルが最高のパフォーマンスを発揮できる環境で、あなたの経験とスキルを存分に活かしてください。
+
+■会社概要・事業内容
+2016年創業のデジタルマーケティングカンパニー。運用型広告、オウンドメディア、BtoBマーケティング、データ分析など戦略の上流から施策の実行まで幅広く対応。設立10年間で800社以上のデジタルマーケティング支援実績を誇る約30名の精鋭チーム。
+・マーケティング支援事業：大企業からスタートアップ、事業会社からマーケティング支援会社まで、多種多様な企業のデジタルマーケティング支援を実施。
+・自社事業：デジタルマーケティングプロフェッショナルの強みを活かし、自己資本・アライアンス・ハンズオン型投資など様々な形態で事業開発を推進。
+
+■企業理念・ビジョン
+「美味い、酒を飲む。」を理念に掲げ、「誰と、何を成し遂げるのか」を重視。高校生の時のような「がむしゃらになれる心のありよう」を持ち続け、徹底した成果主義で「結果」にこだわる。何かを成し遂げた時の「心地良い感情の分かち合い」を大切にする文化。
+
+■独自の働く環境・制度 プロフェッショナル支援制度
+・プロジェクトミッション設定：事業成果提供を前提に、プロジェクトごとにミッションを設定し主体的な活動を促進
+・全数字共有：業績・決算書・全メンバーの給与まで完全開示でオープンなディスカッションを実現
+・出社義務なし：パフォーマンスが出せる好きな場所での勤務が可能（交通費支給あり）
+・ニュース共有：各領域のプロフェッショナルによる情報共有スペースを設置
+
+■メンバー構成
+元LIG執行役員、電通デジタル・アイレップ出身者、元大手ECサイト事業責任者など、独立できるほどの実力と実績を持つプロフェッショナルが集結。それぞれ異なる専門性を掛け合わせてデジタルマーケティングのあらゆる課題に対応。
+
+■募集職種・詳細業務内容
+クライアントのマーケティング課題解決・事業成長を目的としたマーケティング支援全般を担当。自社マーケティング業務にも携わりながら、データ活用からツール運用、施策実行まで幅広くサポート。
+具体的業務
+・クライアントのマーケティング施策における実行支援およびオペレーション設計サポート
+・SFA/MA/CRMツールの運用支援およびデータ整備・分析
+・自社マーケティングにおけるLP制作・リード獲得施策の企画運用
+・マーケティングデータの集計・レポーティングおよび改善提案
+
+■必須経験・スキル
+・マーケティング関連業務における複数領域の実務経験（例：データ分析＋CRM運用、LP制作＋レポーティング等）
+
+■歓迎経験・スキル
+・データ分析・集計の実務経験
+・Salesforce、HubSpot等のCRMツール使用経験
+・マーケティング領域でのLP制作経験
+・マーケティングアシスタント等、部門横断で複数業務を経験した実績
+
+■仕事の魅力
+・業界トップレベルのプロフェッショナル環境での自己成長
+・マーケティング戦略設計からコミュニケーション設計、フルフィルメント支援まで幅広い経験
+・設立10年で500プロジェクト以上の圧倒的実績とノウハウの活用
+・全国どこからでも働ける柔軟な働き方`
+  },
+  {
+    id: 'ref_002',
+    title: 'CVR改善プロフェッショナル募集',
+    empType: '副業',
+    body: `カジュアル面談
+
+副業
+
+データアナリスト
+
+
+株式会社THE MOLTS
+
+【業務委託急募】分析から施策実行まで一気通貫、CVR改善プロフェッショナル募集
+海老澤里沙
+
+株式会社THE MOLTSは、「美味い、酒を飲む。」という独自の理念のもと、徹底した成果主義を貫くデジタルマーケティングカンパニーです。設立10年間で800社以上の支援実績を誇り、元大手企業出身者など独立できるほどの実力を持つプロフェッショナルが約30名集結。それぞれが異なる専門性を活かし、クライアントの事業成果最大化にコミットしています。
+
+今回募集するのは、GA等の解析ツールを駆使し、データからボトルネックを特定、ABテスト等の施策設計・実行までを一気通貫で主導するCVR改善スペシャリスト。全数字開示、出社義務なしなど、プロフェッショナルが最高のパフォーマンスを発揮できる環境で、あなたの経験とスキルを存分に活かしてください。
+
+■会社概要・事業内容
+2016年創業のデジタルマーケティングカンパニー。運用型広告、オウンドメディア、BtoBマーケティング、データ分析など戦略の上流から施策の実行まで幅広く対応。設立10年間で800社以上のデジタルマーケティング支援実績を誇る約30名の精鋭チーム。
+
+■企業理念・ビジョン
+「美味い、酒を飲む。」を理念に掲げ、「誰と、何を成し遂げるのか」を重視。高校生の時のような「がむしゃらになれる心のありよう」を持ち続け、徹底した成果主義で「結果」にこだわる。何かを成し遂げた時の「心地良い感情の分かち合い」を大切にする文化。
+
+■独自の働く環境・制度 プロフェッショナル支援制度
+・プロジェクトミッション設定：事業成果提供を前提に、プロジェクトごとにミッションを設定し主体的な活動を促進
+・全数字共有：業績・決算書・全メンバーの給与まで完全開示でオープンなディスカッションを実現
+・出社義務なし：パフォーマンスが出せる好きな場所での勤務が可能（交通費支給あり）
+
+■募集職種・詳細業務内容
+クライアントのビジネス課題解決・事業成長を目的としたWebサイトのCVR改善を担当。データ分析から施策実行までを一気通貫でリード。
+
+■具体的業務
+・GAを用いたアクセス解析、ユーザー行動の可視化
+・Looker Studioでのダッシュボード構築
+・Clarity等のヒートマップツールを用いた課題特定
+・ABテストの設計および実施
+・クライアントワークを伴うディレクション業務全般
+
+■必須経験・スキル
+・GA4を用いたアクセス解析の実務経験
+・ABテストの設計・実行経験
+・Looker StudioやTableau等のBIツール利用経験
+・スプレッドシート（関数・集計）やPowerPointの実務スキル
+・平日日中のミーティング参加・連絡対応が可能なこと
+
+■歓迎経験・スキル
+・Clarity、Hotjar等のヒートマップツールの利用経験
+・クライアントワーク・ディレクション経験
+・CVR改善やLPOの専門的な知見
+
+■稼働条件
+・月60〜70時間（週2日相当）を想定
+・時給5,000〜7,000円（スキル・経験に応じて決定）
+
+■仕事の魅力
+・業界トップレベルのプロフェッショナル環境での自己成長
+・設立10年で800プロジェクト以上の圧倒的実績とノウハウの活用
+・全国どこからでも働ける柔軟な働き方`
+  },
+  {
+    id: 'ref_003',
+    title: 'SFA/MAミドルコンサルタント募集',
+    empType: '中途',
+    body: `カジュアル面談
+
+中途
+
+マーケティングオペレーション
+
+
+株式会社THE MOLTS
+
+導入や運用を推進し事業成果を最大化、SFA/MAミドルコンサルタント募集
+海老澤里沙
+
+株式会社THE MOLTSは、「美味い、酒を飲む。」という独自の理念のもと、徹底した成果主義を貫くデジタルマーケティングカンパニーです。設立10年間で800社以上の支援実績を誇り、元大手企業出身者など独立できるほどの実力を持つプロフェッショナルが約30名集結。それぞれが異なる専門性を活かし、クライアントの事業成果最大化にコミットしています。今回募集するSFA/MAミドルコンサルタントは、マーケティングオペレーションの最適化を通じてクライアントのビジネス課題解決を担う重要なポジション。全数字開示、出社義務なしなど、プロフェッショナルが最高のパフォーマンスを発揮できる環境で、あなたの経験とスキルを存分に活かしてください。
+
+■会社概要・事業内容
+2016年創業のデジタルマーケティングカンパニー。運用型広告、オウンドメディア、BtoBマーケティング、データ分析など戦略の上流から施策の実行まで幅広く対応。設立10年間で800社以上のデジタルマーケティング支援実績を誇る約30名の精鋭チーム。
+
+■企業理念・ビジョン
+「美味い、酒を飲む。」を理念に掲げ、「誰と、何を成し遂げるのか」を重視。高校生の時のような「がむしゃらになれる心のありよう」を持ち続け、徹底した成果主義で「結果」にこだわる。何かを成し遂げた時の「心地良い感情の分かち合い」を大切にする文化。
+
+■独自の働く環境・制度 プロフェッショナル支援制度
+・プロジェクトミッション設定：事業成果提供を前提に、プロジェクトごとにミッションを設定し主体的な活動を促進
+・全数字共有：業績・決算書・全メンバーの給与まで完全開示でオープンなディスカッションを実現
+・出社義務なし：パフォーマンスが出せる好きな場所での勤務が可能（交通費支給あり）
+
+■募集職種・詳細業務内容
+クライアントのビジネス課題解決・事業成長を目的としたSFA/MAツール導入支援を担当。マーケティングオペレーション（MOps）を支える「システム要件定義」から「ツール導入」まで包括的にリード。
+
+具体的業務
+・マーケティングオペレーション（MOps）におけるシステム要件定義の策定
+・データ活用戦略の立案とターゲットへのオペレーション設計
+・クライアントに応じたツール（MA/SFA/CRM）の導入
+・システムとツールの選定および導入プロセスの管理
+
+■必須経験・スキル
+・ツール（MA/SFA/CRM）のシステム導入または推進経験
+・データベースに関する基礎知識と実務経験
+・HTMLに関する基本的な知識
+
+■歓迎経験・スキル
+・Marketo、HubSpot、Salesforce Account Engagement等の主要マーケティングツール活用経験
+・ツール導入支援経験3年以上
+・データベース運用・活用業務経験3年以上
+
+■仕事の魅力
+・業界トップレベルのプロフェッショナル環境での自己成長
+・マーケティング戦略設計からコミュニケーション設計、フルフィルメント支援まで幅広い経験
+・設立7年で500プロジェクト以上の圧倒的実績とノウハウの活用
+・全国どこからでも働ける柔軟な働き方`
+  }
+];
 // ダッシュボードサマリーカードから設定される追加フィルタ
 let listExtraFilter = null;  // null | 'weekly_registered' | 'weekly_interview'
 
@@ -3858,7 +4081,12 @@ async function loadAllFromDrive() {
       if (dash.thresholds) cachedDashboard.thresholds = { ...cachedDashboard.thresholds, ...dash.thresholds };
       persistDashboard();
     }
-    if (jobPostings && Array.isArray(jobPostings.items)) { cachedJobPostings = jobPostings; persistJobPostings(); }
+    if (jobPostings && Array.isArray(jobPostings.refs)) { cachedJobRefs = jobPostings; persistJobRefs(); }
+    else if (jobPostings && Array.isArray(jobPostings.items)) {
+      // 旧フォーマット（items[].text）からの自動移行
+      cachedJobRefs = { refs: jobPostings.items.map(it => ({ id: it.id, title: it.title, empType: it.empType, body: it.text || it.body || '' })) };
+      persistJobRefs();
+    }
 
     // candidates/ サブフォルダから各候補者の詳細JSONをプリフェッチして localStorage に保存。
     // 詳細画面 (openCandidateDetail) や一覧描画内の loadCandidate() は localStorage のみを参照するため、
@@ -3903,7 +4131,7 @@ function persistGcal()         { try { localStorage.setItem(LS_GCAL,         JSO
 function persistGmail()        { try { localStorage.setItem(LS_GMAIL,        JSON.stringify(cachedGmail)); } catch (e) {} }
 function persistGmailPending() { try { localStorage.setItem(LS_GMAIL_PENDING,JSON.stringify(cachedGmailPending)); } catch (e) {} }
 function persistDashboard()    { try { localStorage.setItem(LS_DASHBOARD,    JSON.stringify(cachedDashboard)); } catch (e) {} }
-function persistJobPostings()  { try { localStorage.setItem(LS_JOB_POSTINGS, JSON.stringify(cachedJobPostings)); } catch (e) {} }
+function persistJobRefs()      { try { localStorage.setItem(LS_JOB_POSTINGS, JSON.stringify(cachedJobRefs)); } catch (e) {} }
 function loadFromLocalStorage() {
   const idx = safeParse(localStorage.getItem(LS_INDEX), null);
   if (idx && Array.isArray(idx.candidates)) cachedIndex = idx;
@@ -3937,7 +4165,10 @@ function loadFromLocalStorage() {
     if (dash.thresholds) cachedDashboard.thresholds = { ...cachedDashboard.thresholds, ...dash.thresholds };
   }
   const jp = safeParse(localStorage.getItem(LS_JOB_POSTINGS), null);
-  if (jp && Array.isArray(jp.items)) cachedJobPostings = jp;
+  if (jp && Array.isArray(jp.refs)) cachedJobRefs = jp;
+  else if (jp && Array.isArray(jp.items)) {
+    cachedJobRefs = { refs: jp.items.map(it => ({ id: it.id, title: it.title, empType: it.empType, body: it.text || it.body || '' })) };
+  }
 }
 function persistCandidate(candidate) {
   // 後方互換: mainScopePositionId のスナップショットを c.scopeResult にも書き込む
@@ -4354,6 +4585,14 @@ function showScreen(name) {
   if (name === 'list') applyMainView();
   if (name === 'add') renderSourceGrid();
   if (name === 'settings') showSettingsPane(currentSettingsPane || 'scope');
+  if (name === 'jobposting') {
+    renderJobRefList();
+    jpCountChars('jp-yt-title','jp-yt-title-count',40);
+    jpCountChars('jp-yt-body','jp-yt-body-count',2000);
+    jpCountChars('jp-wa-title','jp-wa-title-count',37);
+    jpCountChars('jp-wa-body','jp-wa-body-count',2000);
+    if (window.lucide) lucide.createIcons();
+  }
 }
 
 // ----- List screen -----------------------------------------------
@@ -12777,216 +13016,215 @@ function deleteUser(id) {
 }
 
 // ============ 求人票（Job Posting）機能 ============================
-// 参考求人票（リスト）はDriveの job_postings.json に保存し、AI生成時の
-// トーン・構成・文体の参照元として複数選択可能。
-// YOUTRUST / Wantedly タブそれぞれに対し Claude Sonnet を使って生成する。
+// 参考求人票はDriveの job_postings.json に保存。AI生成時のトーン・構成の参照元。
+// 初期表示は DEFAULT_JOB_REFS（THE MOLTS既存3件）。
+// YOUTRUST / Wantedly それぞれに対し Claude Sonnet を使って2回呼び出して生成する。
 
-const JP_LIMITS = {
-  youtrust: { title: 40, body: 2000 },
-  wantedly: { title: 37, body: 2000 }
-};
-
-function openJobPostingScreen() {
-  showScreen('jobposting');
-  renderJpRefList();
-  // カウンタ初期化
-  updateJpCounter('youtrust');
-  updateJpCounter('wantedly');
-  if (window.lucide) lucide.createIcons();
-}
-
-function renderJpRefList() {
-  const el = document.getElementById('jpRefList');
+function renderJobRefList() {
+  const refs = cachedJobRefs.refs || DEFAULT_JOB_REFS;
+  const el = document.getElementById('jobRefList');
   if (!el) return;
-  const items = cachedJobPostings.items || [];
-  if (items.length === 0) {
-    el.innerHTML = '<div class="source-label" style="font-size:11px;">参考求人票が登録されていません。「+ 登録」から追加できます。</div>';
-    return;
-  }
-  el.innerHTML = items.map(it => {
-    const checked = jpSelectedRefIds.has(it.id) ? 'checked' : '';
-    const safeId = escapeHtml(it.id);
-    return `<label class="jp-ref-item">
-      <input type="checkbox" ${checked} onchange="toggleJpRef('${safeId}', this.checked)">
-      <div style="flex:1; min-width:0;">
-        <div style="font-weight:500;">${escapeHtml(it.title || '(タイトルなし)')}</div>
-        <div class="jp-ref-meta">${escapeHtml(it.empType || '—')}・${(it.text || '').length}文字</div>
-      </div>
-      <button class="btn-ghost" onclick="deleteJpReference('${safeId}')" title="削除"><i data-lucide="trash-2" class="lucide" style="width:13px;height:13px;"></i></button>
-    </label>`;
-  }).join('');
-  if (window.lucide) lucide.createIcons();
+  el.innerHTML = refs.map(r => `
+    <label style="display:flex; align-items:center; gap:8px; padding:8px 10px; border:1px solid var(--border); border-radius:7px; margin-bottom:6px; font-size:12px; cursor:pointer;">
+      <input type="checkbox" value="${escapeHtml(r.id)}" checked style="width:15px; height:15px; accent-color:var(--primary); flex-shrink:0;">
+      <span style="flex:1;">${escapeHtml(r.title)}</span>
+      <span style="font-size:10px; padding:2px 7px; border-radius:10px; background:var(--bg-secondary); color:var(--text-tertiary); border:1px solid var(--border); flex-shrink:0;">${escapeHtml(r.empType)}</span>
+    </label>
+  `).join('');
 }
 
-function toggleJpRef(id, checked) {
-  if (checked) jpSelectedRefIds.add(id); else jpSelectedRefIds.delete(id);
-}
-
-function toggleAddJpRefForm() {
+function openAddJobRefModal() {
   const f = document.getElementById('jpRefForm');
   if (!f) return;
   f.style.display = f.style.display === 'none' ? '' : 'none';
 }
 
-async function saveJpReference() {
+async function saveJobRef() {
   const title = (document.getElementById('jpRefTitle').value || '').trim();
   const empType = document.getElementById('jpRefEmpType').value || '中途';
-  const text = (document.getElementById('jpRefText').value || '').trim();
-  if (!title || !text) { showToast('タイトルと本文は必須です', 'error'); return; }
-  cachedJobPostings.items = cachedJobPostings.items || [];
-  cachedJobPostings.items.push({
-    id: 'jp_' + Date.now(),
-    title, empType, text,
-    createdAt: new Date().toISOString()
+  const body = (document.getElementById('jpRefText').value || '').trim();
+  if (!title || !body) { showToast('タイトルと本文は必須です', 'error'); return; }
+  // refs が null の場合はデフォルトを起点にコピー、その後追加
+  if (!Array.isArray(cachedJobRefs.refs)) {
+    cachedJobRefs.refs = DEFAULT_JOB_REFS.map(r => ({ ...r }));
+  }
+  cachedJobRefs.refs.push({
+    id: 'ref_' + Date.now(),
+    title, empType, body
   });
-  persistJobPostings();
-  await syncAtsFile(DRIVE_JOB_POSTINGS_FILE, cachedJobPostings);
+  persistJobRefs();
+  await syncAtsFile(DRIVE_JOB_POSTINGS_FILE, cachedJobRefs);
   document.getElementById('jpRefTitle').value = '';
   document.getElementById('jpRefText').value = '';
   document.getElementById('jpRefForm').style.display = 'none';
-  renderJpRefList();
+  renderJobRefList();
   showToast('参考求人票を登録しました', 'success');
 }
 
-async function deleteJpReference(id) {
-  if (!confirm('この参考求人票を削除しますか？')) return;
-  cachedJobPostings.items = (cachedJobPostings.items || []).filter(x => x.id !== id);
-  jpSelectedRefIds.delete(id);
-  persistJobPostings();
-  await syncAtsFile(DRIVE_JOB_POSTINGS_FILE, cachedJobPostings);
-  renderJpRefList();
-  showToast('削除しました', 'success');
+function switchJpMedia(btn, media) {
+  document.querySelectorAll('.jp-media-tab').forEach(b => {
+    b.style.background = 'none';
+    b.style.color = 'var(--text-secondary)';
+    b.style.boxShadow = 'none';
+    b.style.fontWeight = '400';
+  });
+  btn.style.background = 'var(--bg)';
+  btn.style.color = 'var(--text)';
+  btn.style.boxShadow = '0 1px 3px rgba(0,0,0,.08)';
+  btn.style.fontWeight = '500';
+  document.getElementById('jp-pane-yt').style.display = media === 'yt' ? '' : 'none';
+  document.getElementById('jp-pane-wa').style.display = media === 'wa' ? '' : 'none';
 }
 
-function switchJpTab(platform) {
-  document.querySelectorAll('.jp-tab').forEach(b => b.classList.toggle('active', b.dataset.platform === platform));
-  document.getElementById('jpPane-youtrust').style.display = platform === 'youtrust' ? '' : 'none';
-  document.getElementById('jpPane-wantedly').style.display = platform === 'wantedly' ? '' : 'none';
-}
-
-function updateJpCounter(platform) {
-  const titleId = platform === 'youtrust' ? 'jpYTitle' : 'jpWTitle';
-  const bodyId = platform === 'youtrust' ? 'jpYBody' : 'jpWBody';
-  const tcId = platform === 'youtrust' ? 'jpYTitleCounter' : 'jpWTitleCounter';
-  const bcId = platform === 'youtrust' ? 'jpYBodyCounter' : 'jpWBodyCounter';
-  const lim = JP_LIMITS[platform];
-  const tEl = document.getElementById(titleId);
-  const bEl = document.getElementById(bodyId);
-  const tc = document.getElementById(tcId);
-  const bc = document.getElementById(bcId);
-  if (tEl && tc) {
-    const len = (tEl.value || '').length;
-    tc.textContent = `${len}/${lim.title}`;
-    tc.className = 'jp-counter' + (len > lim.title ? ' over' : len >= Math.floor(lim.title * 0.9) ? ' warn' : '');
-  }
-  if (bEl && bc) {
-    const len = (bEl.value || '').length;
-    bc.textContent = `${len}/${lim.body}`;
-    bc.className = 'jp-counter' + (len > lim.body ? ' over' : len >= Math.floor(lim.body * 0.9) ? ' warn' : '');
+function jpCountChars(inputId, countId, max) {
+  const el = document.getElementById(countId);
+  const inp = document.getElementById(inputId);
+  if (!el || !inp) return;
+  const len = (inp.value || '').length;
+  el.textContent = len + ' / ' + max + '文字';
+  if (len > max) {
+    el.style.color = 'var(--danger, var(--error))';
+    el.style.fontWeight = '700';
+  } else if (len > max * 0.9) {
+    el.style.color = 'var(--warning-text, #856404)';
+    el.style.fontWeight = '600';
+  } else {
+    el.style.color = 'var(--success)';
+    el.style.fontWeight = '400';
   }
 }
 
-async function copyJobPosting(platform) {
-  const title = (document.getElementById(platform === 'youtrust' ? 'jpYTitle' : 'jpWTitle').value || '').trim();
-  const body = (document.getElementById(platform === 'youtrust' ? 'jpYBody' : 'jpWBody').value || '').trim();
-  if (!title && !body) { showToast('コピーする内容がありません', 'error'); return; }
-  const combined = (title ? title + '\n\n' : '') + body;
-  try {
-    await navigator.clipboard.writeText(combined);
-    showToast('クリップボードにコピーしました', 'success');
-  } catch (e) {
-    showToast('コピーに失敗しました', 'error');
-  }
+function jpCopy(media) {
+  const title = (document.getElementById('jp-' + media + '-title').value || '').trim();
+  const body = (document.getElementById('jp-' + media + '-body').value || '').trim();
+  if (!title && !body) { showToast('先に求人票を生成してください', 'error'); return; }
+  const text = '【タイトル】\n' + title + '\n\n' + (media === 'yt' ? '【詳細】' : '【ポジション詳細】') + '\n' + body;
+  navigator.clipboard.writeText(text)
+    .then(() => showToast('コピーしました！', 'success'))
+    .catch(() => showToast('コピーに失敗しました', 'error'));
 }
 
 async function generateJobPosting() {
-  const apiKey = localStorage.getItem(LS_API_KEY);
-  if (!apiKey) { showToast('APIキーが未設定です', 'error'); return; }
-  const posName = (document.getElementById('jpPosName').value || '').trim();
+  const posName = (document.getElementById('jpPositionName').value || '').trim();
   if (!posName) { showToast('ポジション名を入力してください', 'error'); return; }
-  const empType = document.getElementById('jpEmpType').value || '中途';
-  const purpose = (document.getElementById('jpPurpose').value || '').trim();
-  const duties = (document.getElementById('jpDuties').value || '').trim();
-  const required = (document.getElementById('jpRequired').value || '').trim();
-  const preferred = (document.getElementById('jpPreferred').value || '').trim();
-  const comp = (document.getElementById('jpComp').value || '').trim();
+  const apiKey = localStorage.getItem(LS_API_KEY);
+  if (!apiKey) { showToast('APIキーが設定されていません', 'error'); return; }
 
-  const refs = (cachedJobPostings.items || []).filter(it => jpSelectedRefIds.has(it.id));
-  const brand = (CONFIG && CONFIG.company && CONFIG.company.brandName) || 'THE MOLTS';
+  // チェックされた参考求人票を収集
+  const refs = cachedJobRefs.refs || DEFAULT_JOB_REFS;
+  const checkedIds = Array.from(document.querySelectorAll('#jobRefList input[type=checkbox]:checked')).map(cb => cb.value);
+  const refTexts = refs.filter(r => checkedIds.includes(r.id)).map(r => `=== 参考求人票：${r.title} ===\n${r.body}`).join('\n\n');
 
-  const positionInfo = `新しいポジション情報:
-- ポジション名: ${posName}
-- 雇用形態: ${empType}
-${purpose ? `- 募集背景・目的: ${purpose}\n` : ''}${duties ? `- 業務内容: ${duties}\n` : ''}${required ? `- 必須スキル・経験: ${required}\n` : ''}${preferred ? `- 歓迎スキル・経験: ${preferred}\n` : ''}${comp ? `- 稼働・報酬条件: ${comp}\n` : ''}`;
+  const empType = document.getElementById('jpEmpType').value;
+  const background = document.getElementById('jpBackground').value;
+  const tasks = document.getElementById('jpTasks').value;
+  const required = document.getElementById('jpRequired').value;
+  const preferred = document.getElementById('jpPreferred').value;
+  const conditions = document.getElementById('jpConditions').value;
 
-  const refSection = refs.length
-    ? '\n\n参考求人票:\n' + refs.map(r => `## ${r.title}（${r.empType}）\n${r.text}`).join('\n\n---\n\n')
-    : '';
-
+  // ローディング表示
+  ['jp-yt-title','jp-yt-body','jp-wa-title','jp-wa-body'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (el.tagName === 'INPUT') el.value = '';
+    else el.value = '生成中...';
+  });
+  const regenBtn = document.getElementById('jpRegenBtn');
+  if (regenBtn) regenBtn.style.display = '';
   const genBtn = document.getElementById('jpGenerateBtn');
   const genStatus = document.getElementById('jpGenStatus');
   const genStatusText = document.getElementById('jpGenStatusText');
   if (genBtn) genBtn.disabled = true;
   if (genStatus) genStatus.style.display = 'flex';
 
+  const systemPrompt = `あなたはTHE MOLTSの採用担当です。
+以下の参考求人票のトーン・文体・構成を忠実に学習して、新しいポジションの求人票を生成してください。
+THE MOLTSの企業文化（「美味い、酒を飲む。」の理念、全数字開示、出社義務なし、成果主義）は必ず含めてください。
+
+${refTexts ? '【参考求人票】\n' + refTexts : ''}`;
+
+  const userPromptYT = `以下のポジション情報をもとに、YOUTRUST向けの求人票を生成してください。
+
+ポジション名：${posName}
+雇用形態：${empType}
+募集背景：${background}
+業務内容：${tasks}
+必須スキル：${required}
+歓迎スキル：${preferred}
+稼働・報酬：${conditions}
+
+以下の形式で出力してください：
+【タイトル】（40文字以内で魅力的なキャッチコピー）
+---
+【詳細本文】（2000文字以内。■見出し形式で、会社概要・理念・制度・業務内容・必須スキル・歓迎スキル・報酬条件・仕事の魅力の順で記載）`;
+
+  const userPromptWA = `以下のポジション情報をもとに、Wantedly向けの求人票を生成してください。
+
+ポジション名：${posName}
+雇用形態：${empType}
+募集背景：${background}
+業務内容：${tasks}
+必須スキル：${required}
+歓迎スキル：${preferred}
+稼働・報酬：${conditions}
+
+以下の形式で出力してください：
+【タイトル】（37文字以内でターゲットに呼びかける形）
+---
+【ポジション詳細】（2000文字以内。【業務内容】【必須スキル】【歓迎スキル】【稼働条件】の順で記載。Wantedlyらしい語りかける文体で）`;
+
   try {
-    for (const platform of ['youtrust', 'wantedly']) {
-      if (genStatusText) genStatusText.textContent = `${platform === 'youtrust' ? 'YOUTRUST' : 'Wantedly'} 生成中...`;
-      const lim = JP_LIMITS[platform];
-      const platLabel = platform === 'youtrust' ? 'YOUTRUST' : 'Wantedly';
-      const systemPrompt = `あなたは${brand}の採用担当です。以下の参考求人票のトーン・構成・文体を学習して、新しいポジションの求人票を生成してください。
-
-媒体: ${platLabel}
-タイトル文字数上限: ${lim.title}文字
-詳細文字数上限: ${lim.body}文字
-
-ルール:
-- タイトルは候補者の興味を引く魅力的な見出し（必ず${lim.title}文字以内）
-- 詳細は参考求人票のトーンに合わせ、構成・段落分けを踏襲
-- 詳細は${lim.body}文字以内
-- マークダウン記号(**, # 等)は使わない
-- 必ず以下のJSON形式のみで返答（前置き・後書き・コードブロック不要）:
-{"title":"...","body":"..."}${refSection}`;
-      const userPrompt = positionInfo;
-      const res = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-api-key': apiKey,
-          'anthropic-version': '2023-06-01',
-          'anthropic-dangerous-direct-browser-access': 'true'
-        },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 3000,
-          system: systemPrompt,
-          messages: [{ role: 'user', content: userPrompt }]
-        })
-      });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error((err.error && err.error.message) || (platLabel + ' API Error: ' + res.status));
-      }
-      const data = await res.json();
-      const text = (data.content && data.content[0] && data.content[0].text) || '';
-      // JSON抽出
-      let parsed = null;
-      try {
-        const m = text.match(/\{[\s\S]*\}/);
-        if (m) parsed = JSON.parse(m[0]);
-      } catch (e) { console.warn('[JP] parse fail', platform, e); }
-      const titleEl = document.getElementById(platform === 'youtrust' ? 'jpYTitle' : 'jpWTitle');
-      const bodyEl = document.getElementById(platform === 'youtrust' ? 'jpYBody' : 'jpWBody');
-      if (parsed) {
-        if (titleEl) titleEl.value = parsed.title || '';
-        if (bodyEl) bodyEl.value = parsed.body || '';
-      } else {
-        // パース失敗時は生テキストを body にフォールバック
-        if (bodyEl) bodyEl.value = text;
-      }
-      updateJpCounter(platform);
+    // YOUTRUST生成
+    if (genStatusText) genStatusText.textContent = 'YOUTRUST 生成中...';
+    const resYT = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 2000, system: systemPrompt, messages: [{ role: 'user', content: userPromptYT }] })
+    });
+    if (!resYT.ok) {
+      const err = await resYT.json().catch(() => ({}));
+      throw new Error((err.error && err.error.message) || ('YOUTRUST API Error: ' + resYT.status));
     }
-    showToast('求人票を生成しました', 'success');
+    const dataYT = await resYT.json();
+    const textYT = (dataYT.content && dataYT.content[0] && dataYT.content[0].text) || '';
+    const ytTitleMatch = textYT.match(/【タイトル】\s*([\s\S]*?)(?:---|【詳細|$)/);
+    const ytBodyMatch = textYT.match(/【詳細本文】\s*([\s\S]*?)$/);
+    document.getElementById('jp-yt-title').value = (ytTitleMatch && ytTitleMatch[1] ? ytTitleMatch[1] : '').trim();
+    document.getElementById('jp-yt-body').value = (ytBodyMatch && ytBodyMatch[1] ? ytBodyMatch[1] : textYT).trim();
+    jpCountChars('jp-yt-title','jp-yt-title-count',40);
+    jpCountChars('jp-yt-body','jp-yt-body-count',2000);
+
+    // Wantedly生成
+    if (genStatusText) genStatusText.textContent = 'Wantedly 生成中...';
+    const resWA = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({ model: 'claude-sonnet-4-20250514', max_tokens: 2000, system: systemPrompt, messages: [{ role: 'user', content: userPromptWA }] })
+    });
+    if (!resWA.ok) {
+      const err = await resWA.json().catch(() => ({}));
+      throw new Error((err.error && err.error.message) || ('Wantedly API Error: ' + resWA.status));
+    }
+    const dataWA = await resWA.json();
+    const textWA = (dataWA.content && dataWA.content[0] && dataWA.content[0].text) || '';
+    const waTitleMatch = textWA.match(/【タイトル】\s*([\s\S]*?)(?:---|【ポジション|$)/);
+    const waBodyMatch = textWA.match(/【ポジション詳細】\s*([\s\S]*?)$/);
+    document.getElementById('jp-wa-title').value = (waTitleMatch && waTitleMatch[1] ? waTitleMatch[1] : '').trim();
+    document.getElementById('jp-wa-body').value = (waBodyMatch && waBodyMatch[1] ? waBodyMatch[1] : textWA).trim();
+    jpCountChars('jp-wa-title','jp-wa-title-count',37);
+    jpCountChars('jp-wa-body','jp-wa-body-count',2000);
+
+    showToast('求人票を生成しました！', 'success');
   } catch (e) {
     console.error(e);
     showToast('生成に失敗しました: ' + e.message, 'error');
