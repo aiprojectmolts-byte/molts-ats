@@ -3626,8 +3626,10 @@ const DriveStorage = {
   async findFileInFolder(folderId, filename, cache, bypassCache) {
     if (!bypassCache && cache && cache[filename]) return cache[filename];
     const q = "name='" + filename + "' and '" + folderId + "' in parents and trashed=false";
+    // corpora=allDrives: 共有ドライブ上のファイルを My Drive 由来でないアカウントからも検索可能にする
+    // （includeItemsFromAllDrives + supportsAllDrives と併用が必須）
     const url = 'https://www.googleapis.com/drive/v3/files?q=' + encodeURIComponent(q)
-      + '&fields=files(id,owners)&includeItemsFromAllDrives=true&supportsAllDrives=true'
+      + '&fields=files(id,owners)&corpora=allDrives&includeItemsFromAllDrives=true&supportsAllDrives=true'
       + (bypassCache ? '&_t=' + Date.now() : '');
     const res = await this.apiRequest(url, bypassCache ? { cache: 'no-store' } : {});
     const data = await res.json();
