@@ -3498,6 +3498,24 @@ const DriveStorage = {
     return res;
   },
 
+  // 候補ファイル群から DRIVE_OWNER_EMAIL が所有するものを優先選択する。
+  // 該当が無い場合は最初のヒット（後方互換）を返す。
+  pickByOwner(files) {
+    if (!Array.isArray(files) || files.length === 0) return null;
+    if (DRIVE_OWNER_EMAIL) {
+      const owned = files.find(f => Array.isArray(f.owners) && f.owners.some(o =>
+        (o && o.emailAddress || '').toLowerCase() === DRIVE_OWNER_EMAIL.toLowerCase()
+      ));
+      if (owned) return owned;
+      // 候補が複数あって所有者一致が無い場合は警告（共有設定の不備の可能性）
+      if (files.length > 1) {
+        console.warn('[Drive] pickByOwner: ' + DRIVE_OWNER_EMAIL + ' 所有のファイルが見つかりません。'
+          + 'fallback to first match. candidates=', files.map(f => ({ id: f.id, owners: (f.owners || []).map(o => o.emailAddress) })));
+      }
+    }
+    return files[0];
+  },
+
   async ensureSubFolder(parentId, name) {
     // 共有運用では includeItemsFromAllDrives + supportsAllDrives で共有ファイルがヒットする。
     // owners 句や corpora=allDrives は Gmailアカウントで 400 を返すため使用しない。
@@ -3507,9 +3525,11 @@ const DriveStorage = {
       + '&includeItemsFromAllDrives=true&supportsAllDrives=true';
     const res = await this.apiRequest(url);
     const data = await res.json();
-    if (data.files && data.files.length > 0) {
-      console.log('[Drive] ensureSubFolder found:', name, '->', data.files[0].id);
-      return data.files[0].id;
+    const picked = this.pickByOwner(data.files);
+    if (picked) {
+      console.log('[Drive] ensureSubFolder found:', name, '->', picked.id,
+        DRIVE_OWNER_EMAIL ? '(owner-preferred)' : '');
+      return picked.id;
     }
     // 共有運用かつ共有元（owner）が見つからない場合は新規作成しない（個別ユーザーのDriveに作ると共有が壊れるため）
     if (DRIVE_OWNER_EMAIL) {
@@ -3537,7 +3557,15 @@ const DriveStorage = {
           + '&includeItemsFromAllDrives=true&supportsAllDrives=true';
         const res = await this.apiRequest(url);
         const data = await res.json();
-        if (data.files && data.files.length > 0) { this.rootFolderId = data.files[0].id; return this.rootFolderId; }
+        // DRIVE_OWNER_EMAIL が設定されていれば、その所有者のフォルダを優先する。
+        // ログインアカウントがオーナー以外でも、共有された aiprojectmolts のScoutDataを必ず参照させるため。
+        const picked = this.pickByOwner(data.files);
+        if (picked) {
+          this.rootFolderId = picked.id;
+          console.log('[Drive] ensureRootFolder found:', DRIVE_FOLDER_NAME, '->', this.rootFolderId,
+            DRIVE_OWNER_EMAIL ? '(owner=' + DRIVE_OWNER_EMAIL + ')' : '');
+          return this.rootFolderId;
+        }
         if (DRIVE_OWNER_EMAIL) {
           throw new Error(`[Drive] 共有ルートフォルダ "${DRIVE_FOLDER_NAME}" が見つかりません。${DRIVE_OWNER_EMAIL} が所有するフォルダを共有してください`);
         }
@@ -3588,9 +3616,12 @@ const DriveStorage = {
       + (bypassCache ? '&_t=' + Date.now() : '');
     const res = await this.apiRequest(url, bypassCache ? { cache: 'no-store' } : {});
     const data = await res.json();
-    if (data.files && data.files.length > 0) {
-      if (cache) cache[filename] = data.files[0].id;
-      return data.files[0].id;
+    // 同名ファイルが複数返った場合（個人Driveのコピーと共有Driveの両方がヒット等）、
+    // DRIVE_OWNER_EMAIL 所有のものを優先する。
+    const picked = this.pickByOwner(data.files);
+    if (picked) {
+      if (cache) cache[filename] = picked.id;
+      return picked.id;
     }
     return null;
   },
