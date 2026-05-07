@@ -2915,6 +2915,9 @@ let DRIVE_ATS_SUBFOLDER = 'ats';
 let DRIVE_ATS_CANDIDATES_DIR = 'candidates';
 // 共有運用: 指定アカウントが所有するフォルダ/ファイルを優先利用する（空なら自分のDrive）
 let DRIVE_OWNER_EMAIL = '';
+// 共有運用: フォルダIDを直接ピン留めする（空なら名前検索にフォールバック）
+let DRIVE_ROOT_FOLDER_ID = '';
+let DRIVE_ATS_FOLDER_ID  = '';
 let STORAGE_PREFIX = 'ats_';
 
 // Drive file names (inside ats/)
@@ -3378,6 +3381,8 @@ function applyConfig(cfg) {
   DRIVE_ATS_SUBFOLDER = (cfg.google && cfg.google.atsSubFolder) || 'ats';
   DRIVE_ATS_CANDIDATES_DIR = (cfg.google && cfg.google.candidatesSubFolder) || 'candidates';
   DRIVE_OWNER_EMAIL = (cfg.google && cfg.google.driveOwnerEmail) || '';
+  DRIVE_ROOT_FOLDER_ID = (cfg.google && cfg.google.driveRootFolderId) || '';
+  DRIVE_ATS_FOLDER_ID  = (cfg.google && cfg.google.driveAtsFolderId)  || '';
 
   STORAGE_PREFIX = (cfg.google && cfg.google.storagePrefix) || 'ats_';
   LS_API_KEY         = STORAGE_PREFIX + 'api_key';
@@ -3548,6 +3553,12 @@ const DriveStorage = {
 
   async ensureRootFolder() {
     if (this.rootFolderId) return this.rootFolderId;
+    // configでフォルダIDが固定されていれば名前検索をスキップ（複数同名フォルダ問題の回避）
+    if (DRIVE_ROOT_FOLDER_ID) {
+      this.rootFolderId = DRIVE_ROOT_FOLDER_ID;
+      console.log('[Drive] ensureRootFolder pinned by config:', this.rootFolderId);
+      return this.rootFolderId;
+    }
     if (this._rootPromise) return this._rootPromise;
     this._rootPromise = (async () => {
       try {
@@ -3584,6 +3595,12 @@ const DriveStorage = {
 
   async ensureAtsFolder() {
     if (this.atsFolderId) return this.atsFolderId;
+    // configでatsフォルダIDが固定されていれば検索/作成をスキップ
+    if (DRIVE_ATS_FOLDER_ID) {
+      this.atsFolderId = DRIVE_ATS_FOLDER_ID;
+      console.log('[Drive] ensureAtsFolder pinned by config:', this.atsFolderId);
+      return this.atsFolderId;
+    }
     if (this._atsPromise) return this._atsPromise;
     this._atsPromise = (async () => {
       try {

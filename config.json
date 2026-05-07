@@ -10,7 +10,9 @@
     "atsSubFolder": "ats",
     "candidatesSubFolder": "candidates",
     "storagePrefix": "ats_",
-    "driveOwnerEmail": "aiprojectmolts@gmail.com"
+    "driveOwnerEmail": "aiprojectmolts@gmail.com",
+    "driveRootFolderId": "1GZcgUGMquWA1eUOAt9NH-vHXCSb_rVEP",
+    "driveAtsFolderId": "1pxE_dCH1vj2A84Jjf-tBurkNI6xM7mXp"
   },
   "platforms": [
     {
