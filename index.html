@@ -3715,9 +3715,11 @@ const DriveStorage = {
 let tokenClient = null;
 // OAuth で要求するスコープ
 // CORE が足りなければ強制再同意、OPTIONAL が足りなくてもアプリは動作する（機能制限のみ）
+// drive スコープは drive.file と異なり、ユーザーがアクセス可能な全Driveファイルを参照可能。
+// 共有運用（owner=aiprojectmolts、参加者=info@等）でアカウント間の可視性を揃えるため drive を使用する。
 const REQUIRED_CORE_SCOPES = [
   'openid', 'email', 'profile',
-  'https://www.googleapis.com/auth/drive.file',
+  'https://www.googleapis.com/auth/drive',
   'https://www.googleapis.com/auth/drive.appdata'
 ];
 const OPTIONAL_OAUTH_SCOPES = [
