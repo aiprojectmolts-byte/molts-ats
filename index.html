@@ -3512,11 +3512,9 @@ const DriveStorage = {
         (o && o.emailAddress || '').toLowerCase() === DRIVE_OWNER_EMAIL.toLowerCase()
       ));
       if (owned) return owned;
-      // 候補が複数あって所有者一致が無い場合は警告（共有設定の不備の可能性）
-      if (files.length > 1) {
-        console.warn('[Drive] pickByOwner: ' + DRIVE_OWNER_EMAIL + ' 所有のファイルが見つかりません。'
-          + 'fallback to first match. candidates=', files.map(f => ({ id: f.id, owners: (f.owners || []).map(o => o.emailAddress) })));
-      }
+      // owner所有のファイルが見つからずfallbackする場合は常に警告（duplicate検知用）
+      console.warn('[Drive] pickByOwner: ' + DRIVE_OWNER_EMAIL + ' 所有のファイルが見つかりません。'
+        + 'fallback to first match. candidates=', files.map(f => ({ id: f.id, owners: (f.owners || []).map(o => o.emailAddress) })));
     }
     return files[0];
   },
@@ -3643,8 +3641,9 @@ const DriveStorage = {
     return null;
   },
 
-  async writeJSONToFolder(folderId, filename, jsonData, cache) {
-    const fileId = await this.findFileInFolder(folderId, filename, cache);
+  async writeJSONToFolder(folderId, filename, jsonData, cache, bypassCache) {
+    // bypassCache=true なら毎回 Drive 検索 → pickByOwner を走らせ、owner所有の既存ファイルを確実に上書き対象にする
+    const fileId = await this.findFileInFolder(folderId, filename, cache, bypassCache);
     const jsonStr = JSON.stringify(jsonData);
     if (fileId) {
       await this.apiRequest(
@@ -3684,7 +3683,13 @@ const DriveStorage = {
     return json;
   },
 
-  async writeAts(filename, data)  { const f = await this.ensureAtsFolder();      return this.writeJSONToFolder(f, filename, data, this.fileIds); },
+  async writeAts(filename, data) {
+    const f = await this.ensureAtsFolder();
+    // users.json は複数アカウント間で同名ファイルが分裂しないよう、書き込み時もキャッシュバイパス
+    // → 毎回 Drive を検索 → pickByOwner で owner 所有の既存ファイルを確実に上書きする
+    const bypassCache = filename === DRIVE_USERS_FILE;
+    return this.writeJSONToFolder(f, filename, data, this.fileIds, bypassCache);
+  },
   async readAts(filename, bypassCache) {
     const f = await this.ensureAtsFolder();
     // users.json は複数アカウント間の不整合を避けるため、呼び出し元によらず常にキャッシュをバイパス
