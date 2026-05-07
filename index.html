@@ -3580,13 +3580,13 @@ const DriveStorage = {
     return this._candidatesPromise;
   },
 
-  async findFileInFolder(folderId, filename, cache) {
-    if (cache && cache[filename]) return cache[filename];
+  async findFileInFolder(folderId, filename, cache, bypassCache) {
+    if (!bypassCache && cache && cache[filename]) return cache[filename];
     const q = "name='" + filename + "' and '" + folderId + "' in parents and trashed=false";
-    const res = await this.apiRequest(
-      'https://www.googleapis.com/drive/v3/files?q=' + encodeURIComponent(q)
-        + '&fields=files(id,owners)&includeItemsFromAllDrives=true&supportsAllDrives=true'
-    );
+    const url = 'https://www.googleapis.com/drive/v3/files?q=' + encodeURIComponent(q)
+      + '&fields=files(id,owners)&includeItemsFromAllDrives=true&supportsAllDrives=true'
+      + (bypassCache ? '&_t=' + Date.now() : '');
+    const res = await this.apiRequest(url, bypassCache ? { cache: 'no-store' } : {});
     const data = await res.json();
     if (data.files && data.files.length > 0) {
       if (cache) cache[filename] = data.files[0].id;
@@ -3620,22 +3620,24 @@ const DriveStorage = {
       if (cache) cache[filename] = file.id;
     }
   },
-  async readJSONFromFolder(folderId, filename, cache) {
-    const fileId = await this.findFileInFolder(folderId, filename, cache);
+  async readJSONFromFolder(folderId, filename, cache, bypassCache) {
+    const fileId = await this.findFileInFolder(folderId, filename, cache, bypassCache);
     if (!fileId) {
       console.log('[Drive] readJSONFromFolder: file not found ->', filename, '(folder:', folderId + ')');
       return null;
     }
-    const res = await this.apiRequest(
-      'https://www.googleapis.com/drive/v3/files/' + fileId + '?alt=media&supportsAllDrives=true'
-    );
+    const url = 'https://www.googleapis.com/drive/v3/files/' + fileId
+      + '?alt=media&supportsAllDrives=true'
+      + (bypassCache ? '&_t=' + Date.now() : '');
+    const res = await this.apiRequest(url, bypassCache ? { cache: 'no-store' } : {});
     const json = await res.json();
-    console.log('[Drive] readJSONFromFolder: loaded ->', filename, '(id:', fileId + ')');
+    console.log('[Drive] readJSONFromFolder: loaded ->', filename, '(id:', fileId + ')'
+      + (bypassCache ? ' [fresh]' : ''));
     return json;
   },
 
   async writeAts(filename, data)  { const f = await this.ensureAtsFolder();      return this.writeJSONToFolder(f, filename, data, this.fileIds); },
-  async readAts(filename)         { const f = await this.ensureAtsFolder();      return this.readJSONFromFolder(f, filename, this.fileIds); },
+  async readAts(filename, bypassCache) { const f = await this.ensureAtsFolder(); return this.readJSONFromFolder(f, filename, this.fileIds, bypassCache); },
   async writeCandidate(id, data)  { const f = await this.ensureCandidatesFolder(); return this.writeJSONToFolder(f, id + '.json', data, this.candidateFileIds); },
   async readCandidate(id)         { const f = await this.ensureCandidatesFolder(); return this.readJSONFromFolder(f, id + '.json', this.candidateFileIds); },
   async deleteCandidate(id) {
@@ -4049,7 +4051,9 @@ async function loadAllFromDrive() {
       DRIVE_SCOPE_FILE, DRIVE_TEMPLATES_FILE, DRIVE_SLACK_FILE, DRIVE_GCAL_FILE,
       DRIVE_GMAIL_FILE, DRIVE_GMAIL_PENDING_FILE, DRIVE_DASHBOARD_FILE, DRIVE_JOB_POSTINGS_FILE
     ];
-    const results = await Promise.allSettled(files.map(f => DriveStorage.readAts(f)));
+    // users.json はログインアカウント間で表示差異が出ないよう、常にDriveから最新版を取得する
+    // （ファイルIDキャッシュとブラウザHTTPキャッシュの両方をバイパス）
+    const results = await Promise.allSettled(files.map(f => DriveStorage.readAts(f, f === DRIVE_USERS_FILE)));
     const values = results.map((r, i) => {
       if (r.status === 'fulfilled') return r.value;
       console.warn('[Drive] loadAllFromDrive: failed ->', files[i], r.reason);
@@ -11241,7 +11245,24 @@ function showSettingsPane(name) {
   if (name === 'gmail')       renderGmailPane();
   if (name === 'company')     renderCompanyList();
   if (name === 'interviewer') renderInterviewerList();
-  if (name === 'users')       renderUserList();
+  if (name === 'users')       refreshUsersFromDriveAndRender();
+}
+
+// ユーザー管理ペインを開くたびにDriveから最新の users.json を取得して再描画する。
+// ファイルIDキャッシュとブラウザHTTPキャッシュをバイパスする。
+async function refreshUsersFromDriveAndRender() {
+  renderUserList();
+  if (!DriveStorage.isAuthenticated()) return;
+  try {
+    const fresh = await DriveStorage.readAts(DRIVE_USERS_FILE, true);
+    if (fresh && Array.isArray(fresh.users)) {
+      cachedUsers = fresh;
+      persistUsers();
+      renderUserList();
+    }
+  } catch (e) {
+    console.warn('[Users] Drive再取得に失敗:', e);
+  }
 }
 
 // -- Scope pane --
