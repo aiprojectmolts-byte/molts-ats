@@ -3637,7 +3637,12 @@ const DriveStorage = {
   },
 
   async writeAts(filename, data)  { const f = await this.ensureAtsFolder();      return this.writeJSONToFolder(f, filename, data, this.fileIds); },
-  async readAts(filename, bypassCache) { const f = await this.ensureAtsFolder(); return this.readJSONFromFolder(f, filename, this.fileIds, bypassCache); },
+  async readAts(filename, bypassCache) {
+    const f = await this.ensureAtsFolder();
+    // users.json は複数アカウント間の不整合を避けるため、呼び出し元によらず常にキャッシュをバイパス
+    const force = bypassCache || filename === DRIVE_USERS_FILE;
+    return this.readJSONFromFolder(f, filename, this.fileIds, force);
+  },
   async writeCandidate(id, data)  { const f = await this.ensureCandidatesFolder(); return this.writeJSONToFolder(f, id + '.json', data, this.candidateFileIds); },
   async readCandidate(id)         { const f = await this.ensureCandidatesFolder(); return this.readJSONFromFolder(f, id + '.json', this.candidateFileIds); },
   async deleteCandidate(id) {
@@ -12944,9 +12949,11 @@ function renderUserList() {
     const roleBadge = isPending
       ? `<span class="role-badge role-pending">承認待ち</span>`
       : `<span class="role-badge ${escapeHtml(getRoleCls(u.roleId))}">${escapeHtml(getRoleLabel(u.roleId))}</span>`;
-    const lastLogin = u.lastLoginAt
-      ? '最終ログイン: ' + formatRelative(u.lastLoginAt)
-      : '未ログイン';
+    const isCurrentUser = currentUserEmail && u.email
+      && u.email.toLowerCase() === currentUserEmail.toLowerCase();
+    const lastLogin = isCurrentUser
+      ? 'ログイン中'
+      : (u.lastLoginAt ? '最終ログイン: ' + formatRelative(u.lastLoginAt) : '未ログイン');
     return `<div class="master-item">
       <div style="display:flex; align-items:center; gap:10px;">
         <div class="user-avatar">${escapeHtml((u.name || '?').substring(0,1))}</div>
